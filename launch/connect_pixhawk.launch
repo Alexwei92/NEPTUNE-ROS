@@ -1,11 +1,10 @@
-<!-- Launch file for Neptune SITL drone -->
+<!-- Launch file for Neptune drone -->
 <launch>
 	<arg name="fcu_url" default="/dev/ttyTHS1:921600" />
 
 	<include file="$(find mavros)/launch/apm.launch">
 		<arg name="fcu_url" value="$(arg fcu_url)" />
 		<arg name="respawn_mavros" value="true" />
-		<arg name="gcs_url" value="udp://:14555@192.168.10.218:14550" />
 	</include>
 
 </launch>
