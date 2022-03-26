@@ -24,7 +24,10 @@ class GCS_Listener
     /**
      *  Initialize
     **/
-    GCS_Listener(std::string filename, double loop_rate)
+    GCS_Listener(std::string filename,
+             double loop_rate,
+             std::string color_image_topic,
+             std::string depth_image_topic)
     {       
         try
         {
@@ -48,9 +51,8 @@ class GCS_Listener
         }
         
 
-        _color_sub  = _n.subscribe("/camera/color/image_raw", 10, &GCS_Listener::updateColor, this);
-        _depth_sub  = _n.subscribe("/camera/aligned_depth_to_color/image_raw", 10, &GCS_Listener::updateDepth, this);
-        // _depth_sub  = _n.subscribe("/camera/depth/image_rect_raw", 10, &Listener::updateDepth, this);
+        _color_sub  = _n.subscribe(color_image_topic, 10, &GCS_Listener::updateColor, this);
+        _depth_sub  = _n.subscribe(depth_image_topic, 10, &GCS_Listener::updateDepth, this);
 
         _local_position_sub = _n.subscribe("/mavros/global_position/local", 10, &GCS_Listener::updateLocalPosition, this);
         _rel_alt_sub = _n.subscribe("/mavros/global_position/rel_alt", 10, &GCS_Listener::updateAlt, this);
@@ -82,8 +84,8 @@ class GCS_Listener
 
         _color_image.header.seq = _telemetry.header.seq;
         _depth_image.header.seq = _telemetry.header.seq;
-        _bag.write("/camera/color/image_raw", ros::Time::now(), _color_image);
-        _bag.write("/camera/aligned_depth_to_color/image_raw", ros::Time::now(), _depth_image);
+        _bag.write("/d435i/color/image_raw", ros::Time::now(), _color_image);
+        _bag.write("/d435i/aligned_depth_to_color/image_raw", ros::Time::now(), _depth_image);
 
 
     }
@@ -142,6 +144,7 @@ class GCS_Listener
     rosbag::Bag _bag;
     ros::Subscriber _color_sub;
     ros::Subscriber _depth_sub;
+
     ros::Subscriber _local_position_sub;
     ros::Subscriber _rel_alt_sub;
     ros::Subscriber _vel_body_sub;
@@ -160,30 +163,35 @@ int main(int argc, char **argv)
 {
     // initialize ros node
     ros::init(argc, argv, "GCS_Listener_node");
-    ros::NodeHandle n;
+    ros::NodeHandle n("~");
 
     // loop rate
     double rate;
-    n.param("rate", rate, LOOP_RATE_DEFAULT);
+    n.getParam("rate", rate);
     ros::Rate loop_rate(rate);
-   
+
     // bag file definition
     std::string location;
-    std::string username = std::getenv("USERNAME");
-    std::string default_location = "/home/" + username + "/Documents/";
-    n.param<std::string>("location", location, default_location);
+    n.getParam("location", location);
+
     std::time_t now = time(0);
     struct tm * timeinfo = localtime(&(now));
     char buffer [30];
     strftime(buffer,30,"%Y_%h_%d_%H_%M_%S.bag", timeinfo);
-    // char filename[50] = "/home/peng/SITL_LOG/";
-    char filename[50] = "/media/peng/Samsung/";
-    //char filename[50] = "/home/lab/Documents/";
-    std::strcat(filename, buffer);
 
-    // GCS_Listener listener(location, rate);
-    GCS_Listener listener(filename, rate);
+    // image topics
+    std::string color_image_topic;
+    std::string depth_image_topic;
+    n.getParam("color_image_topic", color_image_topic);
+    n.getParam("depth_image_topic", depth_image_topic);
+    
+    // init class
+    GCS_Listener listener(location + '/' + buffer,
+                      rate,
+                      color_image_topic,
+                      depth_image_topic);
 
     ros::Duration(1.0).sleep(); // let Listener update its internal states
     listener.run();
+
 }

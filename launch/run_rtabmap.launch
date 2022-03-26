@@ -1,0 +1,36 @@
+<!-- Run rtabmap_ros -->
+<launch>
+    <arg name="camera_name"     value="d435i"/>
+    <arg name="imu_topic_name"  value="/rtabmap/imu"/>
+    <arg name="localization"    value="false"/>
+
+    <!-- Stereo IR -->
+    <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
+        
+        <arg name="stereo"                  value="true"/> 
+        <arg name="localization"            value="$(arg localization)"/>
+        <arg name="frame_id"                value="$(arg camera_name)_link"/> 
+        <arg name="database_path"           value="/media/xavier/SSD/rtabmap_ros/rtabmap.db"/>
+
+        <arg name="rtabmap_args"            value="--delete_db_on_start" 
+            if="$(eval arg('localization') == 'false')"/> 
+
+        <arg name="subscribe_rgbd"          value="true"/>
+        <arg name="rgbd_topic"              value="/$(arg camera_name)/rgbd_image"/>
+        <arg name="compressed"              value="true"/>
+
+
+        <!-- <arg name="left_image_topic"        value="/$(arg camera_name)/infra1/image_rect_raw"/>
+        <arg name="right_image_topic"       value="/$(arg camera_name)/infra2/image_rect_raw"/>
+        <arg name="left_camera_info_topic"  value="/$(arg camera_name)/infra1/camera_info"/>
+        <arg name="right_camera_info_topic" value="/$(arg camera_name)/infra2/camera_info"/> -->
+
+        <arg name="wait_imu_to_init"        value="true"/> 
+        <arg name="imu_topic"               value="$(arg imu_topic_name)"/> 
+
+        <arg name="rviz"                    value="false"/>
+        <arg name="rtabmapviz"              value="false"/>
+
+       
+    </include>
+</launch>

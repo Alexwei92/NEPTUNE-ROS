@@ -1,0 +1,13 @@
+<!-- Launch file for Neptune Recording Function -->
+<launch>
+    <arg name="color_image_topic" default="/d435i/color/image_raw" />
+    <arg name="depth_image_topic" default="/d435i/aligned_depth_to_color/image_raw" />
+
+    <node pkg="neptune_ros" type="listener" name="listener" output="screen" >
+      <param name="rate" value="10" />
+      <param name="location" value="/media/xavier/SSD" />
+      <param name="color_image_topic" value="$(arg color_image_topic)" />
+      <param name="depth_image_topic" value="$(arg depth_image_topic)" />
+    </node>
+
+</launch>

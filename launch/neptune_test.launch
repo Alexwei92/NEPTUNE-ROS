@@ -1,9 +1,0 @@
-<!-- Launch file for Neptune Recording Function -->
-<launch>
-    <!--arg name="fcu_url" default="udp://127.0.0.1:14551@14555" /-->
-
-    <node pkg="neptune" type="listener" name="listener" output=screen >
-      <param name="rate" value=10 />
-    </node>
-
-</launch>
