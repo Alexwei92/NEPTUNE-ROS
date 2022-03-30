@@ -1,6 +1,22 @@
 #pragma once
 
-#include <cmath>
+#ifdef M_PI
+# undef M_PI
+#endif
+#define M_PI      (3.141592653589793)
+
+#ifdef M_PI_2
+# undef M_PI_2
+#endif
+#define M_PI_2    (M_PI / 2)
+
+#ifdef M_2PI
+# undef M_2PI
+#endif
+#define M_2PI     (M_PI * 2)
+
+#define RAD2DEG     (180.0 / M_PI)
+#define DEG2RAD     (M_PI / 180.0)
 
 template <typename T>
 T constrain_value(const T value, const T low, const T high)
@@ -21,17 +37,39 @@ inline float constrain_float(const float value, const float low, const float hig
     return constrain_value(value, low, high);
 }
 
-inline int16_t constrain_int16(const int16_t value, const int16_t low, const int16_t high)
+float wrap_360(const float angle)
 {
-    return constrain_value(value, low, high);
+    float res = fmodf(angle, 360.0f);
+    if (res < 0) {
+        res += 360.0f;
+    }
+    return res;
 }
 
-inline int32_t constrain_int32(const int32_t value, const int32_t low, const int32_t high)
+template <typename T>
+T wrap_180(const T angle)
 {
-    return constrain_value(value, low, high);
+    auto res = wrap_360(angle);
+    if (res > T(180)) {
+        res -= T(360);
+    }
+    return res;
 }
 
-inline int64_t constrain_int64(const int64_t value, const int64_t low, const int64_t high)
+float wrap_2PI(const float radian)
 {
-    return constrain_value(value, low, high);
+    float res = fmodf(radian, M_2PI);
+    if (res < 0) {
+        res += M_2PI;
+    }
+    return res;
+}
+
+float wrap_PI(const float radian)
+{
+    float res = wrap_2PI(radian);
+    if (res > M_PI) {
+        res -= M_2PI;
+    }
+    return res;
 }

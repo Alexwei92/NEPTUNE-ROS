@@ -22,6 +22,9 @@ source Tools/setup_gazebo.bash $(pwd) $(pwd)/build/px4_sitl_default
 gazebo Tools/sitl_gazebo/worlds/hitl_iris.world
 roslaunch neptune_ros connect_hitl.launch
 
+# Start Offboard node (need to be running before entering Offboard mode!)
+
+
 ---------------
 Data Collection
 ---------------

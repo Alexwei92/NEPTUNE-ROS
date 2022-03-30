@@ -15,6 +15,8 @@ find_package(catkin REQUIRED COMPONENTS
     geometry_msgs
 )
 
+find_package(Boost REQUIRED)
+
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES px4_offboard
@@ -27,8 +29,10 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(px4_offboard src/offboard.cpp)
-add_executable(fake_yawCmd src/fake_yawCmd.cpp)
+# add_executable(px4_offboard src/offboard.cpp)
+add_executable(set_attitude src/set_attitude.cpp)
+add_executable(forward_flight src/forward_flight.cpp)
 
-target_link_libraries(px4_offboard ${catkin_LIBRARIES})
-target_link_libraries(fake_yawCmd ${catkin_LIBRARIES})
+# target_link_libraries(px4_offboard ${catkin_LIBRARIES})
+target_link_libraries(set_attitude ${catkin_LIBRARIES})
+target_link_libraries(forward_flight ${catkin_LIBRARIES})
