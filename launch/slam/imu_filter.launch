@@ -1,0 +1,57 @@
+<launch>
+  
+  <!-- Custom -->>
+  <!-- <arg name="enable_image_view"         default="false"/> -->
+  <arg name="enable_imu_filter"         default="false"/>
+  <arg name="enable_throttle"           default="false"/>
+  <arg name="stereo_sync"               default="false"/>
+
+    </include>
+
+    <!-- Data throttle and sync -->
+    <!-- <group if="$(eval arg('enable_throttle') == 'true')"> -->
+    <node if="$(arg stereo_sync)" pkg="nodelet" type="nodelet" name="stereo_sync" args="load rtabmap_ros/stereo_sync /d435i/realsense2_camera_manager" output="screen">
+      <param name="compressed_rate"  type="double" value="5.0"/>
+      <param name="approx_sync"      type="bool"   value="false"/>
+
+      <remap from="left/image_rect"   to="infra1/image_rect_raw"/>
+      <remap from="right/image_rect"  to="infra2/image_rect_raw"/>
+      <remap from="left/camera_info"  to="infra1/camera_info"/>
+      <remap from="right/camera_info" to="infra2/camera_info"/>
+
+      <remap from="rgbd_image"        to="rgbd_image"/>
+    </node>
+
+    <node unless="$(arg stereo_sync)" pkg="nodelet" type="nodelet" name="stereo_throttle" args="load rtabmap_ros/stereo_throttle /d435i/realsense2_camera_manager" output="screen">
+      <param name="rate"         type="double" value="5.0"/>
+      <param name="approx_sync"  type="bool"   value="false"/>
+
+      <remap from="left/image"        to="infra1/image_rect_raw"/>
+      <remap from="right/image"       to="infra2/image_rect_raw"/>
+      <remap from="left/camera_info"  to="infra1/camera_info"/>
+      <remap from="right/camera_info" to="infra2/camera_info"/>
+
+      <remap from="infra1/image_rect_raw_throttle"  to="throttled/infra1/image_rect_raw"/>
+      <remap from="infra2/image_rect_raw_throttle"  to="throttled/infra2/image_rect_raw"/>
+      <remap from="infra1/camera_info_throttle"     to="throttled/infra1/camera_info"/>
+      <remap from="infra2/camera_info_throttle"     to="throttled/infra2/camera_info"/>
+    </node>
+  
+  <!-- imu_filter -->
+    <node pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_node" output="screen" 
+      if="$(arg enable_imu_filter)">
+      <param name="~use_mag"      value='false'/> 
+      <param name="~publish_tf"   value='false'/> 
+      <param name="~world_frame"  value="enu"/> 
+      <remap from="/imu/data_raw" to="/$(arg camera)/imu"/> 
+      <remap from="/imu/data"     to="/rtabmap/imu"/> 
+    </node>
+  
+  <!--Visualize-->
+  <!-- <node pkg="image_view" type="image_view" name="visualize" output="screen"
+    if="$(arg enable_image_view)">
+    <remap from="image" to="/d435i/color/image_raw"/>
+    <param name="~image_transport" value="raw"/> 
+  </node> -->
+
+</launch>

@@ -2,7 +2,7 @@
   <arg name="serial_no"           default=""/>
   <arg name="usb_port_id"         default=""/>
   <arg name="device_type"         default="d435i"/>
-  <arg name="json_file_path"      default="$(find neptune_ros)/config/d435i_emitter_disabled.json"/>
+  <arg name="json_file_path"      default="$(find neptune_ros)/config/camera/d435i_emitter_disabled.json"/>
   <arg name="camera"              default="d435i"/>
   <arg name="tf_prefix"           default="$(arg camera)"/>
   <arg name="external_manager"    default="false"/>
@@ -55,12 +55,6 @@
   <arg name="stereo_module/gain/1"      default="16"/>
   <arg name="stereo_module/exposure/2"  default="1"/>
   <arg name="stereo_module/gain/2"      default="16"/>
-
-  <!-- Custom -->>
-  <!-- <arg name="enable_image_view"         default="false"/> -->
-  <arg name="enable_imu_filter"         default="true"/>
-  <arg name="enable_throttle"           default="true"/>
-  <arg name="stereo_sync"               default="true"/>
 
   <group ns="$(arg camera)">
 
@@ -122,52 +116,6 @@
       
     </include>
 
-    <!-- Data throttle and sync -->
-    <!-- <group if="$(eval arg('enable_throttle') == 'true')"> -->
-    <node if="$(arg stereo_sync)" pkg="nodelet" type="nodelet" name="stereo_sync" args="load rtabmap_ros/stereo_sync /d435i/realsense2_camera_manager" output="screen">
-      <param name="compressed_rate"  type="double" value="5.0"/>
-      <param name="approx_sync"      type="bool"   value="false"/>
-
-      <remap from="left/image_rect"   to="infra1/image_rect_raw"/>
-      <remap from="right/image_rect"  to="infra2/image_rect_raw"/>
-      <remap from="left/camera_info"  to="infra1/camera_info"/>
-      <remap from="right/camera_info" to="infra2/camera_info"/>
-
-      <remap from="rgbd_image"        to="rgbd_image"/>
-    </node>
-
-    <node unless="$(arg stereo_sync)" pkg="nodelet" type="nodelet" name="stereo_throttle" args="load rtabmap_ros/stereo_throttle /d435i/realsense2_camera_manager" output="screen">
-      <param name="rate"         type="double" value="5.0"/>
-      <param name="approx_sync"  type="bool"   value="false"/>
-
-      <remap from="left/image"        to="infra1/image_rect_raw"/>
-      <remap from="right/image"       to="infra2/image_rect_raw"/>
-      <remap from="left/camera_info"  to="infra1/camera_info"/>
-      <remap from="right/camera_info" to="infra2/camera_info"/>
-
-      <remap from="infra1/image_rect_raw_throttle"  to="throttled/infra1/image_rect_raw"/>
-      <remap from="infra2/image_rect_raw_throttle"  to="throttled/infra2/image_rect_raw"/>
-      <remap from="infra1/camera_info_throttle"     to="throttled/infra1/camera_info"/>
-      <remap from="infra2/camera_info_throttle"     to="throttled/infra2/camera_info"/>
-    </node>
-    <!-- </group> -->
   </group>
 
-  
-  <!-- imu_filter -->
-    <node pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_node" output="screen" 
-      if="$(arg enable_imu_filter)">
-      <param name="~use_mag"      value='false'/> 
-      <param name="~publish_tf"   value='false'/> 
-      <param name="~world_frame"  value="enu"/> 
-      <remap from="/imu/data_raw" to="/$(arg camera)/imu"/> 
-      <remap from="/imu/data"     to="/rtabmap/imu"/> 
-    </node>
-  
-  <!--Visualize-->
-  <!-- <node pkg="image_view" type="image_view" name="visualize" output="screen"
-    if="$(arg enable_image_view)">
-    <remap from="image" to="/d435i/color/image_raw"/>
-    <param name="~image_transport" value="raw"/> 
-  </node> -->
 </launch>

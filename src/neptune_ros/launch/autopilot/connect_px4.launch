@@ -1,0 +1,11 @@
+<launch>
+    <!-- <arg name="fcu_url" default="/dev/ttyTHS1:921600" /> -->
+    <arg name="fcu_url" default="/dev/ttyACM0:115200" />
+
+    <!-- Connect to PX4 -->
+    <include file="$(find mavros)/launch/px4.launch">
+        <arg name="fcu_url" value="$(arg fcu_url)" />
+        <!-- <arg name="respawn_mavros" value="true" /> -->
+    </include>
+
+</launch>

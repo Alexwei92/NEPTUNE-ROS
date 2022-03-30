@@ -1,9 +1,0 @@
-<!-- Launch file for SITL-->
-<launch>
-	<arg name="fcu_url" default="udp://127.0.0.1:14551@14555" />
-
-	<include file="$(find mavros)/launch/apm.launch">
-		<arg name="fcu_url" value="$(arg fcu_url)" />
-	</include>
-
-</launch>

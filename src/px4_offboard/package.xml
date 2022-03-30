@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>neptune_ros</name>
+  <name>px4_offboard</name>
   <version>0.0.0</version>
-  <description>The neptune package</description>
+  <description>The px4 offboard package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -49,17 +49,12 @@
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <depend>roscpp</depend>
-  <depend>rosbag</depend>
+  <depend>rospy</depend>
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
-  <depend>nav_msgs</depend>
   <depend>geometry_msgs</depend>
-  <!--<depend>theora_image_transport</depend>-->
   <depend>mavros_msgs</depend>
 
-  <build_depend>message_generation</build_depend>
-  <exec_depend>message_runtime</exec_depend>
-  
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->

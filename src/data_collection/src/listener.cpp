@@ -5,7 +5,6 @@
 #include <std_msgs/Float64.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CompressedImage.h>
-// #include <theora_image_transport/Packet.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <mavros_msgs/RCIn.h>
