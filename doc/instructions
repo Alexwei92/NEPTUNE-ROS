@@ -23,11 +23,15 @@ gazebo Tools/sitl_gazebo/worlds/hitl_iris.world
 roslaunch neptune_ros connect_hitl.launch
 
 # Start Offboard node (need to be running before entering Offboard mode!)
+rosrun px4_offboard forward_flight
 
+# Use the RC CH7 to switch to Offboard Mode
 
 ---------------
 Data Collection
 ---------------
+
+
 
 ----
 SLAM

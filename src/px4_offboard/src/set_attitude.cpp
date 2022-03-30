@@ -12,13 +12,7 @@
 #include "common.h"
 #include "math_utils.h"
 
-#define LOOP_RATE_DEFAULT   10
-
-float linear_mapping(uint16_t value) {
-    float result = ((float)(value) - CH_MIN) / (CH_MAX - CH_MIN); 
-    result = result * 2.0 - 1.0;
-    return result;
-}
+#define LOOP_RATE_DEFAULT   50
 
 class AttitudeCtrl
 {
@@ -43,7 +37,6 @@ public:
         while (ros::ok()) {
             target.header.stamp = ros::Time::now();
             target.header.seq++;
-
             // bitmask
             target.type_mask = 128; //ignore orientation
             // body rate
@@ -64,7 +57,7 @@ public:
 
 private:
     void RCInCallback(const mavros_msgs::RCIn::ConstPtr& msg, int channel_index) {
-        float cmd = linear_mapping(msg->channels[channel_index]);
+        float cmd = rc_mapping(msg->channels[channel_index]);
         yaw_cmd = constrain_float(cmd, -1.0, 1.0);
     }
 
@@ -74,6 +67,7 @@ private:
     ros::Subscriber rcin_sub;
 
     mavros_msgs::AttitudeTarget target;
+    
     float yaw_cmd;
 };
 

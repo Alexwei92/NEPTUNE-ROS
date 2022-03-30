@@ -73,3 +73,12 @@ float wrap_PI(const float radian)
     }
     return res;
 }
+
+template<typename T>
+void rotate_body_frame_to_NE(T &x, T &y, const float yaw_rad)
+{
+    T ne_x = x*cos(yaw_rad) - y*sin(yaw_rad);
+    T ne_y = x*sin(yaw_rad) + y*cos(yaw_rad);
+    x = ne_x;
+    y = ne_y;
+}
