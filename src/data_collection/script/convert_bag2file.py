@@ -20,17 +20,16 @@ import __future__
 # TODO: put the topic definition into a global file so it can be shared among different programs
 image_topics_dict = {
     # prefix    : [topic_name, desired_encoding]
-    'color'     : ['/camera/color/image_raw', 'bgr8'],  # not rgb8
-    'depth'     : ['/camera/aligned_depth_to_color/image_raw', '16UC1'] # 8UC1?
+    'color'     : ['/d435i/color/image_raw', 'bgr8'],  # not rgb8
+    'depth'     : ['/d435i/aligned_depth_to_color/image_raw', 'mono16'] # 8UC1?
     }
 
 telemetry_topics_dict = {
     # prefix    : [topic_name]
-    'state'     : '/mavros/state',
-    'cmd'       : '/mavros/rc/in',
-    'velocity'  : '/mavros/local_position/velocity_body',
-    'altitude'  : '/mavros/global_position/rel_alt',
-    'position'  : '/mavros/global_position/local'
+    'cmd'         : '/my_telemetry/rc/in',
+    'vel_body'    : '/my_telemetry/velocity_body',
+    'gps'         : '/my_telemetry/global_location',
+    'local_pose'  : '/my_telemetry/local_pose'
     }
 
 
@@ -56,7 +55,7 @@ def write_image(bagfile, path):
             values = [str(t)]
             try:
                 cv_img = bridge.imgmsg_to_cv2(msg, desired_encoding=image_topics_dict[name][1])
-                cv2.imwrite(os.path.join(path_folder, "frame%06i.jpg" % count_good), cv_img)
+                cv2.imwrite(os.path.join(path_folder, "frame%06i.png" % count_good), cv_img)
                 count_good += 1
                 values.append(1)
             except:

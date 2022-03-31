@@ -27,9 +27,9 @@ public:
         target_setpoint_pub = nh.advertise<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/local", 1);  
 
         // Subscriber
-        rcin_sub = nh.subscribe<mavros_msgs::RCIn>("/mavros/rc/in", 10, &ForwardCtrl::RCInCallback, this);
+        rcin_sub = nh.subscribe<mavros_msgs::RCIn>("/mavros/rc/in", 5, &ForwardCtrl::RCInCallback, this);
         local_pose_sub = nh.subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 
-                    10, &ForwardCtrl::LocalPoseCallback, this);
+                    5, &ForwardCtrl::LocalPoseCallback, this);
     }
 
     void run()

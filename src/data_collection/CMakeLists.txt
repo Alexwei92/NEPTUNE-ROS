@@ -10,31 +10,29 @@ find_package(catkin REQUIRED COMPONENTS
     rosbag
     std_msgs
     sensor_msgs
-    nav_msgs
     mavros_msgs
     geometry_msgs
     cv_bridge
     image_transport
-    message_generation
 )
 
 find_package(OpenCV 3.4.14 REQUIRED)
 
-add_message_files(
-  FILES
-  Custom.msg
-)
+# add_message_files(
+#   FILES
+#   Custom.msg
+# )
 
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-  geometry_msgs
-)
+# generate_messages(
+#   DEPENDENCIES
+#   std_msgs
+#   geometry_msgs
+# )
 
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES neptune
-   CATKIN_DEPENDS message_runtime
+#  CATKIN_DEPENDS message_runtime
 #  DEPENDS system_lib
 )
 

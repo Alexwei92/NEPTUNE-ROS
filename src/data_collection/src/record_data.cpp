@@ -2,14 +2,13 @@
 #include <rosbag/bag.h>
 
 #include <std_msgs/String.h>
-#include <std_msgs/Float64.h>
+#include <std_msgs/UInt16.h>
 #include <sensor_msgs/Image.h>
-#include <sensor_msgs/CompressedImage.h>
-#include <nav_msgs/Odometry.h>
+#include <sensor_msgs/NavSatFix.h>
+#include <geometry_msgs/Point.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <mavros_msgs/RCIn.h>
-#include <mavros_msgs/State.h>
-#include "data_collection/Custom.h"
 
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
@@ -19,6 +18,17 @@
 
 #define LOOP_RATE_DEFAULT   10 // Hz
 
+void resize_image(const sensor_msgs::Image::ConstPtr& msg, 
+        sensor_msgs::Image& dst, cv::Size new_size, std::string encoding)
+{
+    cv_bridge::CvImagePtr cv_ptr;
+    cv_ptr = cv_bridge::toCvCopy(msg, encoding); ;
+    cv::Mat frame = cv_ptr->image;
+    cv::Mat frame_resize;
+    cv::resize(frame, frame_resize, new_size);       
+    sensor_msgs::ImagePtr compImg = cv_bridge::CvImage(std_msgs::Header(), encoding, frame_resize).toImageMsg();;
+    dst = *compImg; 
+}
 
 class GCS_Listener
 {
@@ -37,82 +47,81 @@ public:
             exit(1);
         }
         
-        color_sub  = nh.subscribe("/d435i/color/image_raw", 10, &GCS_Listener::updateColor, this);
-        depth_sub  = nh.subscribe("/d435i/aligned_depth_to_color/image_raw", 10, &GCS_Listener::updateDepth, this);
+        // Subscriber
+        color_sub  = nh.subscribe<sensor_msgs::Image>(
+                "/d435i/color/image_raw", 5, &GCS_Listener::ColorCallback, this);
+        depth_sub  = nh.subscribe<sensor_msgs::Image>(
+                "/d435i/aligned_depth_to_color/image_raw",5, &GCS_Listener::DepthCallback, this);
 
-        // local_position_sub = nh.subscribe("/mavros/global_position/local", 10, &GCS_Listener::updateLocalPosition, this);
-        // rel_alt_sub = nh.subscribe("/mavros/global_position/rel_alt", 10, &GCS_Listener::updateAlt, this);
-        // vel_body_sub = nh.subscribe("/mavros/local_position/velocity_body", 10, &GCS_Listener::updateVelBody, this);
-        // rc_in_sub = nh.subscribe("/mavros/rc/in", 10, &GCS_Listener::updateRCIn, this);
-        // state_sub = nh.subscribe("/mavros/state", 10, &GCS_Listener::updateState, this);
+        rcin_sub = nh.subscribe<mavros_msgs::RCIn>(
+                "/mavros/rc/in", 5, &GCS_Listener::RCInCallback, this);
+        local_pose_sub = nh.subscribe<geometry_msgs::PoseStamped>(
+                "/mavros/local_position/pose", 5, &GCS_Listener::LocalPoseCallback, this);
+        gps_loc_sub = nh.subscribe<sensor_msgs::NavSatFix>(
+                "/mavros/global_position/global", 5, &GCS_Listener::GPSLocationCallback, this);
+        vel_body_sub = nh.subscribe<geometry_msgs::TwistStamped>(
+                "/mavros/local_position/velocity_body", 5, &GCS_Listener::VelBodyCallback, this);
     }
 
     void run()
     {
-        ROS_INFO("Start Recording...");
         ros::Rate loop_rate(LOOP_RATE_DEFAULT);
-        ros::Timer timer = nh.createTimer(ros::Duration(1.0/LOOP_RATE_DEFAULT), &GCS_Listener::iteration, this);
-        ros::spin();
+        int count = 0;
+        ROS_INFO("Start Recording...");
+        while(ros::ok()) {
+            ros::Time time = ros::Time::now();
 
+            my_bag.write("/my_telemetry/local_pose", time, local_pose);
+            my_bag.write("/my_telemetry/velocity_body", time, vel_body);
+            my_bag.write("/my_telemetry/rc/in", time, yaw_cmd);
+            my_bag.write("/my_telemetry/global_location", time, gps_location);
+
+            color_image.header.seq = count;
+            depth_image.header.seq = count;
+            my_bag.write("/d435i/color/image_raw", time, color_image);
+            my_bag.write("/d435i/aligned_depth_to_color/image_raw", time, depth_image);
+
+            ros::spinOnce();
+            loop_rate.sleep();
+            count++;
+        }
+    
         my_bag.close();
         ROS_INFO("Stop Recording...");
     }
 
 
 private:
-    void iteration(const ros::TimerEvent&)
-    {
-        telemetry.header.seq += 1;
-        telemetry.header.stamp = ros::Time::now();
-        my_bag.write("/my_telemetry", ros::Time::now(), telemetry);
-
-        color_image.header.seq = telemetry.header.seq;
-        depth_image.header.seq = telemetry.header.seq;
-        my_bag.write("/d435i/color/image_raw", ros::Time::now(), color_image);
-        my_bag.write("/d435i/aligned_depth_to_color/image_raw", ros::Time::now(), depth_image);
-    }
-
-    void updateColor(const sensor_msgs::Image::ConstPtr& msg)
+    void ColorCallback(const sensor_msgs::Image::ConstPtr& msg)
     {          
-        color_image = *msg;
-        cv_bridge::CvImagePtr cv_ptr;
-        cv_ptr = cv_bridge::toCvCopy(msg, "bgr8"); ;
-        cv::Mat frame = cv_ptr->image;
-        cv::namedWindow("Image");
-        cv::imshow("Image", frame);
-        cv::waitKey(1);
+        resize_image(msg, color_image, cv::Size(300,300), "bgr8");
     }
 
-    void updateDepth(const sensor_msgs::Image::ConstPtr& msg)
+    void DepthCallback(const sensor_msgs::Image::ConstPtr& msg)
     {          
-        depth_image = *msg;
-
+        resize_image(msg, depth_image, cv::Size(300,300), "mono16");
     }
 
-    void updateLocalPosition(const nav_msgs::Odometry::ConstPtr& msg)
-    {   
-        telemetry.pose = msg->pose;
-        telemetry.twist = msg->twist;
-    }
-
-    void updateAlt(const std_msgs::Float64::ConstPtr& msg)
+    void RCInCallback(const mavros_msgs::RCIn::ConstPtr& msg)
     {
-        telemetry.rel_alt = msg->data;
+        yaw_cmd.data = msg->channels[3];
     }
 
-    void updateVelBody(const geometry_msgs::TwistStamped::ConstPtr& msg)
+    void VelBodyCallback(const geometry_msgs::TwistStamped::ConstPtr& msg)
     {
-        telemetry.vel_twist = msg->twist;
+        vel_body = msg->twist;
     }
 
-    void updateRCIn(const mavros_msgs::RCIn::ConstPtr& msg)
+    void LocalPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
     {
-        telemetry.channels = msg->channels;
+        local_pose = msg->pose;
     }
 
-    void updateState(const mavros_msgs::State::ConstPtr& msg)
+    void GPSLocationCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) 
     {
-        telemetry.mode = msg->mode;
+        gps_location.x = msg->latitude;
+        gps_location.y = msg->longitude;
+        gps_location.z = msg->altitude;
     }
 
 private:
@@ -121,16 +130,18 @@ private:
     ros::Subscriber color_sub;
     ros::Subscriber depth_sub;
 
-    ros::Subscriber local_position_sub;
-    ros::Subscriber rel_alt_sub;
+    ros::Subscriber rcin_sub;
     ros::Subscriber vel_body_sub;
-    ros::Subscriber rc_in_sub;
-    ros::Subscriber state_sub;
+    ros::Subscriber local_pose_sub;
+    ros::Subscriber gps_loc_sub;
 
     sensor_msgs::Image color_image;
     sensor_msgs::Image depth_image;
 
-    data_collection::Custom telemetry;
+    std_msgs::UInt16 yaw_cmd;
+    geometry_msgs::Twist vel_body;
+    geometry_msgs::Pose local_pose;
+    geometry_msgs::Point gps_location;
 };
 
 int main(int argc, char **argv)
