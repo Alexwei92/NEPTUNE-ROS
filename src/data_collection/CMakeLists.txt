@@ -13,8 +13,12 @@ find_package(catkin REQUIRED COMPONENTS
     nav_msgs
     mavros_msgs
     geometry_msgs
+    cv_bridge
+    image_transport
     message_generation
 )
+
+find_package(OpenCV 3.4.14 REQUIRED)
 
 add_message_files(
   FILES
@@ -37,8 +41,9 @@ catkin_package(
 include_directories(
 ## include
   ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
-add_executable(listener src/listener.cpp)
+add_executable(record_data src/record_data.cpp)
 
-target_link_libraries(listener ${catkin_LIBRARIES})
+target_link_libraries(record_data ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})

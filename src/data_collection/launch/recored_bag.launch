@@ -1,0 +1,8 @@
+<!-- Launch file for Neptune Recording Function -->
+<launch>
+    <node pkg="data_collection" type="record_data" name="record_data" output="screen" >
+      <!-- <param name="location" value="/media/xavier/SSD" /> -->
+      <param name="location" value="/media/lab/Extreme SSD" />
+    </node>
+
+</launch>
