@@ -16,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
     image_transport
 )
 
-find_package(OpenCV 3.4.14 REQUIRED)
+find_package(OpenCV 3 REQUIRED)
 
 # add_message_files(
 #   FILES
