@@ -3,6 +3,7 @@
 
 #include <std_msgs/String.h>
 #include <std_msgs/UInt16.h>
+#include <std_msgs/Float64.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <geometry_msgs/Point.h>
@@ -57,8 +58,10 @@ public:
                 "/mavros/rc/in", 5, &GCS_Listener::RCInCallback, this);
         local_pose_sub = nh.subscribe<geometry_msgs::PoseStamped>(
                 "/mavros/local_position/pose", 5, &GCS_Listener::LocalPoseCallback, this);
-        gps_loc_sub = nh.subscribe<sensor_msgs::NavSatFix>(
-                "/mavros/global_position/global", 5, &GCS_Listener::GPSLocationCallback, this);
+        global_loc_sub = nh.subscribe<sensor_msgs::NavSatFix>(
+                "/mavros/global_position/global", 5, &GCS_Listener::GlobalLocationCallback, this);
+        compass_sub = nh.subscribe<std_msgs::Float64>(
+                "/mavros/global_position/compass_hdg", 5, &GCS_Listener::CompassCallback, this);
         vel_body_sub = nh.subscribe<geometry_msgs::TwistStamped>(
                 "/mavros/local_position/velocity_body", 5, &GCS_Listener::VelBodyCallback, this);
     }
@@ -71,10 +74,10 @@ public:
         while(ros::ok()) {
             ros::Time time = ros::Time::now();
 
-            my_bag.write("/my_telemetry/local_pose", time, local_pose);
-            my_bag.write("/my_telemetry/velocity_body", time, vel_body);
             my_bag.write("/my_telemetry/rc/in", time, yaw_cmd);
-            my_bag.write("/my_telemetry/global_location", time, gps_location);
+            my_bag.write("/my_telemetry/local_pose", time, local_pose);
+            my_bag.write("/my_telemetry/global_location", time, global_location);
+            my_bag.write("/my_telemetry/velocity_body", time, vel_body);
 
             color_image.header.seq = count;
             depth_image.header.seq = count;
@@ -107,21 +110,25 @@ private:
         yaw_cmd.data = msg->channels[3];
     }
 
-    void VelBodyCallback(const geometry_msgs::TwistStamped::ConstPtr& msg)
-    {
-        vel_body = msg->twist;
-    }
-
     void LocalPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
     {
         local_pose = msg->pose;
     }
 
-    void GPSLocationCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) 
+    void GlobalLocationCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) 
     {
-        gps_location.x = msg->latitude;
-        gps_location.y = msg->longitude;
-        gps_location.z = msg->altitude;
+        global_location.x = msg->latitude;
+        global_location.y = msg->longitude;
+    }
+
+    void CompassCallback(const std_msgs::Float64::ConstPtr& msg) 
+    {
+        global_location.z = msg->data;
+    }
+
+    void VelBodyCallback(const geometry_msgs::TwistStamped::ConstPtr& msg)
+    {
+        vel_body = msg->twist;
     }
 
 private:
@@ -131,17 +138,17 @@ private:
     ros::Subscriber depth_sub;
 
     ros::Subscriber rcin_sub;
-    ros::Subscriber vel_body_sub;
     ros::Subscriber local_pose_sub;
-    ros::Subscriber gps_loc_sub;
+    ros::Subscriber global_loc_sub;
+    ros::Subscriber compass_sub;
+    ros::Subscriber vel_body_sub;
 
     sensor_msgs::Image color_image;
     sensor_msgs::Image depth_image;
-
     std_msgs::UInt16 yaw_cmd;
-    geometry_msgs::Twist vel_body;
     geometry_msgs::Pose local_pose;
-    geometry_msgs::Point gps_location;
+    geometry_msgs::Point global_location;
+    geometry_msgs::Twist vel_body;
 };
 
 int main(int argc, char **argv)
