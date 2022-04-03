@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import torchvision.models as models
-import torch.nn.functional as F
+# import torch.nn.functional as F
 
 class AffordanceNet(nn.Module):
     """
@@ -38,16 +38,16 @@ class AffordanceNet(nn.Module):
         # dist_center_width, rel_angle, and dist_left_width
         self.fc2 = nn.Linear(256, 3)
 
-    def forward(self, x):
-        x = self.encoder(x)
-        x = self.last_conv_downsample(x)
-        x = torch.flatten(x)
-        x = x.view(-1, self.n_feature_state)
-        x = self.fc1(x)
-        x = F.relu(x)
-        x = self.fc2(x)
-        x = F.tanh(x)
-        return x
+    # def forward(self, x):
+    #     x = self.encoder(x)
+    #     x = self.last_conv_downsample(x)
+    #     x = torch.flatten(x)
+    #     x = x.view(-1, self.n_feature_state)
+    #     x = self.fc1(x)
+    #     x = F.relu(x)
+    #     x = self.fc2(x)
+    #     x = F.tanh(x)
+    #     return x
 
     def forward(self, x):
         x = self.encoder(x)

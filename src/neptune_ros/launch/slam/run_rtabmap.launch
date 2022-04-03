@@ -1,0 +1,49 @@
+<!-- Run rtabmap_ros -->
+<launch>
+    <arg name="camera_name"     default="d435i"/>
+    <arg name="db_folder"       default="/media/peng/Samsung" />
+    <arg name="database_name"   default="trail1.db" />
+
+    <arg name="localization"      default="false"/>
+    <arg name="enable_throttle"   default="true"/>
+    <arg name="stereo_sync"       default="false"/>
+
+    <!-- IMU filter -->
+    <node pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_node" output="screen">
+      <param name="~use_mag"      value='false'/> 
+      <param name="~publish_tf"   value='false'/> 
+      <param name="~world_frame"  value="enu"/> 
+      <remap from="/imu/data_raw" to="/$(arg camera_name)/imu"/> 
+      <remap from="/imu/data"     to="/rtabmap/imu"/> 
+    </node>
+
+    <!-- Stereo IR -->
+    <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
+        
+        <arg name="stereo"                  value="true"/> 
+        <arg name="localization"            value="$(arg localization)"/>
+        <arg name="frame_id"                value="$(arg camera_name)_link"/> 
+        <arg name="database_path"           value="$(arg db_folder)/rtabmap_ros/$(arg database_name)"/>
+
+        <arg name="rtabmap_args"            value="--delete_db_on_start" 
+            if="$(eval arg('localization') == 'false')"/> 
+
+        <!-- <arg name="subscribe_rgbd"          value="true"/>
+        <arg name="rgbd_topic"              value="/$(arg camera_name)/rgbd_image"/>
+        <arg name="compressed"              value="true"/> -->
+
+        <arg name="left_image_topic"        value="/$(arg camera_name)/infra1/image_rect_raw"/>
+        <arg name="right_image_topic"       value="/$(arg camera_name)/infra2/image_rect_raw"/>
+        <arg name="left_camera_info_topic"  value="/$(arg camera_name)/infra1/camera_info"/>
+        <arg name="right_camera_info_topic" value="/$(arg camera_name)/infra2/camera_info"/>
+
+        <arg name="wait_imu_to_init"        value="true"/> 
+        <arg name="imu_topic"               value="/rtabmap/imu"/> 
+
+        <arg name="rviz"                    value="false"/>
+        <arg name="rtabmapviz"              value="true"/>
+
+        <param name="use_sim_time" type="bool" value="false"/>
+
+    </include>
+</launch>

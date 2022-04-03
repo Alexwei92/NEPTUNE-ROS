@@ -31,11 +31,28 @@ rosrun px4_offboard forward_flight
 Data Collection
 ---------------
 
-
-
 ----
 SLAM
 ----
+# Mapping
+roslaunch neptune_ros rs_d435i.launch
+
+# # IMU filter
+# roslaunch neptune_ros camera_process.launch
+
+# Run rtabmap (Mapping)
+roslaunch neptune_ros run_rtabmap.launch
+
+# rosbag
+rosbag record /d435i/infra1/image_rect_raw \
+/d435i/infra1/camera_info \
+/d435i/infra2/image_rect_raw \
+/d435i/infra2/camera_info \
+/d435i/imu \
+/tf \
+-o /media/peng/Samsung/d435i
+
+
 
 ---------
 TensorRT
