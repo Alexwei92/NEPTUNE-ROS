@@ -3,11 +3,8 @@ from torch import nn
 import torchvision.models as models
 import torch.nn.functional as F
 
-class AffordanceNet(nn.Module):
-    """
-    Affordance Prediction Model
-    """
-    def __init__(self, input_dim=256, n_image=1):
+class Resnet18(nn.Module):
+    def __init__(self):
         super().__init__()
 
         self.n_feature_state = 512 * 4 * 4
@@ -22,7 +19,7 @@ class AffordanceNet(nn.Module):
         resnet18.layer4[0].downsample[0].kernel_size = (2, 2)
 
         new_conv1 = nn.Conv2d(
-            n_image * 3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False
+            3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False
         )
         resnet18.conv1 = new_conv1
 
@@ -48,3 +45,14 @@ class AffordanceNet(nn.Module):
         x = self.fc2(x)
         x = torch.tanh(x)
         return x
+
+class AffordanceNet(nn.Module):
+    """
+    Affordance Prediction Model
+    """
+    def __init__(self):
+        super().__init__()
+        self.net = Resnet18()
+
+    def forward(self, x):
+        return self.net(x)

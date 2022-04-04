@@ -7,6 +7,7 @@ from log_utils import timer, logger
 trt_logger = trt.Logger(trt.Logger.WARNING)
 trt_runtime = trt.Runtime(trt_logger)
 
+MODEL_WEIGHT_PATH = 'affordance_model.pt'
 ONNX_FILE_PATH = 'affordance_net.onnx'
 TRT_PATH = 'affordance_net.trt'
 
@@ -14,7 +15,7 @@ def build_engine(onnx_path):
     with trt.Builder(trt_logger) as builder, builder.create_network(1) as network, trt.OnnxParser(network, trt_logger) as parser:
         config = builder.create_builder_config()
         config.max_workspace_size = (1 << 30)
-        # config.set_flag(trt.BuilderFlag.FP16)
+        # config.set_flag(trt.BuilderFlag.FP16) # if use FP_16 precision
         parser.parse_from_file(onnx_path)        
         serialized_engine = builder.build_serialized_network(network, config)
         return serialized_engine
@@ -26,12 +27,12 @@ def save_engine(serialized_engine, engine_path):
 
 if __name__ == '__main__':
 
+    # Load Pytorch model and weight
     load_pytorch = timer("Loading Pytorch model")
     model = AffordanceNet().eval().cuda()
-    # TODO: load trained model parameters
-    # write code here
+    model_weight = torch.load(MODEL_WEIGHT_PATH)
+    model.load_state_dict(model_weight)
     load_pytorch.end()
-
 
     # Pytorch to onnx
     pytorch_to_onnx = timer("Convert Pytorch to ONNX file")

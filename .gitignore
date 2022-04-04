@@ -2,4 +2,6 @@
 
 *.trt
 
-*/__pycache__
+*.pt
+
+**/__pycache__/
