@@ -52,8 +52,12 @@ rosbag record /d435i/infra1/image_rect_raw \
 /tf \
 -o /media/peng/Samsung/d435i
 
-
-
 ---------
 TensorRT
 ---------
+# Convert pytorch model to tensorrt model
+cd ./script/tensorrt
+python3 pytorch_to_trt.python3
+
+# Check the runtime performance
+python3 runtime_compare.py
