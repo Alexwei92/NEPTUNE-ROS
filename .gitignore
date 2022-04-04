@@ -1,3 +1,5 @@
-.onnx
+*.onnx
 
-*/__pycache__/
+*.trt
+
+*/__pycache__
