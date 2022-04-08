@@ -6,6 +6,8 @@
 #define MAX_YAWRATE 45.0 // maximum yaw rate in deg/s
 #define FORWARD_SPEED 1.0 // forward speed in m/s
 
+#include "user_config.h"
+
 /*
 Normalize RCIn value to [-1, 1]
 */

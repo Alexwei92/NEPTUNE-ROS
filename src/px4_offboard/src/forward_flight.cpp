@@ -7,6 +7,7 @@
 #include <std_msgs/Header.h>
 #include <mavros_msgs/PositionTarget.h>
 #include <mavros_msgs/RCIn.h>
+#include <mavros_msgs/ManualControl.h>
 #include <mavros_msgs/State.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
@@ -30,10 +31,16 @@ public:
         // Subscriber
         state_sub = nh.subscribe<mavros_msgs::State>("/mavros/state", 5, 
                 &ForwardCtrl::StateCallback, this);
-        rcin_sub = nh.subscribe<mavros_msgs::RCIn>("/mavros/rc/in", 5, 
-                boost::bind(&ForwardCtrl::RCInCallback, this, _1, YAW_CHANNEL));
         local_pose_sub = nh.subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 5,
                 &ForwardCtrl::LocalPoseCallback, this);
+
+        #ifdef SITL_MODE
+        rcin_sub = nh.subscribe<mavros_msgs::ManualControl>("/mavros/manual_control/control", 5, 
+                boost::bind(&ForwardCtrl::JoystickCallback, this, _1));
+        #else
+        rcin_sub = nh.subscribe<mavros_msgs::RCIn>("/mavros/rc/in", 5, 
+                boost::bind(&ForwardCtrl::RCInCallback, this, _1, YAW_CHANNEL));
+        #endif
     }
 
     void run()
@@ -62,6 +69,7 @@ public:
                 target.velocity = velocity_local;
                 // yaw rate
                 target.yaw_rate = -yaw_cmd * MAX_YAWRATE * DEG2RAD;
+
             }
             
             target_setpoint_pub.publish(target);
@@ -103,6 +111,11 @@ private:
         yaw_cmd = constrain_float(cmd, -1.0, 1.0);
     }
 
+    void JoystickCallback(const mavros_msgs::ManualControl::ConstPtr& msg) {
+        float cmd = msg->r;
+        yaw_cmd = constrain_float(cmd, -1.0, 1.0);
+    }
+
     void LocalPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
         tf2::Quaternion q_tf;
         tf2::convert((msg->pose).orientation, q_tf);
@@ -116,8 +129,8 @@ private:
     ros::NodeHandle nh;
     ros::Publisher target_setpoint_pub;
     ros::Subscriber state_sub;
-    ros::Subscriber rcin_sub;
     ros::Subscriber local_pose_sub;
+    ros::Subscriber rcin_sub;
 
     mavros_msgs::State current_state;
     mavros_msgs::PositionTarget target;
