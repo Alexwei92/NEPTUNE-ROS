@@ -30,9 +30,11 @@ include_directories(
 )
 
 # add_executable(offboard_test src/offboard_test.cpp)
-add_executable(set_attitude src/set_attitude.cpp)
-add_executable(forward_flight src/forward_flight.cpp)
+# add_executable(set_attitude src/set_attitude.cpp)
+add_executable(forward_flight 
+  src/forward_flight.cpp
+  src/rulebased_ctrl.cpp)
 
 # target_link_libraries(offboard_test ${catkin_LIBRARIES})
-target_link_libraries(set_attitude ${catkin_LIBRARIES})
+# target_link_libraries(set_attitude ${catkin_LIBRARIES})
 target_link_libraries(forward_flight ${catkin_LIBRARIES})

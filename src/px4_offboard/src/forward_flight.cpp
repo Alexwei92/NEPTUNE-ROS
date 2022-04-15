@@ -5,6 +5,7 @@
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <std_msgs/Header.h>
+#include <std_msgs/Float32.h>
 #include <mavros_msgs/PositionTarget.h>
 #include <mavros_msgs/RCIn.h>
 #include <mavros_msgs/ManualControl.h>
@@ -15,6 +16,7 @@
 
 #include "common.h"
 #include "math_utils.h"
+#include "rulebased_ctrl.h"
 
 #define LOOP_RATE_DEFAULT   30 // Hz
 
@@ -29,22 +31,29 @@ public:
         target_setpoint_pub = nh.advertise<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/local", 1);  
 
         // Subscriber
+        // 1) state
         state_sub = nh.subscribe<mavros_msgs::State>("/mavros/state", 5, 
                 &ForwardCtrl::StateCallback, this);
+        // 2) local pose
         local_pose_sub = nh.subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 5,
                 &ForwardCtrl::LocalPoseCallback, this);
-
-        #ifdef SITL_MODE
-        rcin_sub = nh.subscribe<mavros_msgs::ManualControl>("/mavros/manual_control/control", 5, 
-                boost::bind(&ForwardCtrl::JoystickCallback, this, _1));
+        // 3) rc / joystick / auto command
+        #ifdef AUTO_MODE
+        cmd_sub = nh.subscribe<std_msgs::Float32>("/my_controller/yaw_cmd", 5, 
+                boost::bind(&ForwardCtrl::CmdCallback, this, _1));
         #else
-        rcin_sub = nh.subscribe<mavros_msgs::RCIn>("/mavros/rc/in", 5, 
-                boost::bind(&ForwardCtrl::RCInCallback, this, _1, YAW_CHANNEL));
+            #ifdef SITL_MODE
+            rc_sub = nh.subscribe<mavros_msgs::ManualControl>("/mavros/manual_control/control", 5, 
+                    boost::bind(&ForwardCtrl::JoystickCallback, this, _1));
+            #else
+            rc_sub = nh.subscribe<mavros_msgs::RCIn>("/mavros/rc/in", 5, 
+                    boost::bind(&ForwardCtrl::RCInCallback, this, _1, YAW_CHANNEL));
+            #endif
         #endif
     }
 
     void run()
-    {
+    {   
         ros::Rate loop_rate(LOOP_RATE_DEFAULT);
         ROS_INFO("Node Started!");
         while (ros::ok()) {
@@ -116,6 +125,11 @@ private:
         yaw_cmd = constrain_float(cmd, -1.0, 1.0);
     }
 
+    void CmdCallback(const std_msgs::Float32::ConstPtr& msg) {
+        float cmd = msg->data;
+        yaw_cmd = constrain_float(cmd, -1.0, 1.0);
+    }
+
     void LocalPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
         tf2::Quaternion q_tf;
         tf2::convert((msg->pose).orientation, q_tf);
@@ -130,7 +144,8 @@ private:
     ros::Publisher target_setpoint_pub;
     ros::Subscriber state_sub;
     ros::Subscriber local_pose_sub;
-    ros::Subscriber rcin_sub;
+    ros::Subscriber rc_sub;
+    ros::Subscriber cmd_sub;
 
     mavros_msgs::State current_state;
     mavros_msgs::PositionTarget target;
@@ -147,6 +162,10 @@ int main(int argc, char **argv)
     ros::NodeHandle nh("~");
 
     ForwardCtrl ctrl;
-    ros::Duration(1.0).sleep();
+    ros::Time tic = ros::Time::now();
+    while (ros::Time::now() - tic < ros::Duration(1.0)) {
+        // sleep for one second
+    }
+
     ctrl.run();
 }

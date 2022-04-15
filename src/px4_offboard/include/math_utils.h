@@ -37,7 +37,7 @@ inline float constrain_float(const float value, const float low, const float hig
     return constrain_value(value, low, high);
 }
 
-float wrap_360(const float angle)
+inline float wrap_360(const float angle)
 {
     float res = fmodf(angle, 360.0f);
     if (res < 0) {
@@ -56,7 +56,7 @@ T wrap_180(const T angle)
     return res;
 }
 
-float wrap_2PI(const float radian)
+inline float wrap_2PI(const float radian)
 {
     float res = fmodf(radian, M_2PI);
     if (res < 0) {
@@ -65,7 +65,7 @@ float wrap_2PI(const float radian)
     return res;
 }
 
-float wrap_PI(const float radian)
+inline float wrap_PI(const float radian)
 {
     float res = wrap_2PI(radian);
     if (res > M_PI) {

@@ -7,25 +7,35 @@ roslaunch neptune_ros rs_d435i.launch
 ------------
 PX4 Offboard
 ------------
-# Connect to PX4 Autopilot
+# 1) Connect to PX4 Autopilot
 roslaunch neptune_ros connect_px4.launch
 
-# Connect to PX4 Autopilot (Simulation-in-the-loop)
+# or connect to PX4 Autopilot (Simulation-in-the-loop)
 cd ~/Github/PX4-Autopilot
+export PX4_HOME_LAT=38.588156
+export PX4_HOME_LON=-121.705512
+export PX4_HOME_ALT=28.5
 make px4_sitl_default gazebo
 roslaunch neptune_ros connect_sitl.launch
 
-# Connect to PX4 Autopilot (Hardware-in-the-loop)
+# or connect to PX4 Autopilot (Hardware-in-the-loop)
 cd ~/Github/PX4-Autopilot
 DONT_RUN=1 make px4_sitl_default gazebo
 source Tools/setup_gazebo.bash $(pwd) $(pwd)/build/px4_sitl_default
 gazebo Tools/sitl_gazebo/worlds/hitl_iris.world
 roslaunch neptune_ros connect_hitl.launch
 
-# Start Offboard node (need to be running before entering Offboard mode!)
-rosrun px4_offboard forward_flight
+# px4 avoidance world
+cd ~/Github/PX4-Autopilot
+source Tools/setup_gazebo.bash $(pwd) $(pwd)/build/px4_sitl_default
+export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:$(pwd)
+export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:$(pwd)/Tools/sitl_gazebo
+export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:/usr/lib/x86_64-linux-gnu/gazebo-9/plugins
+export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:~/catkin_ws/src/PX4-Avoidance/avoidance/sim/models:~/catkin_ws/src/PX4-Avoidance/avoidance/sim/worlds
 
-# Use the RC CH7 to switch to Offboard Mode
+
+# 2) Start Offboard node (need to be running before entering Offboard mode!)
+rosrun px4_offboard forward_flight # <-- Use the RC CH7 to switch to Offboard Mode -->
 
 ---------------
 Data Collection

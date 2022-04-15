@@ -4,7 +4,7 @@
 #define CH_MAX  2006 // maximum RC channel value
 #define YAW_CHANNEL 3 // yaw channel index
 #define MAX_YAWRATE 45.0 // maximum yaw rate in deg/s
-#define FORWARD_SPEED 1.0 // forward speed in m/s
+#define FORWARD_SPEED 2.0 // forward speed in m/s
 
 #include "user_config.h"
 

@@ -1,21 +1,23 @@
 <!-- Run rtabmap_ros -->
 <launch>
     <arg name="camera_name"     default="d435i"/>
-    <arg name="db_folder"       default="/media/peng/Samsung" />
+    <arg name="db_folder"       default="/media/lab/Hard Disk" />
     <arg name="database_name"   default="trail1.db" />
 
-    <arg name="localization"      default="true"/>
-    <arg name="enable_throttle"   default="true"/>
+    <arg name="localization"      default="false"/>
+    <arg name="enable_throttle"   default="false"/>
     <arg name="stereo_sync"       default="false"/>
 
-    <!-- IMU filter -->
+    <param name="use_sim_time" type="bool" value="false"/>
+
+    <!-- IMU filter
     <node pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_node" output="screen">
       <param name="~use_mag"      value='false'/> 
       <param name="~publish_tf"   value='false'/> 
       <param name="~world_frame"  value="enu"/> 
       <remap from="/imu/data_raw" to="/$(arg camera_name)/imu"/> 
       <remap from="/imu/data"     to="/rtabmap/imu"/> 
-    </node>
+    </node> -->
 
     <!-- Stereo IR -->
     <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
@@ -40,10 +42,10 @@
         <arg name="wait_imu_to_init"        value="true"/> 
         <arg name="imu_topic"               value="/rtabmap/imu"/> 
 
-        <arg name="rviz"                    value="false"/>
-        <arg name="rtabmapviz"              value="true"/>
+        <arg name="rviz"                    value="true"/>
+        <arg name="rtabmapviz"              value="false"/>
 
-        <param name="use_sim_time" type="bool" value="false"/>
+        
 
     </include>
 </launch>

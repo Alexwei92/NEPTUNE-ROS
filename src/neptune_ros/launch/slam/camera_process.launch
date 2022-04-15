@@ -1,7 +1,7 @@
 <launch>
   
   <arg name="enable_imu_filter"         default="true"/>
-  <arg name="enable_throttle"           default="true"/>
+  <arg name="enable_throttle"           default="false"/>
   <arg name="stereo_sync"               default="false"/>
 
     <!-- Data throttle and sync -->

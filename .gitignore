@@ -5,3 +5,5 @@
 *.pt
 
 **/__pycache__/
+
+src/px4_offboard/include/user_config.h
