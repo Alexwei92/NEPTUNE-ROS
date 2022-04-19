@@ -23,8 +23,8 @@ def affordance_ctrl(affordance):
         dist_center_width = 0
 
     # Sigmoid function
-    # cmd = 1.0 * (2 /(1 + math.exp(20*(1.5*rel_angle/np.pi + 3.0*dist_center_width))) - 1)
-    cmd = -rel_angle + math.atan(50*dist_center_width)
+    # cmd = 1.0 * (2 /(1 + math.exp(20*(1.5*rel_angle/np.pi + 2.0*dist_center_width))) - 1)
+    cmd = -rel_angle + math.atan(30*dist_center_width)
     
     return cmd
 
@@ -58,7 +58,7 @@ class ros_handler():
 
     def run(self):
         while not rospy.is_shutdown():
-            self.map_handler.update([self.pos_x, self.pos_y], self.heading)
+            self.map_handler.update_graph([self.pos_x, self.pos_y], self.heading)
             plt.pause(1e-5)
 
             cmd = affordance_ctrl(self.affordance)
@@ -81,11 +81,10 @@ class ros_handler():
         pose = {
             'pos': [self.pos_x, self.pos_y],
             'yaw': self.heading,
-            'direction': 1
+            'direction': self.map_handler.get_direction(),
         }
         self.affordance = calculate_affordance(self.map_data, pose)
         # print(affordance)
-
 
 if __name__ == '__main__':
     map_path = 'spline_result/spline_result.csv'
@@ -95,8 +94,6 @@ if __name__ == '__main__':
     
     # Configure map
     map_handler = MapPlot(map_path)
-    map_handler.update_start_point(takeoff_location)
-    map_handler.update(takeoff_location, 0)
     print("Configured the map successfully!")
 
     # ROS node

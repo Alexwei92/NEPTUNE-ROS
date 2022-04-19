@@ -307,9 +307,11 @@ class MapPlot():
         self.fig, self.axes = plt.subplots()
         self.map_data = read_map_data(map_path)
         self.initialize_map()
+
         self.has_initialized = False
-        self.start_point = None
-        self.end_point = None
+        self.start_point = {}
+        self.end_point = {}
+        self.currnet_point = None
 
     def initialize_map(self, disp_intervel=10):
         self.axes.plot(self.map_data['center'][:,0], self.map_data['center'][:,1], color='w', linewidth=0.5)
@@ -328,39 +330,81 @@ class MapPlot():
         self.axes.set_xlabel('x', fontsize=16)
         self.axes.set_ylabel('y', fontsize=16)
         self.fig.tight_layout()
+        self.fig.canvas.mpl_connect('button_press_event', self.one_click) 
 
     def update_start_point(self, start_point):
         start_upper_idx = np.abs(self.map_data['upper'][:,0] - start_point[0]).argmin()
         start_lower_idx = np.abs(self.map_data['lower'][:,0] - start_point[0]).argmin()
 
-        self.axes.plot([self.map_data['upper'][start_upper_idx,0], self.map_data['lower'][start_lower_idx,0]], 
-                        [self.map_data['upper'][start_upper_idx,1], self.map_data['lower'][start_lower_idx,1]], 
-                        color='w', linestyle='-.', linewidth=1)
-
-        self.axes.plot(start_point[0], start_point[1], marker='o', markersize=10, fillstyle='none', color='g')
-        # self.axes.add_patch(plt.Circle(start_point, 2, color='r', alpha=0.5))
+        if not self.start_point: # empty
+            self.start_point['value'] = start_point
+            # self.start_point['line'], = self.axes.plot([self.map_data['upper'][start_upper_idx,0], self.map_data['lower'][start_lower_idx,0]], 
+            #                             [self.map_data['upper'][start_upper_idx,1], self.map_data['lower'][start_lower_idx,1]], 
+            #                             color='w', linestyle='-.', linewidth=1)
+            self.start_point['dot'], = self.axes.plot(start_point[0], start_point[1], marker='o', markersize=10, fillstyle='none', color='g')
+            self.start_point['patch'] = self.axes.add_patch(plt.Circle(start_point, 2, color='g', alpha=0.5))
+        else:
+            self.start_point['value'] = start_point
+            # self.start_point['line'].set_xdata([self.map_data['upper'][start_upper_idx,0], self.map_data['lower'][start_lower_idx,0]])
+            # self.start_point['line'].set_ydata([self.map_data['upper'][start_upper_idx,1], self.map_data['lower'][start_lower_idx,1]])
+            self.start_point['dot'].set_xdata(start_point[0])
+            self.start_point['dot'].set_ydata(start_point[1])
+            self.start_point['patch'].set_center(start_point)
 
     def update_end_point(self, end_point):
         end_upper_idx = np.abs(self.map_data['upper'][:,0] - end_point[0]).argmin()
         end_lower_idx = np.abs(self.map_data['lower'][:,0] - end_point[0]).argmin()
 
-        self.axes.plot([self.map_data['upper'][end_upper_idx,0], self.map_data['lower'][end_lower_idx,0]], 
-                        [self.map_data['upper'][end_upper_idx,1], self.map_data['lower'][end_lower_idx,1]], 
-                        color='w', linestyle='-.', linewidth=1)
+        if not self.end_point: # empty
+            self.end_point['value'] = end_point
+            self.end_point['line'], = self.axes.plot([self.map_data['upper'][end_upper_idx,0], self.map_data['lower'][end_lower_idx,0]], 
+                                        [self.map_data['upper'][end_upper_idx,1], self.map_data['lower'][end_lower_idx,1]], 
+                                        color='w', linestyle='-.', linewidth=1)
+            self.end_point['dot'], = self.axes.plot(end_point[0], end_point[1], marker='o', markersize=10, fillstyle='none', color='r')
+            self.end_point['patch'] = self.axes.add_patch(plt.Circle(end_point, 2, color='r', alpha=0.5))
+        else:
+            self.end_point['value'] = end_point
+            self.end_point['line'].set_xdata([self.map_data['upper'][end_upper_idx,0], self.map_data['lower'][end_lower_idx,0]] )
+            self.end_point['line'].set_ydata([self.map_data['upper'][end_upper_idx,1], self.map_data['lower'][end_lower_idx,1]])
+            self.end_point['dot'].set_xdata(end_point[0])
+            self.end_point['dot'].set_ydata(end_point[1])
+            self.end_point['patch'].set_center(end_point)
 
-        self.axes.plot(end_point[0], end_point[1], marker='o', markersize=5, fillstyle='none', color='r')
-        # self.axes.add_patch(plt.Circle(end_point, 2, color='c', alpha=0.5))
-
-    def update(self, pos, heading):
+    def update_graph(self, pos, heading):
+        self.currnet_point = [pos[0], pos[1]]
         if self.has_initialized:
             plot_vehicle(self.axes_dict, pos, heading, is_first=False)
         else:
             self.axes_dict = plot_vehicle(self.axes, pos, heading, is_first=True)
+            self.update_start_point(self.currnet_point)
             self.has_initialized = True
+
+    def one_click(self, event):
+        if event.button == 1: # left click
+            end_point = [event.xdata, event.ydata]
+            self.update_end_point(end_point)
+            self.update_start_point(self.currnet_point)
+            print("Select end point: ({:.2f}, {:.2f})".format(event.xdata, event.ydata))
+        elif event.button == 3: # right click
+            for key, value in self.end_point.items():
+                if key != 'value':  
+                    value.remove()
+
+            self.end_point = {}
+            print("Clear end point.")
+
+    def get_direction(self):
+        if not self.end_point or not self.start_point:
+            return 1
+        
+        if self.end_point['value'][0] > self.start_point['value'][0]:
+            return 1
+        else:
+            return -1
 
     def reset(self):
         self.axes.clear()
         self.initialize_map()
         self.has_initialized = False
-        self.start_point = None
-        self.end_point = None
+        self.start_point = {}
+        self.end_point = {}
