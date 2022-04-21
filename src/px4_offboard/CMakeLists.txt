@@ -13,14 +13,25 @@ find_package(catkin REQUIRED COMPONENTS
     sensor_msgs
     mavros_msgs
     geometry_msgs
+    message_generation
 )
 
 find_package(Boost REQUIRED)
 
+add_message_files(
+  FILES
+  Affordance.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
+
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES px4_offboard
-#  CATKIN_DEPENDS message_runtime
+  CATKIN_DEPENDS message_runtime
 #  DEPENDS system_lib
 )
 

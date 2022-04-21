@@ -10,6 +10,7 @@
 #include <mavros_msgs/RCIn.h>
 #include <mavros_msgs/ManualControl.h>
 #include <mavros_msgs/State.h>
+#include <mavros_msgs/SetMode.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <boost/bind.hpp>
@@ -17,6 +18,7 @@
 #include "common.h"
 #include "math_utils.h"
 #include "rulebased_ctrl.h"
+#include "px4_offboard/Affordance.h"
 
 #define LOOP_RATE_DEFAULT   30 // Hz
 
@@ -50,6 +52,11 @@ public:
                     boost::bind(&ForwardCtrl::RCInCallback, this, _1, YAW_CHANNEL));
             #endif
         #endif
+
+        // Affordance
+        afford_sub = nh.subscribe<px4_offboard::Affordance>("/estimated_affordance", 5, 
+                    &ForwardCtrl::AffordanceCallback, this);
+
     }
 
     void run()
@@ -139,6 +146,24 @@ private:
         yaw_rad = wrap_2PI((float)yaw);
     }
 
+    void AffordanceCallback(const px4_offboard::Affordance::ConstPtr& msg) {
+        if (msg != NULL) {
+            bool in_bound = msg->in_bound;
+            if (!in_bound) {
+                set_mode("POSCTL");
+            }
+        }
+    }
+
+    void set_mode(std::string mode_name) {
+        ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
+        mavros_msgs::SetMode new_mode;
+        new_mode.request.custom_mode = mode_name;
+        while (!new_mode.response.mode_sent) {
+            set_mode_client.call(new_mode);
+        }
+    }
+
 private:
     ros::NodeHandle nh;
     ros::Publisher target_setpoint_pub;
@@ -146,12 +171,13 @@ private:
     ros::Subscriber local_pose_sub;
     ros::Subscriber rc_sub;
     ros::Subscriber cmd_sub;
+    ros::Subscriber afford_sub;
 
     mavros_msgs::State current_state;
     mavros_msgs::PositionTarget target;
     
     float yaw_cmd; // in [-1.0, 1.0]
-    float yaw_rad; // Down
+    float yaw_rad; // Down positive
 
     ros::Time offboard_start_time;
 };

@@ -106,7 +106,6 @@
       <arg name="clip_distance"            value="$(arg clip_distance)"/>
       <arg name="linear_accel_cov"         value="$(arg linear_accel_cov)"/>
       <arg name="initial_reset"            value="$(arg initial_reset)"/>
-      <arg name="reconnect_timeout"        value="$(arg reconnect_timeout)"/>
       <arg name="unite_imu_method"         value="$(arg unite_imu_method)"/>
       <arg name="stereo_module/exposure/1" value="$(arg stereo_module/exposure/1)"/>
       <arg name="stereo_module/gain/1"     value="$(arg stereo_module/gain/1)"/>

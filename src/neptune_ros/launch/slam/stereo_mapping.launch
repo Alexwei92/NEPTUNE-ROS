@@ -2,7 +2,7 @@
 <launch>
     <arg name="camera1_name"     default="d435i"/>
     <arg name="camera2_name"     default="t265"/>
-    <arg name="db_folder"        default="/media/lab/Hard Disk" />
+    <arg name="db_folder"        default="/media/lab/Samsung" />
     <arg name="database_name"    default="test.db" />
 
     <arg name="localization"     default="false"/>

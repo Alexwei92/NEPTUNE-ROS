@@ -16,6 +16,7 @@ export PX4_HOME_LAT=38.588156
 export PX4_HOME_LON=-121.705512
 export PX4_HOME_ALT=28.5
 make px4_sitl_default gazebo
+
 roslaunch neptune_ros connect_sitl.launch
 
 # or connect to PX4 Autopilot (Hardware-in-the-loop)
@@ -23,6 +24,7 @@ cd ~/Github/PX4-Autopilot
 DONT_RUN=1 make px4_sitl_default gazebo
 source Tools/setup_gazebo.bash $(pwd) $(pwd)/build/px4_sitl_default
 gazebo Tools/sitl_gazebo/worlds/hitl_iris.world
+
 roslaunch neptune_ros connect_hitl.launch
 
 # px4 avoidance world
