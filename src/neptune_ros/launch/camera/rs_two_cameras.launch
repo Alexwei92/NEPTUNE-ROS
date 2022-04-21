@@ -3,8 +3,8 @@
   <include file="$(find neptune_ros)/launch/camera/rs_d435i.launch" > 
     <arg name="enable_gyro"       value="false"/>
     <arg name="enable_accel"      value="false"/>
-    <arg name="enable_infra1"     value="false"/>
-    <arg name="enable_infra2"     value="false"/>
+    <!-- <arg name="enable_infra1"     value="false"/>
+    <arg name="enable_infra2"     value="false"/> -->
     <arg name="filters"           value="pointcloud"/>
   </include>
 
