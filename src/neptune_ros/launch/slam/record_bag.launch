@@ -1,0 +1,21 @@
+<launch>
+    <arg name="camera1_name"     default="d435i"/>
+    <arg name="camera2_name"     default="t265"/>
+    <arg name="output_filepath" default="/media/peng/Samsung/"/>
+
+    <node pkg="rosbag" type="record" name="record_bag" 
+        args="record /$(arg camera1_name)/aligned_depth_to_color/image_raw/compressed
+                /$(arg camera1_name)/aligned_depth_to_color/camera_info
+                /$(arg camera1_name)/color/image_raw/compressed
+                /$(arg camera1_name)/color/camera_info
+                /$(arg camera1_name)/infra1/image_rect_raw/compressed
+                /$(arg camera1_name)/infra1/camera_info
+                /$(arg camera1_name)/infra2/image_rect_raw/compressed
+                /$(arg camera1_name)/infra2/camera_info
+                /$(arg camera2_name)/odom/sample
+                /tf
+                /tf_static
+                -o $(arg output_filepath)/$(arg camera1_name)"
+    />
+
+</launch>

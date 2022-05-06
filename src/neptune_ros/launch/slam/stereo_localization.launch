@@ -3,9 +3,9 @@
     <arg name="camera1_name"     default="d435i"/>
     <arg name="camera2_name"     default="t265"/>
     <arg name="db_folder"        default="/media/peng/Samsung" />
-    <arg name="database_name"    default="lab_test.db" />
+    <arg name="database_name"    default="surge.db" />
 
-    <arg name="localization"     default="false"/>
+    <arg name="localization"     default="true"/>
 
     <!-- Uncompress images for stereo_image_rect -->
     <node name="republish_left" type="republish" pkg="image_transport" args="compressed in:=/$(arg camera1_name)/infra1/image_rect_raw raw out:=/$(arg camera1_name)/infra1/image_rect_raw" />
@@ -41,16 +41,4 @@
         <arg name="rtabmapviz"              value="false"/>
 
     </include>
-
-    <!-- Create point cloud for the local planner -->
-    <!-- <node pkg="nodelet" type="nodelet" name="obstacles_detection" args="load rtabmap_ros/obstacles_detection stereo_nodelet">
-        <remap from="/$(arg camera1_name)/cloud" to="/voxel_cloud"/>
-        <remap from="/$(arg camera1_name)/obstacles" to="/planner_cloud"/>
-
-        <param name="frame_id" type="string" value="$(arg camera1_name)_link"/>
-        <param name="map_frame_id" type="string" value="map"/>
-        <param name="min_cluster_size" type="int" value="20"/>
-        <param name="max_obstacles_height" type="double" value="0.0"/>
-    </node> -->
-
 </launch>

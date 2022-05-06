@@ -12,5 +12,5 @@
   <include file="$(find neptune_ros)/launch/camera/rs_t265.launch" />
 
   <!-- tf static -->
-  <node pkg="tf" type="static_transform_publisher" name="t265_to_d435i" args="-0.00462 0.0084 0.01718 0 -0.64577 0 /t265_link /d435i_link 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="t265_to_d435i" args="-0.00462 0.0084 0.01718 0 -0.64577 0 /t265_link /d435i_link 50"/>
 </launch>
