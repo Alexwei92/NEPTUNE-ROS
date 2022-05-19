@@ -1,3 +1,6 @@
+In VIO -> src -> nodes -> px4_realsense_bridge.cpp
+Change line 16 from "/camera/odom/sample_throttled" to "/t265/odom/sample_throttled"
+
 ----------------------------
 Connect to Realsense Camera
 ----------------------------
