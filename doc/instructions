@@ -1,6 +1,12 @@
+-----------------------------
+Pre-request
+-----------------------------
 In VIO -> src -> nodes -> px4_realsense_bridge.cpp
 Change line 16 from "/camera/odom/sample_throttled" to "/t265/odom/sample_throttled"
 
+
+In vision_to_mavros -> CMakeLists.txt
+COmment out line 149-152
 ----------------------------
 Connect to Realsense Camera
 ----------------------------
@@ -42,6 +48,9 @@ export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:~/catkin_ws/src/PX4-Avoidance/avoi
 # 2) Start Offboard node (need to be running before entering Offboard mode!)
 rosrun px4_offboard forward_flight # <-- Use the RC CH7 to switch to Offboard Mode -->
 
+
+# 3)
+
 ---------------
 Data Collection
 ---------------
@@ -50,10 +59,7 @@ Data Collection
 SLAM
 ----
 # Mapping
-roslaunch neptune_ros rs_d435i.launch
-
-# # IMU filter
-# roslaunch neptune_ros camera_process.launch
+roslaunch neptune_ros rs_two_camera.launch
 
 # Run rtabmap (Mapping)
 roslaunch neptune_ros run_rtabmap.launch
