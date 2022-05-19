@@ -1,3 +1,6 @@
 [submodule "src/VIO"]
 	path = src/VIO
 	url = https://github.com/Auterion/VIO.git
+[submodule "src/vision_to_mavros"]
+    path = src/vision_to_mavros
+	url = https://github.com/thien94/vision_to_mavros.git
