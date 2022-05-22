@@ -15,6 +15,10 @@
                 /$(arg camera2_name)/odom/sample
                 /tf
                 /tf_static
+                /mavros/local_position/pose
+                /mavros/local_position/velocity_body
+                /mavros/rc/in
+                /mavros/state
                 --lz4
                 -o $(arg output_filepath)/$(arg camera1_name)"
     />
