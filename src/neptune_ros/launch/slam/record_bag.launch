@@ -1,7 +1,7 @@
 <launch>
     <arg name="camera1_name"     default="d435i"/>
     <arg name="camera2_name"     default="t265"/>
-    <arg name="output_filepath" default="/media/peng/Samsung/"/>
+    <arg name="output_filepath" default="/media/$(env USER)/SSD/"/>
 
     <node pkg="rosbag" type="record" name="record_bag" 
         args="record /$(arg camera1_name)/aligned_depth_to_color/image_raw/compressed
