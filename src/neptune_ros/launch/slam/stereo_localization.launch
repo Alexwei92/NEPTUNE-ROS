@@ -3,7 +3,7 @@
     <arg name="camera1_name"     default="d435i"/>
     <arg name="camera2_name"     default="t265"/>
     <arg name="db_folder"        default="/media/peng/Samsung" />
-    <arg name="database_name"    default="surge.db" />
+    <arg name="database_name"    default="surge_outdoor.db" />
 
     <arg name="localization"     default="true"/>
 
@@ -11,7 +11,7 @@
     <node name="republish_left" type="republish" pkg="image_transport" args="compressed in:=/$(arg camera1_name)/infra1/image_rect_raw raw out:=/$(arg camera1_name)/infra1/image_rect_raw" />
     <node name="republish_right" type="republish" pkg="image_transport" args="compressed in:=/$(arg camera1_name)/infra2/image_rect_raw raw out:=/$(arg camera1_name)/infra2/image_rect_raw" />
 
-    <param name="use_sim_time" type="bool" value="True"/>
+    <param name="use_sim_time" type="bool" value="true"/>
 
     <!-- Rtabmap -->
     <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
