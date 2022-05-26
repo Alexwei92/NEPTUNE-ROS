@@ -2,7 +2,7 @@
 <launch>
     <arg name="camera1_name"     default="d435i"/>
     <arg name="camera2_name"     default="t265"/>
-    <arg name="db_folder"        default="/media/peng/Samsung" />
+    <arg name="db_folder"        default="/media/$(env USER)/NEPTUNE2/slam_data" />
     <arg name="database_name"    default="surge_outdoor.db" />
 
     <arg name="localization"     default="true"/>
@@ -37,8 +37,8 @@
         
         <arg name="approx_sync"             value="true"/>
         <arg name="queue_size"              value="200"/>
-        <arg name="rviz"                    value="true"/>
-        <arg name="rtabmapviz"              value="false"/>
+        <arg name="rviz"                    value="false"/>
+        <arg name="rtabmapviz"              value="true"/>
 
     </include>
 </launch>
