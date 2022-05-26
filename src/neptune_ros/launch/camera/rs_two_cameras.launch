@@ -12,6 +12,7 @@
   <!-- T265 -->
   <include file="$(find neptune_ros)/launch/camera/rs_t265.launch" >
     <arg name="camera"            value="t265"/>
+    <arg name="publish_odom_tf"   value="true"/>
   </include>
 
   <!-- tf static -->
