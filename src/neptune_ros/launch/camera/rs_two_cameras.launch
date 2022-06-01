@@ -17,4 +17,7 @@
 
   <!-- tf static -->
   <node pkg="tf" type="static_transform_publisher" name="t265_to_d435i" args="-0.00143 0.0084 0.03782 0 -0.64577 0 /t265_link /d435i_link 50"/>
+
+  <!-- Duplicate the tf tree -->
+  <node pkg="topic_tools" type="relay" name="t265_relay" args="/t265/odometry/sample /camera/odometry/sample" />
 </launch>
