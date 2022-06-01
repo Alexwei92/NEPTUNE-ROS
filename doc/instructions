@@ -1,12 +1,9 @@
 -----------------------------
 Pre-request
 -----------------------------
-In VIO -> src -> nodes -> px4_realsense_bridge.cpp
-Change line 16 from "/camera/odom/sample_throttled" to "/t265/odom/sample_throttled"
-
-
 In vision_to_mavros -> CMakeLists.txt
 COmment out line 149-152
+
 ----------------------------
 Connect to Realsense Camera
 ----------------------------

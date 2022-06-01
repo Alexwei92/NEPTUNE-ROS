@@ -2,10 +2,9 @@
   <!-- D435i -->
   <include file="$(find neptune_ros)/launch/camera/rs_d435i.launch" > 
     <arg name="camera"            value="d435i"/>
+    <arg name="enable_depth"      value="false"/>
     <arg name="enable_gyro"       value="false"/>
     <arg name="enable_accel"      value="false"/>
-    <!-- <arg name="enable_infra1"     value="false"/>
-    <arg name="enable_infra2"     value="false"/> -->
     <arg name="filters"           value="pointcloud"/>
   </include>
 
@@ -19,5 +18,11 @@
   <node pkg="tf" type="static_transform_publisher" name="t265_to_d435i" args="-0.00143 0.0084 0.03782 0 -0.64577 0 /t265_link /d435i_link 50"/>
 
   <!-- Duplicate the tf tree -->
-  <node pkg="topic_tools" type="relay" name="t265_relay" args="/t265/odom/sample /camera/odom/sample" />
+  <node pkg="neptune_ros" type="duplicate_tf_tree.py" name="duplicate_tf_tree">
+    <param name="target_frame"       type="string"    value="t265_odom_frame"/>
+    <param name="source_frame"       type="string"    value="t265_pose_frame"/>
+    <param name="new_target_frame"   type="string"    value="camera_odom_frame"/>
+    <param name="new_source_frame"   type="string"    value="camera_pose_frame"/>
+    <param name="rate"               type="double"    value="200"/>
+  </node>  
 </launch>
