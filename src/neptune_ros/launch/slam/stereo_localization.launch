@@ -16,6 +16,7 @@
     <!-- Rtabmap -->
     <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
         <arg name="localization"            value="$(arg localization)"/>
+        <arg name="map_frame_id"            value="map_rtab"/>
         <arg name="frame_id"                value="$(arg camera1_name)_link"/> 
         <arg name="database_path"           value="$(arg db_folder)/rtabmap_ros/$(arg database_name)"/>
 
@@ -37,8 +38,15 @@
         
         <arg name="approx_sync"             value="true"/>
         <arg name="queue_size"              value="200"/>
-        <arg name="rviz"                    value="true"/>
+        <arg name="rviz"                    value="false"/>
         <arg name="rtabmapviz"              value="false"/>
 
     </include>
+
+    <!-- rviz for visualization -->
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find neptune_ros)launch/slam/visualize.rviz"/>
+
+    <!-- record the localization result -->
+    
+
 </launch>

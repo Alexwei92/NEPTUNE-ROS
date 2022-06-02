@@ -26,7 +26,6 @@ class DuplicateTFTransform(object):
 
     def get_transform(self, target_frame, source_frame):
         success = False
-        transform = None
         while not rospy.is_shutdown() and not success:
             success, transform = self._lookup_transformation(
                 self.tf_listener, target_frame, source_frame
@@ -56,9 +55,6 @@ class DuplicateTFTransform(object):
             pass
     
         return success, transform
-
-    def publish_duplicate_tf(self):
-        pass
 
 
 if __name__ == "__main__":
