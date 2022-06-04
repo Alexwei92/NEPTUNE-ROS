@@ -20,15 +20,20 @@
 #include "rulebased_ctrl.h"
 #include "px4_offboard/Affordance.h"
 
-#define LOOP_RATE_DEFAULT   30 // Hz
 
 class ForwardCtrl
 {
+public:
+    float LOOP_RATE_DEFAULT = 30; // Hz
+
 public:
     ForwardCtrl()
     {
         InitializeTarget();
         
+        ros::param::param<float>("forward_speed", forward_speed, 1.0);
+        ROS_INFO("Forward speed is set to %.2f m/s", forward_speed);
+
         // Publisher
         target_setpoint_pub = nh.advertise<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/local", 1);  
 
@@ -76,7 +81,7 @@ public:
                 }                
                 // velocity
                 geometry_msgs::Vector3 velocity_local;
-                velocity_local.x = FORWARD_SPEED * ratio;
+                velocity_local.x = forward_speed * ratio;
                 velocity_local.y = 0; 
                 velocity_local.z = 0;
                 if (target.coordinate_frame == 1) {
@@ -176,6 +181,7 @@ private:
     mavros_msgs::State current_state;
     mavros_msgs::PositionTarget target;
     
+    float forward_speed; // m/s
     float yaw_cmd; // in [-1.0, 1.0]
     float yaw_rad; // Down positive
 

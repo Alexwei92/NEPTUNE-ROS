@@ -13,3 +13,5 @@ src/edu_450
 src/VIO
 
 src/vision_to_mavros
+
+*.pyc

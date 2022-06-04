@@ -3,13 +3,17 @@
     <arg name="camera1_name"     default="d435i"/>
     <arg name="camera2_name"     default="t265"/>
     <arg name="db_folder"        default="/media/$(env USER)/NEPTUNE2/slam_data" />
-    <arg name="database_name"    default="surge_outdoor_test.db" />
+    <arg name="database_name"    default="surge_outdoor_old_depth.db" />
 
     <arg name="localization"     default="false"/>
 
     <!-- Uncompress images for stereo_image_rect -->
     <node name="republish_left" type="republish" pkg="image_transport" args="compressed in:=/$(arg camera1_name)/infra1/image_rect_raw raw out:=/$(arg camera1_name)/infra1/image_rect_raw" />
     <node name="republish_right" type="republish" pkg="image_transport" args="compressed in:=/$(arg camera1_name)/infra2/image_rect_raw raw out:=/$(arg camera1_name)/infra2/image_rect_raw" />
+
+    <!-- Uncompress images for color and depth -->
+    <!-- <node name="republish_color" type="republish" pkg="image_transport" args="compressed in:=/$(arg camera1_name)/color/image_raw raw out:=/$(arg camera1_name)/color/image_raw" />
+    <node name="republish_depth" type="republish" pkg="image_transport" args="compressed in:=/$(arg camera1_name)/aligned_depth_to_color/image_raw raw out:=/$(arg camera1_name)/aligned_depth_to_color/image_raw "/> -->
 
     <param name="use_sim_time" type="bool" value="true"/>
 
@@ -23,10 +27,13 @@
         <arg name="rtabmap_args"            value="--delete_db_on_start" 
             if="$(eval arg('localization') == 'false')"/> 
 
-        <!-- <arg name="depth_topic"             value="/$(arg camera1_name)/aligned_depth_to_color/image_raw"/>
+        <!-- Use depth -->
+        <!-- <arg name="rgbd_sync"               value="true"/> 
+        <arg name="depth_topic"             value="/$(arg camera1_name)/aligned_depth_to_color/image_raw"/>
         <arg name="rgb_topic"               value="/$(arg camera1_name)/color/image_raw"/>
         <arg name="camera_info_topic"       value="/$(arg camera1_name)/color/camera_info"/> -->
 
+        <!-- Use stereo -->
         <arg name="stereo"                  value="true"/> 
         <arg name="left_image_topic"        value="/$(arg camera1_name)/infra1/image_rect_raw"/>
         <arg name="right_image_topic"       value="/$(arg camera1_name)/infra2/image_rect_raw"/>
