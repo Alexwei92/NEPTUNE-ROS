@@ -31,7 +31,7 @@ public:
     {
         InitializeTarget();
         
-        ros::param::param<float>("forward_speed", forward_speed, 1.0);
+        ros::param::param<float>("~forward_speed", forward_speed, 0.5);
         ROS_INFO("Forward speed is set to %.2f m/s", forward_speed);
 
         // Publisher
