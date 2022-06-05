@@ -12,13 +12,18 @@
 #include "common.h"
 #include "math_utils.h"
 
-#define LOOP_RATE_DEFAULT   50
 
 class AttitudeCtrl
 {
 public:
+    float LOOP_RATE_DEFAULT = 50;
+
+public:
     AttitudeCtrl()
     {
+        ros::param::param<float>("~max_yawrate", max_yawrate, 45);
+        ROS_INFO("Maximum yaw rate is set to %.2f deg/s", max_yawrate);
+        
         target.header = std_msgs::Header();
         target.header.frame_id = "base_drone";
         
@@ -43,7 +48,7 @@ public:
             geometry_msgs::Vector3 body_rate;
             body_rate.x = 0.0;
             body_rate.y = 0.0;
-            body_rate.z = yaw_cmd * MAX_YAWRATE;
+            body_rate.z = yaw_cmd * max_yawrate;
             target.body_rate = body_rate;
             // thrust           
             target.thrust = 0.7;
@@ -67,7 +72,8 @@ private:
     ros::Subscriber rcin_sub;
 
     mavros_msgs::AttitudeTarget target;
-    
+
+    float max_yawrate;    
     float yaw_cmd;
 };
 

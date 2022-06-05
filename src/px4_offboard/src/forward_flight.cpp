@@ -34,6 +34,9 @@ public:
         ros::param::param<float>("~forward_speed", forward_speed, 0.5);
         ROS_INFO("Forward speed is set to %.2f m/s", forward_speed);
 
+        ros::param::param<float>("~max_yawrate", max_yawrate, 45);
+        ROS_INFO("Maximum yaw rate is set to %.2f deg/s", max_yawrate);
+
         // Publisher
         target_setpoint_pub = nh.advertise<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/local", 1);  
 
@@ -89,7 +92,7 @@ public:
                 }
                 target.velocity = velocity_local;
                 // yaw rate
-                target.yaw_rate = -yaw_cmd * MAX_YAWRATE * DEG2RAD;
+                target.yaw_rate = -yaw_cmd * max_yawrate * DEG2RAD;
 
             }
             
@@ -182,6 +185,8 @@ private:
     mavros_msgs::PositionTarget target;
     
     float forward_speed; // m/s
+    float max_yawrate; // deg/s
+
     float yaw_cmd; // in [-1.0, 1.0]
     float yaw_rad; // Down positive
 
@@ -200,4 +205,6 @@ int main(int argc, char **argv)
     }
 
     ctrl.run();
+
+    return 0;
 }

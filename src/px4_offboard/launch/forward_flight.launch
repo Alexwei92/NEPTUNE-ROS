@@ -1,0 +1,7 @@
+<launch>
+    <node name="forward_flight"  pkg="px4_offboard"  type="forward_flight"  output="screen">
+        <param name="forward_speed"  type="double"  value="0.5"/>
+        <param name="max_yawrate"    type="double"  value="45.0"/>
+    </node>
+
+</launch>
