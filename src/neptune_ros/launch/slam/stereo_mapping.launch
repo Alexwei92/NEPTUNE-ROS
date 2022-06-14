@@ -3,7 +3,7 @@
     <arg name="camera1_name"     default="d435i"/>
     <arg name="camera2_name"     default="t265"/>
     <arg name="db_folder"        default="/media/$(env USER)/NEPTUNE2/slam_data" />
-    <arg name="database_name"    default="surge_outdoor_old_depth.db" />
+    <arg name="database_name"    default="surge_outdoor_new.db" />
 
     <arg name="localization"     default="false"/>
 
