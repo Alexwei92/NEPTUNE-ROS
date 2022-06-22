@@ -14,7 +14,7 @@ roslaunch neptune_ros rs_d435i.launch
 PX4 Offboard
 ------------
 # 1) Connect to PX4 Autopilot
-roslaunch neptune_ros connect_px4.launch
+roslaunch neptune_ros connect_px4_xavier.launch
 
 # or connect to PX4 Autopilot (Simulation-in-the-loop)
 cd ~/Github/PX4-Autopilot
@@ -46,11 +46,10 @@ export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:~/catkin_ws/src/PX4-Avoidance/avoi
 rosrun px4_offboard forward_flight # <-- Use the RC CH7 to switch to Offboard Mode -->
 
 
-# 3)
-
 ---------------
 Data Collection
 ---------------
+roslaunch neptune_ros record_bag.launch
 
 ----
 SLAM
@@ -59,7 +58,7 @@ SLAM
 roslaunch neptune_ros rs_two_camera.launch
 
 # Run rtabmap (Mapping)
-roslaunch neptune_ros run_rtabmap.launch
+roslaunch neptune_ros stereo_mapping.launch
 
 # rosbag
 rosbag record /d435i/infra1/image_rect_raw \
