@@ -6,6 +6,7 @@
     <arg name="database_name"    default="forest_trail2.db" />
 
     <arg name="localization"     default="false"/>
+    <arg name="record_localization" default="true"/>
 
     <!-- Vehicle description -->
     <arg name="urdf_folder" default="$(find edu_450)/urdf" />
@@ -67,6 +68,12 @@
 
     <!-- rviz for visualization -->
     <node type="rviz" name="rviz" pkg="rviz" args="-d $(find neptune_ros)launch/slam/visualize.rviz"/>
+
+    <!-- record localization visualization -->
+    <node type="record_localization.py" pkg="neptune_ros" name="record_localization" output="screen"
+        if="$(arg record_localization)">
+        <param name="database_name"  type="string"  value="$(arg database_name)" />
+    </node>
 
     <!-- Create point cloud for the local planner -->
     <!-- <node pkg="nodelet" type="nodelet" name="obstacles_detection" args="load rtabmap_ros/obstacles_detection stereo_nodelet">

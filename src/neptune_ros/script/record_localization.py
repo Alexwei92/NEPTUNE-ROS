@@ -10,6 +10,8 @@ from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 import transformation
 
+import pandas
+
 def check_matrix_equal(matrix1, matrix2):
     row, col = matrix1.shape
     for i in range(row):
@@ -26,6 +28,9 @@ class RecordLocalization(object):
         self.all_transform = []
         self.latest_transform = None
         self.rate = rospy.Rate(rate)
+
+        self.database_name = rospy.get_param("~database_name")[:-3]
+        print(self.database_name)
 
         self.tf_listener = tf.TransformListener()
         rospy.Subscriber("/t265/odom/sample", Odometry, self.odom_callback)
@@ -97,8 +102,6 @@ class RecordLocalization(object):
             print("The latest transformation matrix is:")
             print("translationanl: ", self.latest_transform[0])
             print("rotational: ", self.latest_transform[1])
-            # TODO: save to file
-
 
             all_state = np.array(self.all_state)
 
@@ -113,23 +116,40 @@ class RecordLocalization(object):
 
             map_T_odom = rot_matrix
 
-            pos = []
+            position, orientation = [], []
             for state in all_state:
                 state_se3 = transformation.states2SE3(state)
                 state_in_map = map_T_odom.dot(state_se3)
-                pos.append(state_in_map[0:3, 3])
+                state_odom = transformation.SE32states(state_in_map)
+                position.append(state_odom[:3])
+                orientation.append(state_odom[3:])
+                
+            position = np.array(position)
+            orientation = np.array(orientation)
 
-            pos = np.array(pos)
+            # Save to file
+            self.save_to_file(position, orientation)
 
-            fig = plt.figure()
+            fig, ax = plt.subplots()
             # ax = plt.axes(projection ='3d')
-            ax = plt.axes()
             # ax.plot3D(pos[:,0], pos[:,1], pos[:,2])
-            ax.plot(pos[:,0], pos[:,1])
+            ax.plot(position[:,0], position[:,1])
             ax.set_aspect('equal')
 
             plt.show()
 
+    def save_to_file(self, position, orientation):
+        data = pandas.DataFrame()
+        data['pos_x'] = position[:,0]
+        data['pos_y'] = position[:,1]
+        data['pos_z'] = position[:,2]
+        data['roll']  = orientation[:,0]
+        data['pitch'] = orientation[:,1]
+        data['yaw']   = orientation[:,2]
+
+        file_path = "~/" + self.database_name + ".csv"
+        rospy.loginfo("CSV file saved to %s", file_path)
+        data.to_csv(file_path, index=False)
 
 if __name__ == "__main__":
     rospy.init_node("record_localization")
