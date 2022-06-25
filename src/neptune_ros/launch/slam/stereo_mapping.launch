@@ -3,17 +3,31 @@
     <arg name="camera1_name"     default="d435i"/>
     <arg name="camera2_name"     default="t265"/>
     <arg name="db_folder"        default="/media/$(env USER)/NEPTUNE2/slam_data" />
-    <arg name="database_name"    default="forest_trail3.db" />
+    <arg name="database_name"    default="forest_trail2.db" />
 
     <arg name="localization"     default="false"/>
+
+    <!-- Vehicle description -->
+    <arg name="urdf_folder" default="$(find edu_450)/urdf" />
+    <arg name="vehicle_model" default="$(arg urdf_folder)/edu_450.urdf" />
+
+    <param name="robot_description" textfile="$(arg vehicle_model)" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+
+    <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui">
+        <param name="rate" value="100" />
+    </node>
+
+    <node pkg="tf" type="static_transform_publisher" name="camera_to_drone" args="-0.108 -0.018 0.043 0 0 0 /d435i_link /drone_link 1000"/>
+    <!-- <node pkg="tf" type="static_transform_publisher" name="base_to_drone" args="0 0 0 0 0 0 /base_link /drone_link 1000"/> -->
 
     <!-- Uncompress images for stereo_image_rect -->
     <node name="republish_left" type="republish" pkg="image_transport" args="compressed in:=/$(arg camera1_name)/infra1/image_rect_raw raw out:=/$(arg camera1_name)/infra1/image_rect_raw" />
     <node name="republish_right" type="republish" pkg="image_transport" args="compressed in:=/$(arg camera1_name)/infra2/image_rect_raw raw out:=/$(arg camera1_name)/infra2/image_rect_raw" />
 
     <!-- Uncompress images for color and depth -->
-    <!-- <node name="republish_color" type="republish" pkg="image_transport" args="compressed in:=/$(arg camera1_name)/color/image_raw raw out:=/$(arg camera1_name)/color/image_raw" />
-    <node name="republish_depth" type="republish" pkg="image_transport" args="compressed in:=/$(arg camera1_name)/aligned_depth_to_color/image_raw raw out:=/$(arg camera1_name)/aligned_depth_to_color/image_raw "/> -->
+    <!-- <node name="republish_color" type="republish" pkg="image_transport" args="compressed in:=/$(arg camera1_name)/color/image_raw raw out:=/$(arg camera1_name)/color/image_raw" /> -->
+    <!-- <node name="republish_depth" type="republish" pkg="image_transport" args="compressed in:=/$(arg camera1_name)/aligned_depth_to_color/image_raw raw out:=/$(arg camera1_name)/aligned_depth_to_color/image_raw "/> --> -->
 
     <param name="use_sim_time" type="bool" value="true"/>
 
