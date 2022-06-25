@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="edu_450">
+  <link
+    name="drone_link">
+    <inertial>
+      <origin
+        xyz="0.0047978 0.0011606 0.02062"
+        rpy="0 0 0" />
+      <mass
+        value="0.94206" />
+      <inertia
+        ixx="0.0009056"
+        ixy="2.2396E-07"
+        ixz="3.9682E-07"
+        iyy="0.0011612"
+        iyz="7.4602E-09"
+        izz="0.0013815" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://edu_450/meshes/drone_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://edu_450/meshes/drone_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="rotor1_link">
+    <inertial>
+      <origin
+        xyz="-0.00038044 0.00038055 0.0061506"
+        rpy="0 0 0" />
+      <mass
+        value="0.0047041" />
+      <inertia
+        ixx="8.7399E-06"
+        ixy="-1.0605E-05"
+        ixz="-1.6038E-07"
+        iyy="1.3264E-05"
+        iyz="-1.195E-07"
+        izz="2.1935E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://edu_450/meshes/rotor1_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.25098 0.25098 0.25098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://edu_450/meshes/rotor1_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="rotor1_joint"
+    type="revolute">
+    <origin
+      xyz="0.15689 -0.15689 0.080664"
+      rpy="0 0 0" />
+    <parent
+      link="drone_link" />
+    <child
+      link="rotor1_link" />
+    <axis
+      xyz="-0.061628 0.061628 0.99619" />
+    <limit
+      lower="-3.1416"
+      upper="3.1416"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="rotor2_link">
+    <inertial>
+      <origin
+        xyz="0.00038037 -0.00038065 0.0061503"
+        rpy="0 0 0" />
+      <mass
+        value="0.0047043" />
+      <inertia
+        ixx="1.1915E-05"
+        ixy="-1.0806E-05"
+        ixz="-4.845E-08"
+        iyy="1.0088E-05"
+        iyz="-6.4576E-08"
+        izz="2.1937E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://edu_450/meshes/rotor2_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.25098 0.25098 0.25098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://edu_450/meshes/rotor2_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="rotor2_joint"
+    type="revolute">
+    <origin
+      xyz="-0.15689 0.15689 0.080664"
+      rpy="0 0 0" />
+    <parent
+      link="drone_link" />
+    <child
+      link="rotor2_link" />
+    <axis
+      xyz="0.061628 -0.061628 0.99619" />
+    <limit
+      lower="-3.1416"
+      upper="3.1416"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="rotor3_link">
+    <inertial>
+      <origin
+        xyz="-0.00038057 -0.00038041 0.0061505"
+        rpy="0 0 0" />
+      <mass
+        value="0.0047041" />
+      <inertia
+        ixx="1.2012E-05"
+        ixy="1.0797E-05"
+        ixz="5.391E-08"
+        iyy="9.991E-06"
+        iyz="-7.1102E-08"
+        izz="2.1937E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://edu_450/meshes/rotor3_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.25098 0.25098 0.25098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://edu_450/meshes/rotor3_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="rotor3_joint"
+    type="revolute">
+    <origin
+      xyz="0.15689 0.15689 0.080664"
+      rpy="0 0 0" />
+    <parent
+      link="drone_link" />
+    <child
+      link="rotor3_link" />
+    <axis
+      xyz="-0.061628 -0.061628 0.99619" />
+    <limit
+      lower="-3.1416"
+      upper="3.1416"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="rotor4_link">
+    <inertial>
+      <origin
+        xyz="0.00038067 0.00038036 0.0061503"
+        rpy="0 0 0" />
+      <mass
+        value="0.0047043" />
+      <inertia
+        ixx="1.0342E-05"
+        ixy="1.0825E-05"
+        ixz="4.7721E-08"
+        iyy="1.1661E-05"
+        iyz="-3.3881E-08"
+        izz="2.1937E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://edu_450/meshes/rotor4_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.25098 0.25098 0.25098 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://edu_450/meshes/rotor4_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="rotor4_joint"
+    type="revolute">
+    <origin
+      xyz="-0.15689 -0.15689 0.080664"
+      rpy="0 0 0" />
+    <parent
+      link="drone_link" />
+    <child
+      link="rotor4_link" />
+    <axis
+      xyz="0.061628 0.061628 0.99619" />
+    <limit
+      lower="-3.1416"
+      upper="3.1416"
+      effort="0"
+      velocity="0" />
+  </joint>
+</robot>

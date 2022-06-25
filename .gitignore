@@ -8,8 +8,6 @@
 
 src/px4_offboard/include/user_config.h
 
-src/edu_450
-
 src/VIO
 
 src/vision_to_mavros
