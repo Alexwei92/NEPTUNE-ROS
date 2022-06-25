@@ -1,9 +1,0 @@
-<launch>
-    <arg name="database_name"    default="forest_trail2.db" />
-
-    <!-- record localization visualization -->
-    <node type="record_localization.py" pkg="neptune_ros" name="record_localization" output="screen">
-        <param name="database_name"  type="string"  value="$(arg database_name)" />
-    </node>
-
-</launch>

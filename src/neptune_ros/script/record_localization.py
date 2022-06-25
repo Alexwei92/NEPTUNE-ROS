@@ -143,9 +143,9 @@ class RecordLocalization(object):
         data['pos_x'] = position[:,0]
         data['pos_y'] = position[:,1]
         data['pos_z'] = position[:,2]
-        data['roll']  = orientation[:,0]
+        data['roll']  = orientation[:,2]
         data['pitch'] = orientation[:,1]
-        data['yaw']   = orientation[:,2]
+        data['yaw']   = orientation[:,0]
 
         file_path = "~/" + self.database_name + ".csv"
         rospy.loginfo("CSV file saved to %s", file_path)
