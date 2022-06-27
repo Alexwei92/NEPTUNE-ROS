@@ -6,7 +6,7 @@
     <arg name="database_name"    default="forest_trail2.db" />
 
     <arg name="localization"     default="false"/>
-    <arg name="record_localization" default="true"/>
+    <arg name="record_localization" default="false"/>
 
     <!-- Vehicle description -->
     <arg name="urdf_folder" default="$(find edu_450)/urdf" />
@@ -15,7 +15,7 @@
     <param name="robot_description" textfile="$(arg vehicle_model)" />
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
 
-    <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui">
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
         <param name="rate" value="100" />
     </node>
 
