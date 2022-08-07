@@ -3,7 +3,7 @@
     <arg name="camera1_name"     default="d435i"/>
     <arg name="camera2_name"     default="t265"/>
     <arg name="db_folder"        default="/media/$(env USER)/NEPTUNE2/slam_data" />
-    <arg name="database_name"    default="forest_trail3.db" />
+    <arg name="database_name"    default="forest_trail2.db" />
 
     <arg name="localization"     default="false"/>
     <arg name="record_localization" default="false"/>
@@ -27,7 +27,7 @@
     <node name="republish_right" type="republish" pkg="image_transport" args="compressed in:=/$(arg camera1_name)/infra2/image_rect_raw raw out:=/$(arg camera1_name)/infra2/image_rect_raw" />
 
     <!-- Uncompress images for color and depth -->
-    <!-- <node name="republish_color" type="republish" pkg="image_transport" args="compressed in:=/$(arg camera1_name)/color/image_raw raw out:=/$(arg camera1_name)/color/image_raw" /> -->
+    <node name="republish_color" type="republish" pkg="image_transport" args="compressed in:=/$(arg camera1_name)/color/image_raw raw out:=/$(arg camera1_name)/color/image_raw" />
     <!-- <node name="republish_depth" type="republish" pkg="image_transport" args="compressed in:=/$(arg camera1_name)/aligned_depth_to_color/image_raw raw out:=/$(arg camera1_name)/aligned_depth_to_color/image_raw "/> --> -->
 
     <param name="use_sim_time" type="bool" value="true"/>
@@ -61,7 +61,7 @@
         <arg name="approx_sync"             value="true"/>
         <arg name="queue_size"              value="200"/>
         <arg name="rviz"                    value="false"/>
-        <arg name="rtabmapviz"              value="false"/>
+        <arg name="rtabmapviz"              value="true"/>
 
     </include>
 
