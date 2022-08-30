@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(neptune_ros)
+project(post_process)
 
 set(CMAKE_BUILD_TYPE "Release")
 add_compile_options(-std=c++14)
@@ -8,7 +8,7 @@ find_package(catkin REQUIRED)
 
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES neptune_ros
+#  LIBRARIES post_process
 #  CATKIN_DEPENDS message_runtime
 #  DEPENDS system_lib
 )
