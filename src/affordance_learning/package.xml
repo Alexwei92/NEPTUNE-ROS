@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>post_process</name>
+  <name>affordance_learning</name>
   <version>0.0.0</version>
   <description>The post process package</description>
 

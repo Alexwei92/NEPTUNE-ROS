@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(post_process)
+project(affordance_learning)
 
 set(CMAKE_BUILD_TYPE "Release")
 add_compile_options(-std=c++14)
