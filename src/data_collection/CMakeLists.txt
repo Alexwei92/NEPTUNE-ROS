@@ -4,7 +4,7 @@ project(data_collection)
 set(CMAKE_BUILD_TYPE "Release")
 add_compile_options(-std=c++11)
 add_compile_options(-std=c++14)
-
+# 
 find_package(catkin REQUIRED COMPONENTS 
     roscpp
     rosbag
@@ -16,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
     image_transport
 )
 
-find_package(OpenCV 3 REQUIRED)
+find_package(OpenCV REQUIRED)
 
 # add_message_files(
 #   FILES

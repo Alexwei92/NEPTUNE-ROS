@@ -1,12 +1,13 @@
 import math
 import numpy as np
 
-from math_utils import find_min_dist_line2points, wrap_PI
+from utils.math_utils import find_min_dist_line2points, wrap_PI
+
 
 def calculate_affordance(map_data, pose):
-    '''
+    """
     Calculate affordance
-    '''
+    """
     pilot_pos_x, pilot_pos_y = pose['pos'][0], pose['pos'][1]
     pilot_yaw = pose['yaw']
     direction = pose['direction']

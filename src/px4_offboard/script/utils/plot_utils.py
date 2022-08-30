@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
+from utils.navigation_utils import read_map_data
+
 BLACK  = (0,0,0)
 WHITE  = (255,255,255)
 RED    = (0,0,255)
@@ -11,40 +13,10 @@ BLUE   = (255,0,0)
 GREEN  = (0,255,0)
 YELLOW = (0,255,255)
 
-def read_map_data(filepath):
-    '''
-    Read map spline data
-    '''
-    spline_data = pandas.read_csv(filepath)
-    pos_center = spline_data[['pos_x_center', 'pos_y_center']].to_numpy()
-    pos_upper = spline_data[['pos_x_upper', 'pos_y_upper']].to_numpy()
-    pos_lower = spline_data[['pos_x_lower', 'pos_y_lower']].to_numpy()
-    pos_seg_num = spline_data['pos_seg_num'].to_numpy()
-
-    # Calculate Normal Vector
-    # x1x2 + y1y2 = 0 if two lines are perpendicular
-    L = 10
-    tangent = np.gradient(pos_center[:,1], pos_center[:,0])
-    tang_dx = L / np.sqrt(1 + tangent**2)
-    tang_dy = tangent * L / np.sqrt(1 + tangent**2)
-    pos_x_tang = pos_center[:,0] + tang_dx
-    pos_y_tang = pos_center[:,1] + tang_dy
-    c = tang_dx / tang_dy
-    pos_y_norm = pos_center[:,1] + np.sqrt(c**2 * L**2 / (c**2 +1)) 
-    pos_x_norm = pos_center[:,0] - np.sqrt(c**2 * L**2 / (c**2 +1)) / c
-    pos_tang = np.column_stack([pos_x_tang, pos_y_tang])
-    pos_norm = np.column_stack([pos_x_norm, pos_y_norm])
-
-    return {'center': pos_center,
-            'tang': pos_tang,
-            'norm': pos_norm, 
-            'upper': pos_upper,
-            'lower': pos_lower}
-
 def plot_vehicle(handle, pos, heading, show_FOV=True, is_first=False):
-    '''
+    """
     plot the vehicle with FOV
-    '''
+    """
     FOV = 70 * np.pi / 180
     # location
     if is_first:
@@ -84,9 +56,9 @@ def plot_vehicle(handle, pos, heading, show_FOV=True, is_first=False):
                 'FOV_patch': FOV_patch}   
 
 class MapPlot():
-    '''
+    """
     plot the map of the environment
-    '''
+    """
     def __init__(self, map_path):
         self.fig, self.axes = plt.subplots()
         self.map_data = read_map_data(map_path)

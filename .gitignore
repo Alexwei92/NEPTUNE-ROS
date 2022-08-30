@@ -13,3 +13,5 @@ src/VIO
 src/vision_to_mavros
 
 *.pyc
+
+.vscode/

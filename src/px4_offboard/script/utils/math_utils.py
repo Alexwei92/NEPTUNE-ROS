@@ -122,14 +122,14 @@ def wrap_PI(radian):
     return res
 
 def find_min_dist_line2points(query_line, points):
-    '''
+    """
     Distance from a line (i.e., x1,y1,x2,y2) to a series of points
     
     dist = |A*x+B*y+C| / (A^2+B^2)
     where A = y1-y2
           B = x2-x1
           C = x1*y2-x2*y1
-    '''
+    """
     A = query_line[0,1] - query_line[1,1]
     B = query_line[1,0] - query_line[0,0]
     C = query_line[0,0] * query_line[1,1] - query_line[1,0] * query_line[0,1]
