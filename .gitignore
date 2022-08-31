@@ -6,8 +6,6 @@
 
 **/__pycache__/
 
-src/px4_offboard/include/user_config.h
-
 src/VIO
 
 src/vision_to_mavros
