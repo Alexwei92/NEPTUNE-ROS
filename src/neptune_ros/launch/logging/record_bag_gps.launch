@@ -5,17 +5,27 @@
     <node pkg="rosbag" type="record" name="record_bag" 
         args="record /$(arg camera_name)/color/image_raw/compressed
                 /$(arg camera_name)/color/camera_info
-                /tf
-                /tf_static
-                /mavros/home_position/home
-                /mavros/global_position/global
+                /mavros/altitude
+                /mavros/distance_sensor/terange_60m_pub
                 /mavros/global_position/compass_hdg
+                /mavros/global_position/global
                 /mavros/global_position/local
+                /mavros/global_position/raw
+                /mavros/global_position/rel_alt
+                /mavros/gpsstatus/gps1/raw
+                /mavros/home_position/home
                 /mavros/local_position/pose
+                /mavros/local_position/odom
                 /mavros/local_position/velocity_body
+                /mavros/local_position/velocity_local
                 /mavros/rc/in
+                /mavros/rc/out 
                 /mavros/setpoint_raw/local
+                /mavros/setpoint_raw/target_local
+                /mavros/setpoint_raw/target_attitude 
                 /mavros/state
+                /mavros/target_actuator_control 
+                /mavros/vfr_hud
                 --lz4
                 -o $(arg output_filepath)/gps"
     />
