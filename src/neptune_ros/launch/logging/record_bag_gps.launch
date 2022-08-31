@@ -1,6 +1,6 @@
 <launch>
     <arg name="camera_name"     default="d435i"/>
-    <arg name="output_filepath" default="/media/$(env USER)/SSD/"/>
+    <arg name="output_filepath" default="/media/$(env USER)/SSD"/>
 
     <node pkg="rosbag" type="record" name="record_bag" 
         args="record /$(arg camera_name)/color/image_raw/compressed
