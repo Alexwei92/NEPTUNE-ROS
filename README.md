@@ -1,8 +1,11 @@
 # neptune-ros
 
+<img src="figure/drone.jpg" width="480">
+
+
 ## How to run
 
-### PX4 Autopilot:
+### 1) PX4 Autopilot:
 1. Connect to PX4 Autopilot (Xavier Drone)
 ```bash
 roslaunch neptune_ros connect_px4_xavier.launch
@@ -29,7 +32,7 @@ gazebo Tools/sitl_gazebo/worlds/hitl_iris.world
 roslaunch neptune_ros connect_hitl.launch
 ```
 
-### Offboard Mode:
+### 2) PX4 Offboard Mode:
 ```bash
 # Need to run before entering Offboard mode!
 # Use RC CH7 to switch to Offboard Mode
@@ -37,7 +40,7 @@ roslaunch neptune_ros connect_hitl.launch
 rosrun px4_offboard forward_flight 
 ```
 
-### Rtabmap SLAM:
+### 3) Rtabmap SLAM:
 ```bash
 # Mapping
 roslaunch neptune_ros stereo_mapping.launch
@@ -46,13 +49,13 @@ roslaunch neptune_ros stereo_mapping.launch
 roslaunch neptune_ros stereo_localization.launch
 ```
 
-### VIO:
+### 4) VIO:
 ```bash
 # only work with PX4
 roslaunch neptune_ros bridge_t265.launch
 ```
 
-### TensorRT:
+### 5) TensorRT:
 ```bash
 # Convert pytorch model to tensorrt model
 cd ./script/tensorrt
