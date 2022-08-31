@@ -14,6 +14,7 @@
                 /mavros/local_position/pose
                 /mavros/local_position/velocity_body
                 /mavros/rc/in
+                /mavros/setpoint_raw/local
                 /mavros/state
                 --lz4
                 -o $(arg output_filepath)/gps"
