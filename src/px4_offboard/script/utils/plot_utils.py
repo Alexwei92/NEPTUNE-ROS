@@ -3,6 +3,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from collections import deque
 
 from utils.navigation_utils import read_map_data
 
@@ -55,6 +56,25 @@ def plot_vehicle(handle, pos, heading, show_FOV=True, is_first=False):
                 'right_line': right_line, 
                 'FOV_patch': FOV_patch}   
 
+
+def plot_trajectory_history(handle, trajectory_history, is_first=False):
+    """
+    plot trajectory history
+    """
+    pos_x, pos_y = [], []
+
+    for i in range(len(trajectory_history)):
+        pos_x.append(trajectory_history[i][0])
+        pos_y.append(trajectory_history[i][1])    
+
+    if is_first:
+        trajectory, = handle.plot(pos_x, pos_y, color='c', alpha=0.7, linewidth=2.0)
+        return trajectory
+    else:
+        handle['trajectory_history'].set_xdata(pos_x)
+        handle['trajectory_history'].set_ydata(pos_y)
+
+
 class MapPlot():
     """
     plot the map of the environment
@@ -62,12 +82,16 @@ class MapPlot():
     def __init__(self, map_path):
         self.fig, self.axes = plt.subplots()
         self.map_data = read_map_data(map_path)
+        self.initialize_variables()
+
+    def initialize_variables(self):
         self.initialize_map()
 
         self.has_initialized = False
         self.start_point = {}
         self.end_point = {}
         self.currnet_point = None
+        self.pose_history = deque(maxlen=100)
 
     def initialize_map(self, disp_intervel=10):
         self.axes.plot(self.map_data['center'][:,0], self.map_data['center'][:,1], color='w', linewidth=0.5)
@@ -128,10 +152,13 @@ class MapPlot():
 
     def update_graph(self, pos, heading):
         self.currnet_point = [pos[0], pos[1]]
+        self.pose_history.append([pos[0], pos[1], heading])
         if self.has_initialized:
             plot_vehicle(self.axes_dict, pos, heading, is_first=False)
+            plot_trajectory_history(self.axes_dict, self.pose_history)
         else:
             self.axes_dict = plot_vehicle(self.axes, pos, heading, is_first=True)
+            self.axes_dict['trajectory_history'] = plot_trajectory_history(self.axes, self.pose_history, is_first=True)
             self.update_start_point(self.currnet_point)
             self.has_initialized = True
 
@@ -160,7 +187,4 @@ class MapPlot():
 
     def reset(self):
         self.axes.clear()
-        self.initialize_map()
-        self.has_initialized = False
-        self.start_point = {}
-        self.end_point = {}
+        self.initialize_variables()

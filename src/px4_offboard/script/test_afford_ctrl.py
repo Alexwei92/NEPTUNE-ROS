@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import os
-import time
 import rospy
 import math
 from geopy import distance
@@ -165,7 +164,7 @@ class AffordanceNav():
         Coordinate frame: Down (z), North is zero
         """
         heading = msg.data
-        self.compass_heading = (heading / 180 * math.pi)
+        self.compass_heading = math.radians(heading)
 
     def local_odom_in_global_callback(self, msg):
         pose = msg.pose
@@ -194,18 +193,23 @@ class AffordanceNav():
 
     def run(self):
         while not rospy.is_shutdown() and self.has_initialized:
+            current_x = self.current_x + self.xy_offset[0]
+            current_y = self.current_y + self.xy_offset[1]
+            # current_heading = self.current_heading
+            current_heading = wrap_2PI(-self.compass_heading + math.pi/2)
+
             # Update graph
             if self.map_handler:
                 self.map_handler.update_graph(
-                    [self.current_x + self.xy_offset[0], self.current_y + self.xy_offset[1]],
+                    [current_x, current_y],
                     self.current_heading
                 )
                 plt.pause(1e-5)
 
             # Calculate affordance
             pose = {
-                'pos': [self.current_x + self.xy_offset[0], self.current_y + self.xy_offset[1]],
-                'yaw': wrap_2PI(-self.compass_heading + math.pi/2),
+                'pos': [current_x, current_y],
+                'yaw': current_heading,
                 'direction': self.map_handler.get_direction() if self.map_handler else 1,
             }
             self.affordance = calculate_affordance(self.map_data, pose)
@@ -243,8 +247,7 @@ if __name__ == '__main__':
     map_path = os.path.join(curr_dir, 'spline_result/spline_result.csv')
    
     # Configure map
-    # map_origin_wgs = (38.5885251, -121.7055038) # origin GPS WGS
-    map_origin_wgs = (38.5880275, -121.7063619)
+    map_origin_wgs = (38.5880275, -121.7063619) # origin GPS WGS
     map_handler = MapPlot(map_path)
     print("Configured the map successfully!")
 
