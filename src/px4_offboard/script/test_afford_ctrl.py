@@ -39,11 +39,12 @@ class AffordanceNav():
         self.define_subscriber()
         self.define_publisher()
 
-        rospy.loginfo(
-            rospy.get_name() + ": Start!"
-        )
+        rospy.loginfo("Node Started!")
     
     def init_variables(self):
+        # flag
+        self.has_initialized = False
+
         # global position
         self.home_wgs = None
         self.current_lat = 0.0
@@ -134,12 +135,13 @@ class AffordanceNav():
         
         x_offset = distance.geodesic(
             map_origin_wgs, (map_origin_wgs[0], self.home_wgs[1])).meters
-        x_offset *= np.sign(map_origin_wgs[1] - self.home_wgs[1])
+        x_offset *= np.sign(self.home_wgs[1] - map_origin_wgs[1])
 
         y_offset = distance.geodesic(
             map_origin_wgs, (self.home_wgs[0], map_origin_wgs[1])).meters
-        y_offset *= np.sign(map_origin_wgs[0] - self.home_wgs[0])
+        y_offset *= np.sign(self.home_wgs[0] - map_origin_wgs[0])
 
+        # print(x_offset, y_offset)
         self.xy_offset = [x_offset, y_offset]
 
     def home_position_callback(self, msg):
@@ -149,14 +151,14 @@ class AffordanceNav():
                 msg.geo.longitude,
                 msg.geo.altitude,
             )
-            print(self.home_wgs)
+            rospy.loginfo("home position: " + str(self.home_wgs))
 
     def global_position_callback(self, msg):
         self.current_lat = msg.latitude
         self.current_lon = msg.longitude
         self.current_alt = msg.altitude
         status = msg.status.status
-        print(self.current_lat, self.current_lon)
+        # print(self.current_lat, self.current_lon)
 
     def compass_callback(self, msg):
         """
@@ -175,8 +177,8 @@ class AffordanceNav():
         Coordinate frame: Forward (x) - Left (y) - Up (z)
         """
         current_pose = msg.pose
-        self.current_x = current_pose.position.x + self.xy_offset[0]
-        self.current_y = current_pose.position.y + self.xy_offset[1]
+        self.current_x = current_pose.position.x
+        self.current_y = current_pose.position.y
         _, _, yaw = euler_from_quaternion(current_pose.orientation)
         self.current_heading = wrap_2PI(yaw)
 
@@ -191,15 +193,18 @@ class AffordanceNav():
         self.afford_pub.publish(afford)
 
     def run(self):
-        while not rospy.is_shutdown():
+        while not rospy.is_shutdown() and self.has_initialized:
             # Update graph
             if self.map_handler:
-                self.map_handler.update_graph([self.current_x, self.current_y], self.current_heading)
+                self.map_handler.update_graph(
+                    [self.current_x + self.xy_offset[0], self.current_y + self.xy_offset[1]],
+                    self.current_heading
+                )
                 plt.pause(1e-5)
 
             # Calculate affordance
             pose = {
-                'pos': [self.current_x, self.current_y],
+                'pos': [self.current_x + self.xy_offset[0], self.current_y + self.xy_offset[1]],
                 'yaw': wrap_2PI(-self.compass_heading + math.pi/2),
                 'direction': self.map_handler.get_direction() if self.map_handler else 1,
             }
@@ -238,7 +243,8 @@ if __name__ == '__main__':
     map_path = os.path.join(curr_dir, 'spline_result/spline_result.csv')
    
     # Configure map
-    map_origin_wgs = (38.5885251, -121.7055038) # origin GPS WGS
+    # map_origin_wgs = (38.5885251, -121.7055038) # origin GPS WGS
+    map_origin_wgs = (38.5880275, -121.7063619)
     map_handler = MapPlot(map_path)
     print("Configured the map successfully!")
 
@@ -251,10 +257,9 @@ if __name__ == '__main__':
     handler = AffordanceNav(map_handler)
     handler.load_spline_data(map_path)
     handler.set_xy_offset(map_origin_wgs)
+    handler.has_initialized = True
     
     # Sleep for 1 second
-    tic = time.perf_counter()
-    while time.perf_counter() - tic < 1.0:
-        pass
+    rospy.sleep(1.0)
 
     handler.run()
