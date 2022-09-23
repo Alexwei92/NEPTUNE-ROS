@@ -91,7 +91,7 @@ class MapPlot():
         self.start_point = {}
         self.end_point = {}
         self.currnet_point = None
-        self.pose_history = deque(maxlen=100)
+        self.pose_history = deque(maxlen=150)
 
     def initialize_map(self, disp_intervel=10):
         self.axes.plot(self.map_data['center'][:,0], self.map_data['center'][:,1], color='w', linewidth=0.5)
@@ -184,6 +184,12 @@ class MapPlot():
             return 1
         else:
             return -1
+
+    def get_end_point(self):
+        if len(self.end_point) == 0:
+            return None
+        else:
+            return self.end_point['value'] 
 
     def reset(self):
         self.axes.clear()

@@ -141,7 +141,8 @@ class AffordanceNav():
         y_offset *= np.sign(self.home_wgs[0] - map_origin_wgs[0])
 
         # print(x_offset, y_offset)
-        self.xy_offset = [x_offset, y_offset]
+        # self.xy_offset = [x_offset, y_offset]
+        self.xy_offset = [75, 15]
 
     def home_position_callback(self, msg):
         if self.home_wgs is None:
@@ -215,21 +216,40 @@ class AffordanceNav():
             self.affordance = calculate_affordance(self.map_data, pose)
             self.publish_affordance()
 
+            # end point
+            end_point = self.map_handler.get_end_point()
+
             # Run rule-based controller
-            cmd, in_bound = calc_affordance_cmd(self.affordance, MAX_YAWRATE)
-            if not in_bound:
+            if end_point is None:
+                dist_to_end = 0
+            else:
+                dist_to_end = np.sqrt((
+                    (end_point[0] - current_x)**2 + (end_point[1] - current_y)**2
+                ))
+            print(dist_to_end)
+            
+            if dist_to_end < 1.0:
                 cmd = 0.0
                 set_mode_proxy = rospy.ServiceProxy("/mavros/set_mode", SetMode)
                 set_mode_proxy(custom_mode = "POSCTL")
                 rospy.logwarn_throttle(
-                    2, "Fly out of bound! Be caution!"
+                    2, "Reach End Point!"
                 )
-                    
             else:
-                # apply a low-pass filter
-                alpha = 1.0
-                cmd = alpha * cmd + (1 - alpha) * self.last_cmd
-            
+                cmd, in_bound = calc_affordance_cmd(self.affordance, MAX_YAWRATE)
+                if not in_bound:
+                    cmd = 0.0
+                    set_mode_proxy = rospy.ServiceProxy("/mavros/set_mode", SetMode)
+                    set_mode_proxy(custom_mode = "POSCTL")
+                    rospy.logwarn_throttle(
+                        2, "Fly out of bound! Be caution!"
+                    )
+                        
+                else:
+                    # apply a low-pass filter
+                    alpha = 1.0
+                    cmd = alpha * cmd + (1 - alpha) * self.last_cmd
+                
             self.last_cmd = cmd
             self.cmd_pub.publish(Float32(cmd))
             self.rate.sleep()

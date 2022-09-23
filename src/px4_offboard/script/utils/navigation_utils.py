@@ -145,8 +145,8 @@ def read_map_data(filepath):
 
 """ Affordance Contorl """
 def calc_affordance_cmd(affordance, max_yawrate=45):
-    if not affordance:
-        return 0.0
+    if affordance is None:
+        return 0.0, None
 
     if 'dist_center_width' in affordance:
         dist_center_width = affordance['dist_center_width'] 
