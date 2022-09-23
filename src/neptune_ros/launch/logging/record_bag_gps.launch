@@ -1,6 +1,6 @@
 <launch>
     <arg name="camera_name"     default="d435i"/>
-    <arg name="output_filepath" default="/media/$(env USER)/SSD"/>
+    <arg name="output_folder" default="/media/$(env USER)/SSD"/>
 
     <node pkg="rosbag" type="record" name="record_bag" 
         args="record /$(arg camera_name)/color/image_raw/compressed
@@ -16,15 +16,15 @@
                 /mavros/global_position/rel_alt
                 /mavros/gpsstatus/gps1/raw
                 /mavros/home_position/home
-                /mavros/local_position/pose
                 /mavros/local_position/odom
+                /mavros/local_position/pose
                 /mavros/local_position/velocity_body
                 /mavros/local_position/velocity_local
                 /mavros/rc/in
                 /mavros/rc/out 
                 /mavros/setpoint_raw/local
-                /mavros/setpoint_raw/target_local
                 /mavros/setpoint_raw/target_attitude 
+                /mavros/setpoint_raw/target_local
                 /mavros/state
                 /mavros/target_actuator_control 
                 /mavros/vfr_hud
