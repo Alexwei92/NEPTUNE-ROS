@@ -29,7 +29,7 @@
                 /mavros/target_actuator_control 
                 /mavros/vfr_hud
                 --lz4
-                -o $(arg output_filepath)/gps"
+                -o $(arg output_folder)/gps"
     />
 
 </launch>
