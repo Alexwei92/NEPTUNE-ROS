@@ -46,7 +46,7 @@ def plot_vehicle(handle, pos, heading, show_FOV=True, is_first=False):
         right_point = [pos[0] + L*np.cos(heading-FOV/2), pos[1] + L*np.sin(heading-FOV/2)]
         path = [pos, left_point, right_point]
         if is_first:
-            FOV_patch = handle.add_patch(patches.Polygon(path, color='w', linestyle='', alpha=0.25))
+            FOV_patch = handle.add_patch(patches.Polygon(path, color='w', linestyle='-', alpha=0.25))
         else:
             handle['FOV_patch'].set_xy(path)
 
