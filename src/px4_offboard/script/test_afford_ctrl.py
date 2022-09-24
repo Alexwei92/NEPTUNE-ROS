@@ -226,7 +226,7 @@ class AffordanceNav():
                 dist_to_end = np.sqrt((
                     (end_point[0] - current_x)**2 + (end_point[1] - current_y)**2
                 ))
-            print(dist_to_end)
+            rospy.loginfo_throttle(1, "dist_to_end = %.3f" % dist_to_end)
             
             if dist_to_end < 1.0:
                 cmd = 0.0

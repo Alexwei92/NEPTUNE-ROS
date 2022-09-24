@@ -20,7 +20,6 @@
 #include "rulebased_ctrl.h"
 #include "px4_offboard/Affordance.h"
 
-
 class ForwardCtrl
 {
 public:
@@ -28,14 +27,21 @@ public:
 
 public:
     ForwardCtrl()
-    {
-        InitializeTarget();
-        
-        ros::param::param<float>("~forward_speed", forward_speed, 0.5);
-        ROS_INFO("Forward speed is set to %.2f m/s", forward_speed);
+    {  
+        std::string control_source;
 
+        ros::param::param<float>("~forward_speed", forward_speed, 0.5);
         ros::param::param<float>("~max_yawrate", max_yawrate, 45);
+        ros::param::param<int>("~yaw_channel", yaw_channel, 3);
+        ros::param::param<int>("~yaw_pwm_min", yaw_pwm_min, 982);
+        ros::param::param<int>("~yaw_pwm_max", yaw_pwm_max, 2006);
+        ros::param::param<std::string>("~control_source", control_source, "rc");
+
+        ROS_INFO("Forward speed is set to %.2f m/s", forward_speed);
         ROS_INFO("Maximum yaw rate is set to %.2f deg/s", max_yawrate);
+        ROS_INFO("Yaw channel index is %d", yaw_channel);
+        ROS_INFO("Yaw Channel PWM range in [%d, %d]", yaw_pwm_min, yaw_pwm_max);
+        ROS_INFO("Control source is %s", control_source.c_str());
 
         // Publisher
         target_setpoint_pub = nh.advertise<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/local", 1);  
@@ -48,18 +54,23 @@ public:
         local_pose_sub = nh.subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 5,
                 &ForwardCtrl::LocalPoseCallback, this);
         // 3) rc / joystick / auto command
-        #ifdef AUTO_MODE
-        cmd_sub = nh.subscribe<std_msgs::Float32>("/my_controller/yaw_cmd", 5, 
-                boost::bind(&ForwardCtrl::CmdCallback, this, _1));
-        #else
-            #ifdef SITL_MODE
+        if (control_source == "ai") {
+            cmd_sub = nh.subscribe<std_msgs::Float32>("/my_controller/yaw_cmd", 5, 
+                    boost::bind(&ForwardCtrl::CmdCallback, this, _1));
+        }
+        else if (control_source == "joystick")
+        {
             rc_sub = nh.subscribe<mavros_msgs::ManualControl>("/mavros/manual_control/control", 5, 
                     boost::bind(&ForwardCtrl::JoystickCallback, this, _1));
-            #else
+        }
+        else
+        {
             rc_sub = nh.subscribe<mavros_msgs::RCIn>("/mavros/rc/in", 5, 
-                    boost::bind(&ForwardCtrl::RCInCallback, this, _1, YAW_CHANNEL));
-            #endif
-        #endif
+                    boost::bind(&ForwardCtrl::RCInCallback, this, _1, yaw_channel));
+        }
+
+        // init local target
+        InitializeTarget();
 
         // Affordance
         afford_sub = nh.subscribe<px4_offboard::Affordance>("/estimated_affordance", 5, 
@@ -131,7 +142,7 @@ private:
     }
     
     void RCInCallback(const mavros_msgs::RCIn::ConstPtr& msg, int channel_index) {
-        float cmd = rc_mapping(msg->channels[channel_index]);
+        float cmd = rc_mapping(msg->channels[channel_index], yaw_pwm_min, yaw_pwm_max);
         yaw_cmd = constrain_float(cmd, -1.0, 1.0);
     }
 
@@ -187,6 +198,8 @@ private:
     float forward_speed; // m/s
     float max_yawrate; // deg/s
 
+    int yaw_channel;
+    int yaw_pwm_min, yaw_pwm_max;
     float yaw_cmd; // in [-1.0, 1.0]
     float yaw_rad; // Down positive
 
@@ -196,14 +209,9 @@ private:
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "forward_flight_node");
-    ros::NodeHandle nh("~");
-
     ForwardCtrl ctrl;
-    ros::Time tic = ros::Time::now();
-    while (ros::Time::now() - tic < ros::Duration(1.0)) {
-        // sleep for one second
-    }
 
+    ros::Duration(1.0).sleep(); // sleep for one second
     ctrl.run();
 
     return 0;
