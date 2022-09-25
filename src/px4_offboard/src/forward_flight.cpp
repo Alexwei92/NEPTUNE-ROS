@@ -28,6 +28,7 @@ public:
 public:
     ForwardCtrl()
     {  
+        // Get ROS parameters
         std::string control_source;
 
         ros::param::param<float>("~forward_speed", forward_speed, 0.5);
@@ -43,10 +44,10 @@ public:
         ROS_INFO("Yaw Channel PWM range in [%d, %d]", yaw_pwm_min, yaw_pwm_max);
         ROS_INFO("Control source is %s", control_source.c_str());
 
-        // Publisher
+        // ROS Publisher
         target_setpoint_pub = nh.advertise<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/local", 1);  
 
-        // Subscriber
+        // ROS Subscriber
         // 1) state
         state_sub = nh.subscribe<mavros_msgs::State>("/mavros/state", 5, 
                 &ForwardCtrl::StateCallback, this);
@@ -68,14 +69,12 @@ public:
             rc_sub = nh.subscribe<mavros_msgs::RCIn>("/mavros/rc/in", 5, 
                     boost::bind(&ForwardCtrl::RCInCallback, this, _1, yaw_channel));
         }
-
-        // init local target
-        InitializeTarget();
-
-        // Affordance
+        // 4) Affordance
         afford_sub = nh.subscribe<px4_offboard::Affordance>("/estimated_affordance", 5, 
                     &ForwardCtrl::AffordanceCallback, this);
 
+        // init set_point_local_target
+        InitializeTarget();
     }
 
     void run()
@@ -93,12 +92,14 @@ public:
                 if (dt < 2.0) { 
                     ratio = dt / 2.0;
                 }                
+                // position 
+                target.position.z = target_pose_z;
                 // velocity
                 geometry_msgs::Vector3 velocity_local;
                 velocity_local.x = forward_speed * ratio;
                 velocity_local.y = 0; 
                 velocity_local.z = 0;
-                if (target.coordinate_frame == 1) {
+                if (target.coordinate_frame == target.FRAME_LOCAL_NED) {
                     rotate_body_frame_to_NE(velocity_local.x, velocity_local.y, yaw_rad);
                 }
                 target.velocity = velocity_local;
@@ -117,19 +118,24 @@ public:
 private:
     void InitializeTarget() {
         // bitmask
-        target.header.frame_id = "base_drone";
-        target.coordinate_frame = 8; // {MAV_FRAME_BODY_NED:8, MAV_FRAME_LOCAL_NED:1}
-        target.type_mask = 1479; // velocity + yawrate
+        target.header.frame_id = "base_link";
+        target.coordinate_frame = target.FRAME_LOCAL_NED; // {MAV_FRAME_LOCAL_NED:1, MAV_FRAME_BODY_NED:8}
+        target.type_mask = 0b010111100011; // pz + vx + vy + yawrate
         target.position = geometry_msgs::Point();
         target.velocity = geometry_msgs::Vector3();
         target.acceleration_or_force = geometry_msgs::Vector3();
         target.yaw = 0.0;
         target.yaw_rate = 0.0;
+
+
     }
 
     void StateCallback(const mavros_msgs::State::ConstPtr& msg) {
         if (msg->mode == "OFFBOARD" && current_state.mode != "OFFBOARD") {
             ROS_INFO("Switched to OFFBOARD Mode!");
+            // target z position
+            target_pose_z = local_pose_z;
+            ROS_INFO("target pose z = %.3f", target_pose_z);
             offboard_start_time = ros::Time::now();
         }
 
@@ -157,12 +163,16 @@ private:
     }
 
     void LocalPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
+        // yaw angle (rad)
         tf2::Quaternion q_tf;
         tf2::convert((msg->pose).orientation, q_tf);
         tf2::Matrix3x3 q_mat(q_tf);
         tf2Scalar yaw, pitch, roll;
         q_mat.getEulerYPR(yaw, pitch, roll);
         yaw_rad = wrap_2PI((float)yaw);
+
+        // local z position (m)
+        local_pose_z = (msg->pose).position.z;
     }
 
     void AffordanceCallback(const px4_offboard::Affordance::ConstPtr& msg) {
@@ -197,11 +207,14 @@ private:
     
     float forward_speed; // m/s
     float max_yawrate; // deg/s
-
+    
     int yaw_channel;
     int yaw_pwm_min, yaw_pwm_max;
     float yaw_cmd; // in [-1.0, 1.0]
     float yaw_rad; // Down positive
+    
+    float local_pose_z; // m
+    float target_pose_z; // m
 
     ros::Time offboard_start_time;
 };

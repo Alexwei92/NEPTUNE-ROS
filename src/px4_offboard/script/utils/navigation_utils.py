@@ -164,11 +164,11 @@ def calc_affordance_cmd(affordance, max_yawrate=45):
     #     dist_center_width = 0
 
     # Option 1: Sigmoid function
-    # cmd = 1.0 * (2 /(1 + math.exp(15*(1.5*rel_angle/(math.pi/2) + 1.0*dist_center_width))) - 1)
+    cmd = 1.0 * (2 /(1 + math.exp(15*(1.5*rel_angle/(math.pi/2) + 1.0*dist_center_width))) - 1)
     
     # Option 2: Stanley
-    stanley_output = rel_angle + math.atan(2.5 * affordance['dist_center'] / 1.5)
-    cmd = stanley_output * (15) / max_yawrate
-    cmd = -cmd
+    # stanley_output = rel_angle + math.atan(2.5 * affordance['dist_center'] / 1.5)
+    # cmd = stanley_output * (15) / max_yawrate
+    # cmd = -cmd
 
     return constrain_float(cmd, -1.0, 1.0), affordance['in_bound']

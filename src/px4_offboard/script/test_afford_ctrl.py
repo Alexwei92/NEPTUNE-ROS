@@ -222,33 +222,29 @@ class AffordanceNav():
             # Run rule-based controller
             if end_point is None:
                 dist_to_end = 0
+                cmd = 0.0
             else:
                 dist_to_end = np.sqrt((
                     (end_point[0] - current_x)**2 + (end_point[1] - current_y)**2
                 ))
-            rospy.loginfo_throttle(1, "dist_to_end = %.3f" % dist_to_end)
+                rospy.loginfo_throttle(2, "dist_to_end = %.3f" % dist_to_end)
             
-            if dist_to_end < 1.0:
-                cmd = 0.0
-                set_mode_proxy = rospy.ServiceProxy("/mavros/set_mode", SetMode)
-                set_mode_proxy(custom_mode = "POSCTL")
-                rospy.logwarn_throttle(
-                    2, "Reach End Point!"
-                )
-            else:
-                cmd, in_bound = calc_affordance_cmd(self.affordance, MAX_YAWRATE)
-                if not in_bound:
+                if dist_to_end < 1.0:
                     cmd = 0.0
                     set_mode_proxy = rospy.ServiceProxy("/mavros/set_mode", SetMode)
                     set_mode_proxy(custom_mode = "POSCTL")
-                    rospy.logwarn_throttle(
-                        2, "Fly out of bound! Be caution!"
-                    )
-                        
+                    rospy.logwarn_throttle(5, "Reach End Point!")
                 else:
-                    # apply a low-pass filter
-                    alpha = 1.0
-                    cmd = alpha * cmd + (1 - alpha) * self.last_cmd
+                    cmd, in_bound = calc_affordance_cmd(self.affordance, MAX_YAWRATE)
+                    if not in_bound:
+                        cmd = 0.0
+                        set_mode_proxy = rospy.ServiceProxy("/mavros/set_mode", SetMode)
+                        set_mode_proxy(custom_mode = "POSCTL")
+                        rospy.logwarn_throttle(2, "Fly out of bound! Be caution!")
+                    else:
+                        # apply a low-pass filter
+                        alpha = 1.0
+                        cmd = alpha * cmd + (1 - alpha) * self.last_cmd
                 
             self.last_cmd = cmd
             self.cmd_pub.publish(Float32(cmd))
