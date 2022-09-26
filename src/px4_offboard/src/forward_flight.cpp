@@ -133,7 +133,7 @@ private:
             offboard_start_time = ros::Time::now();
             // target z position
             target_pose_z = local_pose_z;
-            target.position.z = target_pose_z
+            target.position.z = target_pose_z;
             ROS_INFO("target pose z = %.3f", target_pose_z);
         }
 
