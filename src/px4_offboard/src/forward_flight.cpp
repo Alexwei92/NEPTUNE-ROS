@@ -106,9 +106,7 @@ public:
                 // yaw rate
                 target.yaw_rate = -yaw_cmd * max_yawrate * DEG2RAD;
             } 
-            else {
-                target.position.z = local_pose_z; // avoid z position jump to zero
-            }
+            
             target_setpoint_pub.publish(target);
             ros::spinOnce();
             loop_rate.sleep();
@@ -135,8 +133,8 @@ private:
             offboard_start_time = ros::Time::now();
             // target z position
             target_pose_z = local_pose_z;
+            target.position.z = target_pose_z
             ROS_INFO("target pose z = %.3f", target_pose_z);
-
         }
 
         if (msg->mode != "OFFBOARD" && current_state.mode == "OFFBOARD") {
