@@ -91,8 +91,8 @@ public:
                 double dt = (ros::Time::now() - offboard_start_time).toSec();
                 if (dt < 2.0) { 
                     ratio = dt / 2.0;
-                }                
-                // position 
+                }
+                // position
                 target.position.z = target_pose_z;
                 // velocity
                 geometry_msgs::Vector3 velocity_local;
@@ -105,9 +105,10 @@ public:
                 target.velocity = velocity_local;
                 // yaw rate
                 target.yaw_rate = -yaw_cmd * max_yawrate * DEG2RAD;
-
+            } 
+            else {
+                target.position.z = local_pose_z; // avoid z position jump to zero
             }
-            
             target_setpoint_pub.publish(target);
             ros::spinOnce();
             loop_rate.sleep();
@@ -120,23 +121,22 @@ private:
         // bitmask
         target.header.frame_id = "base_link";
         target.coordinate_frame = target.FRAME_LOCAL_NED; // {MAV_FRAME_LOCAL_NED:1, MAV_FRAME_BODY_NED:8}
-        target.type_mask = 0b010111100011; // pz + vx + vy + yawrate
+        target.type_mask = 0b010111100011;
         target.position = geometry_msgs::Point();
         target.velocity = geometry_msgs::Vector3();
         target.acceleration_or_force = geometry_msgs::Vector3();
         target.yaw = 0.0;
         target.yaw_rate = 0.0;
-
-
     }
 
     void StateCallback(const mavros_msgs::State::ConstPtr& msg) {
         if (msg->mode == "OFFBOARD" && current_state.mode != "OFFBOARD") {
             ROS_INFO("Switched to OFFBOARD Mode!");
+            offboard_start_time = ros::Time::now();
             // target z position
             target_pose_z = local_pose_z;
             ROS_INFO("target pose z = %.3f", target_pose_z);
-            offboard_start_time = ros::Time::now();
+
         }
 
         if (msg->mode != "OFFBOARD" && current_state.mode == "OFFBOARD") {
