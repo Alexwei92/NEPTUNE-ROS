@@ -14,9 +14,14 @@ roslaunch neptune_ros connect_px4_xavier.launch
 2. Connect to PX4 Autopilot (Simulation-in-the-loop)
 ```bash
 cd ~/Github/PX4-Autopilot
-export PX4_HOME_LAT=38.588156
-export PX4_HOME_LON=-121.705512
-export PX4_HOME_ALT=28.5
+# (Woodland WGS)
+# export PX4_HOME_LAT=38.588156
+# export PX4_HOME_LON=-121.705512
+# export PX4_HOME_ALT=0.0
+# (Plant WGS)
+export PX4_HOME_LAT=38.538033
+export PX4_HOME_LON=-121.794699
+export PX4_HOME_ALT=0.0
 make px4_sitl_default gazebo
 
 roslaunch neptune_ros connect_sitl.launch

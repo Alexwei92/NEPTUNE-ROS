@@ -1,4 +1,3 @@
-import pandas
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -83,10 +82,9 @@ class MapPlot():
         self.fig, self.axes = plt.subplots()
         self.map_data = read_map_data(map_path)
         self.initialize_variables()
-
-    def initialize_variables(self):
         self.initialize_map()
 
+    def initialize_variables(self):
         self.has_initialized = False
         self.start_point = {}
         self.end_point = {}

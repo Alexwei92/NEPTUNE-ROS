@@ -12,15 +12,7 @@ def get_projection_point2line(point, line):
 
     return lateral_proj, longitude_proj
 
-def get_local_xy_from_latlon(lat, lon, utm_T_local):
-    e, n, _, _ = utm.from_latlon(lat, lon)
-    utm_pose = np.array([e, n, 0, 1]).T
-    local_pose = utm_T_local.dot(utm_pose)
-    local_pos = local_pose[:3].T
-
-    return local_pos
-
-def find_index(current_pose, all_data, frame='local', start_index=0):
+def find_area_index(current_pose, all_data, frame='local', start_index=0):
     search_index = np.arange(0, len(all_data))
     search_index_order = (search_index + start_index) % len(all_data)
 
@@ -32,3 +24,11 @@ def find_index(current_pose, all_data, frame='local', start_index=0):
             return index
 
     return None
+
+def get_local_xy_from_latlon(lat, lon, utm_T_local):
+    e, n, _, _ = utm.from_latlon(lat, lon)
+    utm_pose = np.array([e, n, 0, 1]).T
+    local_pose = utm_T_local.dot(utm_pose)
+    local_pos = local_pose[:3].T
+
+    return local_pos

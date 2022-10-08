@@ -67,8 +67,7 @@ if __name__ == "__main__":
         (field_bound_local[1][0], field_bound_local[1][1]),
     )
 
-    """
-    """
+    #####################################
     # convert to numpy
     all_data_latlon = {}
     for key in all_data_pt_raw.keys():
@@ -107,7 +106,7 @@ if __name__ == "__main__":
             all_data_local['north'][i],
         )))
 
-    # Column-wise (index 0 start from west)
+    # column-wise (index 0 start from west)
     column_data = []
     for i in range(len(treeline_SN_latlon)-1):
         column_data.append({
@@ -141,7 +140,6 @@ if __name__ == "__main__":
                 10, # east
             ]
         })
-
 
     # row_wise (index 0 start from south)
     row_data = []
@@ -177,7 +175,6 @@ if __name__ == "__main__":
                 10, # east
             ]
         })
-
 
     # save output
     file_path = os.path.join(save_dir, output_filename)

@@ -29,7 +29,7 @@ class AffordanceNav():
     LOOP_RATE = 15
 
     def __init__(self, map_handler):
-        rospy.init_node('map_listener', anonymous=True)
+        rospy.init_node('affordance_navigation', anonymous=True)
         self.rate = rospy.Rate(self.LOOP_RATE)
         self.map_handler = map_handler
         
@@ -259,7 +259,7 @@ class AffordanceNav():
 
 if __name__ == '__main__':
 
-    curr_dir = os.path.dirname(os.path.abspath(__file__))
+    curr_dir = os.path.dirname(__file__)
     map_path = os.path.join(curr_dir, 'spline_result/spline_result.csv')
    
     # Configure map
