@@ -80,7 +80,8 @@ class FieldMapPlot():
             frame = 'local'
         self.frame = frame
         
-        self.fig, self.axis = plt.subplots()
+        self.fig, self.axes = plt.subplots(1,2)
+        self.axis = self.axes[0]
         self.initialize_variables()
         self.initialize_map()
 
