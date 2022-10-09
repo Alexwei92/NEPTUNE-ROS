@@ -15,6 +15,7 @@ from utils.navigation_utils import get_local_xy_from_latlon
 
 class GPSListener():
     LOOP_RATE = 10
+    TIME_OUT = 0.3
 
     def __init__(self, map_handler):
         rospy.init_node('gps_listener', anonymous=True)
@@ -45,6 +46,7 @@ class GPSListener():
         self.fix_type = 0
 
         # image
+        self.camera_heartbeat_time = None
         self.color_img = None
 
     def define_subscriber(self):
@@ -133,6 +135,7 @@ class GPSListener():
     def color_image_callback(self, msg):
         self.color_img = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
         # self.color_img = cv2.resize(color_img, (320,240))
+        self.camera_heartbeat_time = msg.header.stamp
 
     def run(self):
         while not rospy.is_shutdown() and self.has_initialized:
@@ -155,7 +158,12 @@ class GPSListener():
                         fix_type=self.fix_type,
                     )
 
+                if self.camera_heartbeat_time is not None:
+                    if (rospy.Time.now() - self.camera_heartbeat_time).to_sec() > self.TIME_OUT:
+                        self.color_img = None
+                        rospy.logerr_throttle(2, "Camera lost!")
                 self.map_handler.update_image(self.color_img)
+                
                 plt.pause(1e-5)
 
             self.rate.sleep()

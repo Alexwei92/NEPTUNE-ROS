@@ -282,11 +282,13 @@ class FieldMapPlot():
         if index is not None:
             self.axis_zoomin.set_title(
                 "Index: %d" % index,
-                {'fontsize': 10, 'fontweight': 'normal'}, pad=2.0,
+                {'fontsize': 10, 'fontweight': 'normal', 'color': 'g'}, pad=2.0,
             )
         else:
-            self.axis_zoomin.set_title('')
-
+            self.axis_zoomin.set_title(                
+                "Idle", 
+                {'fontsize': 10, 'fontweight': 'normal', 'color': 'r'}, pad=2.0,
+            )
 
     def update_zoom_in(self, axis_dict):
         pos_x = axis_dict['origin'].get_xdata()
@@ -301,7 +303,11 @@ class FieldMapPlot():
     def update_image(self, image):
         if image is not None:
             img = image.copy()
-            if self.last_image is None:
-                self.last_image = self.axis_camera.imshow(img)
-            else:
-                self.last_image.set_data(img)
+        else:
+            img = np.zeros((100,100,3))
+
+        if self.last_image is None:
+            self.last_image = self.axis_camera.imshow(img)
+        else:
+            self.last_image.set_data(img)
+        
