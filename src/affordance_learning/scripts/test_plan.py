@@ -4,16 +4,17 @@ import math
 import rospy
 import matplotlib.pyplot as plt
 import numpy as np
-
+import time
 from std_msgs.msg import Float32, Float64
-from sensor_msgs.msg import NavSatFix
-from mavros_msgs.msg import HomePosition
+from sensor_msgs.msg import NavSatFix, Image, CompressedImage
+from mavros_msgs.msg import HomePosition, GPSRAW
 
 from utils.plot_utils import FieldMapPlot
 from utils.navigation_utils import get_local_xy_from_latlon
 
+
 class GPSListener():
-    LOOP_RATE = 15
+    LOOP_RATE = 10
 
     def __init__(self, map_handler):
         rospy.init_node('gps_listener', anonymous=True)
@@ -35,8 +36,16 @@ class GPSListener():
         self.compass_heading = 0.0 # rad
 
         # local position (calculated from lat, lon)
+        self.utm_T_local = None
         self.local_x = 0.0
         self.local_y = 0.0
+
+        # gps raw
+        self.num_sat = 0
+        self.fix_type = 0
+
+        # image
+        self.color_img = None
 
     def define_subscriber(self):
         # home position
@@ -54,7 +63,7 @@ class GPSListener():
             global_position_topic,
             NavSatFix,
             self.global_position_callback,
-            queue_size=5,
+            queue_size=1,
         )
 
         # compass
@@ -63,7 +72,25 @@ class GPSListener():
             compass_topic,
             Float64,
             self.compass_callback,
-            queue_size=5,
+            queue_size=1,
+        )
+
+        # gps status
+        gps_status_topic = "/mavros/gpsstatus/gps1/raw"
+        rospy.Subscriber(
+            gps_status_topic,
+            GPSRAW,
+            self.gps_status_callback,
+            queue_size=1,
+        )
+
+        # realsense camera
+        color_image_topic = "/d435i/color/image_raw"
+        rospy.Subscriber(
+            color_image_topic,
+            Image,
+            self.color_image_callback,
+            queue_size=1,
         )
     
     def set_utm_T_local(self, utm_T_local):
@@ -83,13 +110,14 @@ class GPSListener():
         self.current_lon = msg.longitude
         self.current_alt = msg.altitude
 
-        local_pos = get_local_xy_from_latlon(
-            self.current_lat,
-            self.current_lon,
-            self.utm_T_local
-        )
-        self.local_x = local_pos[0]
-        self.local_y = local_pos[1]
+        if self.utm_T_local is not None:
+            local_pos = get_local_xy_from_latlon(
+                self.current_lat,
+                self.current_lon,
+                self.utm_T_local
+            )
+            self.local_x = local_pos[0]
+            self.local_y = local_pos[1]
 
     def compass_callback(self, msg):
         """
@@ -98,25 +126,40 @@ class GPSListener():
         heading = msg.data
         self.compass_heading = math.radians(heading)
 
+    def gps_status_callback(self, msg):
+        self.num_sat = msg.satellites_visible
+        self.fix_type = msg.fix_type
+
+    def color_image_callback(self, msg):
+        self.color_img = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
+        # self.color_img = cv2.resize(color_img, (320,240))
+
     def run(self):
         while not rospy.is_shutdown() and self.has_initialized:
+            # tic = time.time()
             current_heading = -self.compass_heading + math.pi/2
-            
             # Update graph
             if self.map_handler:
                 if self.frame == 'latlon':
                     self.map_handler.update_graph(
-                        [self.current_lon, self.current_lat],
-                        current_heading,
+                        pos=[self.current_lon, self.current_lat],
+                        heading=current_heading,
+                        num_sat=self.num_sat,
+                        fix_type=self.fix_type,
                     )
                 if self.frame == 'local':
                     self.map_handler.update_graph(
-                        [self.local_x, self.local_y],
-                        current_heading,
+                        pos=[self.local_x, self.local_y],
+                        heading=current_heading,
+                        num_sat=self.num_sat,
+                        fix_type=self.fix_type,
                     )
+
+                self.map_handler.update_image(self.color_img)
                 plt.pause(1e-5)
 
             self.rate.sleep()
+            # print(1/(time.time()-tic))
 
 
 if __name__ == "__main__":
