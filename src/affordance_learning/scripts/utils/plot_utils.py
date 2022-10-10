@@ -239,56 +239,56 @@ class FieldMapPlot():
             {'fontsize': 10, 'fontweight': 'normal'}, pad=1.5,
         )
 
-        # # find index
-        # index = find_area_index(
-        #     [pos[0], pos[1]],
-        #     self.data,
-        #     frame = self.frame,
-        #     start_index = self.last_index if self.last_index is not None else 0,
-        # )
+        # find index
+        index = find_area_index(
+            [pos[0], pos[1]],
+            self.data,
+            frame = self.frame,
+            start_index = self.last_index if self.last_index is not None else 0,
+        )
 
-        # if index != self.last_index: 
-        #     if index is None:
-        #         if self.current_area is not None:
-        #             # full
-        #             self.current_area.set_xy(np.empty((0,2)))
-        #             self.current_area = None
-        #             # zoom in
-        #             self.current_area_zoom['treeline1'].set_xdata([])
-        #             self.current_area_zoom['treeline1'].set_ydata([])
-        #             self.current_area_zoom['treeline2'].set_xdata([])
-        #             self.current_area_zoom['treeline2'].set_ydata([])
-        #             self.current_area_zoom['centerline'].set_xdata([])
-        #             self.current_area_zoom['centerline'].set_ydata([])
-        #             self.current_area_zoom['polygon'].set_xy(np.empty((0,2)))
-        #             self.current_area_zoom = None
-        #     else:
-        #         if self.current_area is None:
-        #             # full
-        #             self.current_area = self.axis_full.add_patch(patches.Polygon(
-        #                 self.data[index]['vertice_' + self.frame], 
-        #                 color='C0', linestyle='-', linewidth=3.0, alpha=0.2
-        #             ))
-        #             # zoom in
-        #             self.current_area_zoom = plot_current_area(self.axis_zoomin, self.data[index], self.frame, is_first=True)
-        #         else:
-        #             # full
-        #             self.current_area.set_xy(self.data[index]['vertice_' + self.frame])
-        #             # zoom in
-        #             plot_current_area(self.current_area_zoom, self.data[index], self.frame)
+        if index != self.last_index: 
+            if index is None:
+                if self.current_area is not None:
+                    # full
+                    self.current_area.set_xy(np.empty((0,2)))
+                    self.current_area = None
+                    # zoom in
+                    self.current_area_zoom['treeline1'].set_xdata([])
+                    self.current_area_zoom['treeline1'].set_ydata([])
+                    self.current_area_zoom['treeline2'].set_xdata([])
+                    self.current_area_zoom['treeline2'].set_ydata([])
+                    self.current_area_zoom['centerline'].set_xdata([])
+                    self.current_area_zoom['centerline'].set_ydata([])
+                    self.current_area_zoom['polygon'].set_xy(np.empty((0,2)))
+                    self.current_area_zoom = None
+            else:
+                if self.current_area is None:
+                    # full
+                    self.current_area = self.axis_full.add_patch(patches.Polygon(
+                        self.data[index]['vertice_' + self.frame], 
+                        color='C0', linestyle='-', linewidth=3.0, alpha=0.2
+                    ))
+                    # zoom in
+                    self.current_area_zoom = plot_current_area(self.axis_zoomin, self.data[index], self.frame, is_first=True)
+                else:
+                    # full
+                    self.current_area.set_xy(self.data[index]['vertice_' + self.frame])
+                    # zoom in
+                    plot_current_area(self.current_area_zoom, self.data[index], self.frame)
         
-        # self.last_index = index
+        self.last_index = index
 
-        # if index is not None:
-        #     self.axis_zoomin.set_title(
-        #         "Index: %d" % index,
-        #         {'fontsize': 10, 'fontweight': 'normal', 'color': 'g'}, pad=2.0,
-        #     )
-        # else:
-        #     self.axis_zoomin.set_title(                
-        #         "Idle", 
-        #         {'fontsize': 10, 'fontweight': 'normal', 'color': 'r'}, pad=2.0,
-        #     )
+        if index is not None:
+            self.axis_zoomin.set_title(
+                "Index: %d" % index,
+                {'fontsize': 10, 'fontweight': 'normal', 'color': 'g'}, pad=2.0,
+            )
+        else:
+            self.axis_zoomin.set_title(                
+                "Idle", 
+                {'fontsize': 10, 'fontweight': 'normal', 'color': 'r'}, pad=2.0,
+            )
 
     def update_zoom_in(self, axis_dict):
         pos_x = axis_dict['origin'].get_xdata()
