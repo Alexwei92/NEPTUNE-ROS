@@ -15,7 +15,7 @@ from utils.navigation_utils import get_local_xy_from_latlon
 
 class GPSListener():
     LOOP_RATE = 10
-    TIME_OUT = 0.3
+    TIME_OUT = 0.5
 
     def __init__(self, map_handler):
         rospy.init_node('gps_listener', anonymous=True)
@@ -139,7 +139,7 @@ class GPSListener():
 
     def run(self):
         while not rospy.is_shutdown() and self.has_initialized:
-            tic = time.time()
+            # tic = time.time()
             current_heading = -self.compass_heading + math.pi/2
             # Update graph
             if self.map_handler:
@@ -167,7 +167,7 @@ class GPSListener():
                 plt.pause(1e-5)
 
             self.rate.sleep()
-            print(1/(time.time()-tic))
+            # print(1/(time.time()-tic))
 
 
 if __name__ == "__main__":

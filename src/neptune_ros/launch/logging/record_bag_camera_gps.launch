@@ -1,0 +1,20 @@
+<launch>
+    <arg name="camera_name"     default="d435i"/>
+    <arg name="output_folder" default="/media/$(env USER)/Hard\ Disk"/>
+
+    <node pkg="rosbag" type="record" name="record_bag" 
+        args="record /$(arg camera_name)/color/image_raw/compressed
+                /$(arg camera_name)/color/camera_info
+                /$(arg camera_name)/aligned_depth_to_color/image_raw/compressed
+                /$(arg camera_name)/aligned_depth_to_color/camera_info
+                /mavros/global_position/compass_hdg
+                /mavros/global_position/global
+                /mavros/global_position/local
+                /mavros/global_position/rel_alt
+                /mavros/gpsstatus/gps1/raw
+                /mavros/home_position/home
+                --lz4
+                -o $(arg output_folder)/camera_gps"
+    />
+
+</launch>
