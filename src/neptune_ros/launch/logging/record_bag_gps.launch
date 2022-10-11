@@ -13,6 +13,9 @@
                 /mavros/global_position/global
                 /mavros/global_position/local
                 /mavros/global_position/rel_alt
+                /mavros/global_position/raw/fix
+                /mavros/global_position/raw/gps_vel
+                /mavros/global_position/raw/satellites
                 /mavros/gpsstatus/gps1/raw
                 /mavros/home_position/home
                 /mavros/local_position/odom
