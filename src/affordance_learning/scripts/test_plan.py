@@ -5,8 +5,8 @@ import rospy
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-from std_msgs.msg import Float32, Float64
-from sensor_msgs.msg import NavSatFix, Image, CompressedImage
+from std_msgs.msg import Float64
+from sensor_msgs.msg import NavSatFix, Image
 from mavros_msgs.msg import HomePosition, GPSRAW
 
 from utils.plot_utils import FieldMapPlot
