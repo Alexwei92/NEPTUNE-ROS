@@ -14,7 +14,7 @@ import numpy as np
 import cv2
 
 import rosbag
-from sensor_msgs.msg import CompressedImage
+# from sensor_msgs.msg import CompressedImage
 
 def main():
     """

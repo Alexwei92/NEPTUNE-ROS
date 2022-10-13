@@ -14,7 +14,6 @@ output_filename = 'plant_field.pkl'
 
 if __name__ == "__main__":
     # load data
-
     south_data = "2022_10_04_09_57_34/gps_at_trigger.csv"
     west_data = "2022_10_04_10_48_09/gps_at_trigger.csv"
     north_path = "2022_10_04_11_05_46/gps_at_trigger.csv"
