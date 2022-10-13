@@ -54,6 +54,11 @@ public:
         // 2) local pose
         local_pose_sub = nh.subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 5,
                 &ForwardCtrl::LocalPoseCallback, this);
+
+        // 3) local pose setpoint
+        setpoint_raw_sub = nh.subscribe<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/target_local", 5, 
+                    boost::bind(&ForwardCtrl::SetpointRawCallback, this, _1));
+
         // 3) rc / joystick / auto command
         if (control_source == "ai") {
             cmd_sub = nh.subscribe<std_msgs::Float32>("/my_controller/yaw_cmd", 5, 
@@ -86,25 +91,24 @@ public:
             target.header.seq++;
 
             if (current_state.mode == "OFFBOARD") { 
-                // 2 second fade in
+                target.coordinate_frame = target.FRAME_LOCAL_NED;
+                target.type_mask = 0b010111100011;
+                // position
+                target.position.z = target_pose_z;
+                // velocity (2 seconds fade in)
                 double ratio = 1.0;
                 double dt = (ros::Time::now() - offboard_start_time).toSec();
                 if (dt < 2.0) { 
                     ratio = dt / 2.0;
                 }
-                // position
-                target.position.z = target_pose_z;
-                // velocity
-                geometry_msgs::Vector3 velocity_local;
-                velocity_local.x = forward_speed * ratio;
-                velocity_local.y = 0; 
-                velocity_local.z = 0;
-                if (target.coordinate_frame == target.FRAME_LOCAL_NED) {
-                    rotate_body_frame_to_NE(velocity_local.x, velocity_local.y, yaw_rad);
-                }
-                target.velocity = velocity_local;
+                geometry_msgs::Vector3 velocity;
+                velocity.x = forward_speed * ratio;
+                velocity.y = 0.0; 
+                velocity.z = 0.0;
+                rotate_body_frame_to_NE(velocity.x, velocity.y, yaw_rad);
+                target.velocity = velocity;
                 // yaw rate
-                target.yaw_rate = -yaw_cmd * max_yawrate * DEG2RAD;
+                target.yaw_rate = (-yaw_cmd) * max_yawrate * DEG2RAD;
             } 
             
             target_setpoint_pub.publish(target);
@@ -116,10 +120,10 @@ public:
 
 private:
     void InitializeTarget() {
-        // bitmask
+        // this should hover a drone at current location
         target.header.frame_id = "base_link";
-        target.coordinate_frame = target.FRAME_LOCAL_NED; // {MAV_FRAME_LOCAL_NED:1, MAV_FRAME_BODY_NED:8}
-        target.type_mask = 0b010111100011;
+        target.coordinate_frame = target.FRAME_BODY_NED; // {MAV_FRAME_LOCAL_NED:1, MAV_FRAME_BODY_NED:8}
+        target.type_mask = 0b010111000111; // bitmask
         target.position = geometry_msgs::Point();
         target.velocity = geometry_msgs::Vector3();
         target.acceleration_or_force = geometry_msgs::Vector3();
@@ -131,10 +135,12 @@ private:
         if (msg->mode == "OFFBOARD" && current_state.mode != "OFFBOARD") {
             ROS_INFO("Switched to OFFBOARD Mode!");
             offboard_start_time = ros::Time::now();
-            // target z position
-            target_pose_z = local_pose_z;
-            target.position.z = target_pose_z;
-            ROS_INFO("target pose z = %.3f", target_pose_z);
+            if (!isnan(target_pose_z)) {
+                target_pose_z = last_target_position_z;
+            }
+            else {
+                target_pose_z = 5.0;
+            }
         }
 
         if (msg->mode != "OFFBOARD" && current_state.mode == "OFFBOARD") {
@@ -168,13 +174,17 @@ private:
         tf2Scalar yaw, pitch, roll;
         q_mat.getEulerYPR(yaw, pitch, roll);
         yaw_rad = wrap_2PI((float)yaw);
+    }
 
-        // local z position (m)
-        local_pose_z = (msg->pose).position.z;
+    void SetpointRawCallback(const mavros_msgs::PositionTarget::ConstPtr& msg) {
+        if (msg && !isnan(msg->position.z)) {
+            last_target_position_z = msg->position.z;
+            // ROS_INFO("Last target position z: %.3f", last_target_position_z);
+        }
     }
 
     void AffordanceCallback(const px4_offboard::Affordance::ConstPtr& msg) {
-        if (msg != NULL) {
+        if (msg) {
             bool in_bound = msg->in_bound;
             if (!in_bound) {
                 set_mode("POSCTL");
@@ -196,6 +206,7 @@ private:
     ros::Publisher target_setpoint_pub;
     ros::Subscriber state_sub;
     ros::Subscriber local_pose_sub;
+    ros::Subscriber setpoint_raw_sub;
     ros::Subscriber rc_sub;
     ros::Subscriber cmd_sub;
     ros::Subscriber afford_sub;
@@ -211,8 +222,8 @@ private:
     float yaw_cmd; // in [-1.0, 1.0]
     float yaw_rad; // Down positive
     
-    float local_pose_z; // m
     float target_pose_z; // m
+    float last_target_position_z; // m
 
     ros::Time offboard_start_time;
 };
