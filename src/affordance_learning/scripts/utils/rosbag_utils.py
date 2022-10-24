@@ -1,12 +1,3 @@
-#!/usr/bin/env python
-# -*-coding:utf-8 -*-
-'''
-@File:            rosbag_utils.py
-@Author:          Peng Wei
-@Email:           peng.wei@murobotix.com
-@Last modified:   2022/08/11 16:41:56
-'''
-
 import numpy as np
 import pandas
 
@@ -67,8 +58,9 @@ def get_topic_from_bag(bag, topic, printout=True):
             has_found = True
 
         data['bag_time'].append(bag_time.to_sec())
-        use_bag_time = False
+        use_bag_time = True
         if hasattr(msg, "header") :
+            use_bag_time = False
             ros_time = msg.header.stamp.secs + float(msg.header.stamp.nsecs) * 1e-9
             if ros_time == 0: # if timestamp not updated properly
                 use_bag_time = True

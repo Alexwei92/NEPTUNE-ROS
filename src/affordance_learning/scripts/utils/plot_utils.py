@@ -6,17 +6,6 @@ import matplotlib.patches as patches
 
 from utils.navigation_utils import find_area_index
 
-gps_fix_type = {
-    0: 'No GPS',    # No GPS connected
-    1: 'No Fix',    # No position information, GPS is connected
-    2: '2D Fix',    # 2D position
-    3: '3D Fix',    # 3D position
-    4: '3D DGPS',   # DGPS/SBAS aided 3D position
-    5: 'RTK Float', # TK float, 3D position
-    6: 'RTK_Fixed', # TK Fixed, 3D position
-    7: 'Static',    # Static fixed, typically used for base stations
-    8: 'PPP',
-}
 
 def plot_vehicle(handle, pos, heading, show_FOV=True, is_first=False):
     """
@@ -66,7 +55,8 @@ def plot_vehicle(handle, pos, heading, show_FOV=True, is_first=False):
                 'FOV_patch': FOV_patch,
                 'L': L}  
 
-def plot_trajectory_history(handle, trajectory_history, is_first=False):
+
+def plot_trajectory_history(handle, trajectory_history, is_first=False, name='trajectory_history', color='c', linestyle='-', linewidth=1.5, alpha=0.7):
     """
     plot trajectory history
     """
@@ -77,57 +67,55 @@ def plot_trajectory_history(handle, trajectory_history, is_first=False):
         pos_y.append(trajectory_history[i][1])    
 
     if is_first:
-        trajectory, = handle.plot(pos_x, pos_y, color='c', alpha=0.7, linewidth=1.5)
+        trajectory, = handle.plot(pos_x, pos_y, color=color, alpha=alpha, linestyle=linestyle, linewidth=linewidth)
         return trajectory
     else:
-        handle['trajectory_history'].set_xdata(pos_x)
-        handle['trajectory_history'].set_ydata(pos_y)
+        handle[name].set_xdata(pos_x)
+        handle[name].set_ydata(pos_y)
 
-def plot_current_area(handle, data, frame='local', is_first=False):
+
+def plot_current_area(handle, data, is_first=False):
     if is_first:
         current_area_dict = {}
         current_area_dict['treeline1'], = handle.plot(
-            data['treelines_' + frame][0][:, 0], data['treelines_' + frame][0][:, 1],
-            color='k', linestyle='-', linewidth=2.0,
+            data['treelines_actual'][0][:, 0], data['treelines_actual'][0][:, 1],
+            color='g', linestyle='-', linewidth=2.0,
         )
         current_area_dict['treeline2'], = handle.plot(
-            data['treelines_' + frame][1][:, 0], data['treelines_' + frame][1][:, 1],
-            color='k', linestyle='-', linewidth=2.0,
+            data['treelines_actual'][1][:, 0], data['treelines_actual'][1][:, 1],
+            color='g', linestyle='-', linewidth=2.0,
         )
         current_area_dict['centerline'], = handle.plot(
-            data['centerline_' + frame][:, 0], data['centerline_' + frame][:, 1],
-            color='r', linestyle='-.', linewidth=1.0,
+            data['centerline'][:, 0], data['centerline'][:, 1],
+            color='k', linestyle='-.', linewidth=1.0,
         )
         current_area_dict['polygon'] = handle.add_patch(patches.Polygon(
-            data['vertice_' + frame], 
+            data['vertice_actual'], 
             color='C0', linestyle='-', linewidth=3.0, alpha=0.2
         ))
 
         return current_area_dict
 
     else:
-        handle['treeline1'].set_xdata(data['treelines_' + frame][0][:, 0])
-        handle['treeline1'].set_ydata(data['treelines_' + frame][0][:, 1])
-        handle['treeline2'].set_xdata(data['treelines_' + frame][1][:, 0])
-        handle['treeline2'].set_ydata(data['treelines_' + frame][1][:, 1])
-        handle['centerline'].set_xdata(data['centerline_' + frame][:, 0])
-        handle['centerline'].set_ydata(data['centerline_' + frame][:, 1])
-        handle['polygon'].set_xy(data['vertice_' + frame])
+        handle['treeline1'].set_xdata(data['treelines_actual'][0][:, 0])
+        handle['treeline1'].set_ydata(data['treelines_actual'][0][:, 1])
+        handle['treeline2'].set_xdata(data['treelines_actual'][1][:, 0])
+        handle['treeline2'].set_ydata(data['treelines_actual'][1][:, 1])
+        handle['centerline'].set_xdata(data['centerline'][:, 0])
+        handle['centerline'].set_ydata(data['centerline'][:, 1])
+        handle['polygon'].set_xy(data['vertice_actual'])
 
 
 class FieldMapPlot():
     def __init__(self,
         data,
         field_bound,
-        frame='local',
     ):
         self.data = data
         self.field_bound_latlon = field_bound['latlon']
         self.field_bound_local = field_bound['local']
 
-        if frame not in {'latlon', 'local'}:
-            frame = 'local'
-        self.frame = frame
+        self.frame = 'local'
         
         self.fig = plt.figure()
         gs = self.fig.add_gridspec(2,2)
@@ -140,34 +128,23 @@ class FieldMapPlot():
 
     def initialize_variables(self):
         self.has_initialized = False
-        self.pose_history = deque(maxlen=100)
+        self.pose_history = deque(maxlen=100) # onboard GPS
+        self.pose2_history = deque(maxlen=100) # piksi
         self.current_area = None
         self.last_index = None
         self.last_image = None
 
     def initialize_map(self):
         # full
-        if self.frame == 'latlon':
-            self.axis_full.set_xlabel('Longitude [deg]')
-            self.axis_full.set_ylabel('Latitude [deg]')
-            self.axis_full.set_aspect(1)
-            self.axis_full.set_xlim(self.field_bound_latlon[0])
-            self.axis_full.set_ylim(self.field_bound_latlon[1])
-            # self.axis_full.set_xticks(np.arange(self.field_bound_latlon[0][0], self.field_bound_latlon[0][1], 0.0003))
-            # self.axis_full.set_yticks(np.arange(self.field_bound_latlon[1][0], self.field_bound_latlon[1][1], 0.0003))
-            self.axis_full.ticklabel_format(useOffset=False)
-            # self.axis_full.tick_params(direction='out', length=0, color='k')
-
-        if self.frame == 'local':
-            self.axis_full.set_xlabel('x [m]')
-            self.axis_full.set_ylabel('y [m]')
-            self.axis_full.set_aspect(1)
-            self.axis_full.set_xlim(self.field_bound_local[0])
-            self.axis_full.set_ylim(self.field_bound_local[1])
-            # self.axis_full.set_xticks(np.arange(np.floor(self.field_bound_local[0][0]), np.ceil(self.field_bound_local[0][1]), 20))
-            # self.axis_full.set_yticks(np.arange(np.floor(self.field_bound_local[1][0]), np.ceil(self.field_bound_local[1][1]), 20))
-            self.axis_full.ticklabel_format(useOffset=False)
-            # self.axis_full.tick_params(direction='out', length=0, color='k')
+        self.axis_full.set_xlabel('x [m]')
+        self.axis_full.set_ylabel('y [m]')
+        self.axis_full.set_aspect(1)
+        self.axis_full.set_xlim(self.field_bound_local[0])
+        self.axis_full.set_ylim(self.field_bound_local[1])
+        # self.axis_full.set_xticks(np.arange(np.floor(self.field_bound_local[0][0]), np.ceil(self.field_bound_local[0][1]), 20))
+        # self.axis_full.set_yticks(np.arange(np.floor(self.field_bound_local[1][0]), np.ceil(self.field_bound_local[1][1]), 20))
+        self.axis_full.ticklabel_format(useOffset=False)
+        # self.axis_full.tick_params(direction='out', length=0, color='k')
 
         # zoom in
         self.axis_zoomin.set_aspect(1)
@@ -197,24 +174,31 @@ class FieldMapPlot():
     def draw_single_data(self, axis, data, vertice=True, treelines=True, centerline=True, polygon=False):
         # vertice
         if vertice:
-            self.draw_vertice(axis, data['vertice_' + self.frame])
+            self.draw_vertice(axis, data['vertice'])
         # treeline
         if treelines:
-            self.draw_line(axis, data['treelines_' + self.frame][0])
-            self.draw_line(axis, data['treelines_' + self.frame][1])
+            self.draw_line(axis, data['treelines'][0])
+            self.draw_line(axis, data['treelines'][1])
         # centerline
         if centerline:
-            self.draw_line(axis, data['centerline_' + self.frame], color='r', linestyle='-.', linewidth=0.5)
+            self.draw_line(axis, data['centerline'], color='r', linestyle='-.', linewidth=0.5)
         # polygon
         if polygon:
-            self.draw_polygon(axis, data['vertice_' + self.frame])
+            self.draw_polygon(axis, data['vertice'])
 
     def draw_all_data(self, axis):
         for i in range(len(self.data)):
             self.draw_single_data(axis, self.data[i])
 
-    def update_graph(self, pos, heading, num_sat=0, fix_type=0):
+    def update_graph(self, pos, heading, num_sat=0, fix_type='No GPS', 
+                    pos2=None, num_sat2=None, fix_type2=None):
         self.pose_history.append([pos[0], pos[1], heading])
+        if pos2 is not None:
+            self.pose2_history.append([pos2[0], pos2[1], heading])
+            disp_second_gps = True
+        else:
+            disp_second_gps = False
+
         if self.has_initialized:
             # full
             plot_vehicle(self.axis_dict, pos, heading, is_first=False)
@@ -222,6 +206,8 @@ class FieldMapPlot():
             # zoom in
             plot_vehicle(self.axis_dict_zoom, pos, heading, is_first=False)
             plot_trajectory_history(self.axis_dict_zoom, self.pose_history)
+            if disp_second_gps:
+                plot_trajectory_history(self.axis_dict_zoom, self.pose2_history, name='trajectory2_history')
             self.update_zoom_in(self.axis_dict_zoom)
         else:
             # full
@@ -230,12 +216,18 @@ class FieldMapPlot():
             # zoom in
             self.axis_dict_zoom = plot_vehicle(self.axis_zoomin, pos, heading, is_first=True)
             self.axis_dict_zoom['trajectory_history'] = plot_trajectory_history(self.axis_zoomin, self.pose_history, is_first=True)
+            if disp_second_gps:
+                self.axis_dict_zoom['trajectory2_history'] = plot_trajectory_history(self.axis_zoomin, self.pose2_history, is_first=True, color='y')
             self.update_zoom_in(self.axis_dict_zoom)
             self.has_initialized = True
 
         # gps status
+        if disp_second_gps:
+            title_name = ("GPS Count: %d, GPS Type: %s \n GPS2 Count: %d, GPS2 Type: %s" % (num_sat, fix_type, num_sat2, fix_type2))
+        else:
+            title_name = ("GPS Count: %d, GPS Type: %s" % (num_sat, fix_type))
         self.axis_full.set_title(
-            "GPS Count: %d, GPS Type: %s" % (num_sat, gps_fix_type[fix_type]),
+            title_name,
             {'fontsize': 10, 'fontweight': 'normal'}, pad=1.5,
         )
 
@@ -243,7 +235,6 @@ class FieldMapPlot():
         index = find_area_index(
             [pos[0], pos[1]],
             self.data,
-            frame = self.frame,
             start_index = self.last_index if self.last_index is not None else 0,
         )
 
@@ -266,16 +257,16 @@ class FieldMapPlot():
                 if self.current_area is None:
                     # full
                     self.current_area = self.axis_full.add_patch(patches.Polygon(
-                        self.data[index]['vertice_' + self.frame], 
+                        self.data[index]['vertice_actual'], 
                         color='C0', linestyle='-', linewidth=3.0, alpha=0.2
                     ))
                     # zoom in
-                    self.current_area_zoom = plot_current_area(self.axis_zoomin, self.data[index], self.frame, is_first=True)
+                    self.current_area_zoom = plot_current_area(self.axis_zoomin, self.data[index], is_first=True)
                 else:
                     # full
-                    self.current_area.set_xy(self.data[index]['vertice_' + self.frame])
+                    self.current_area.set_xy(self.data[index]['vertice_actual'])
                     # zoom in
-                    plot_current_area(self.current_area_zoom, self.data[index], self.frame)
+                    plot_current_area(self.current_area_zoom, self.data[index])
         
         self.last_index = index
 

@@ -17,6 +17,8 @@
                 /mavros/global_position/raw/satellites
                 /mavros/gpsstatus/gps1/raw
                 /mavros/home_position/home
+                /piksi/navsatfix_best_fix
+                /piksi/debug/receiver_state
                 --lz4
                 -o $(arg output_folder)/camera_gps"
     />

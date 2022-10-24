@@ -81,98 +81,118 @@ if __name__ == "__main__":
         all_data_local[key] = local_full.T[:, :2]
 
     # convert to treeline
-    treeline_WE_latlon = []
     treeline_WE_local = []
-    for i in range(len(all_data_latlon['west'])):
-        treeline_WE_latlon.append(np.vstack((
-            all_data_latlon['west'][i],
-            all_data_latlon['east'][i],
-        )))
+    for i in range(len(all_data_local['west'])):
         treeline_WE_local.append(np.vstack((
             all_data_local['west'][i],
             all_data_local['east'][i],
         )))
 
-    treeline_SN_latlon = []
     treeline_SN_local = []
-    for i in range(len(all_data_latlon['south'])):
-        treeline_SN_latlon.append(np.vstack((
-            all_data_latlon['south'][i],
-            all_data_latlon['north'][i],
-        )))
+    for i in range(len(all_data_local['south'])):
         treeline_SN_local.append(np.vstack((
             all_data_local['south'][i],
             all_data_local['north'][i],
         )))
 
+    # remove offset
+    ft2m = 0.3048
+    west_offset = 15 * ft2m
+    east_offset = 10 * ft2m
+    south_offset = 15 * ft2m
+    north_offset = 15 * ft2m
+
+    treeline_WE_local_actual = []
+    for i in range(len(all_data_latlon['west'])):
+        # local
+        treeline = [
+            all_data_local['west'][i],
+            all_data_local['east'][i],
+        ]
+        treeline_length = np.linalg.norm(treeline[1] - treeline[0])
+        alpha_west = west_offset / treeline_length
+        alpha_east = east_offset / treeline_length
+
+        new_pt_west = (treeline[1] - treeline[0]) * alpha_west + treeline[0]
+        new_pt_east = (treeline[1] - treeline[0]) * (1 - alpha_east) + treeline[0]
+
+        treeline_WE_local_actual.append(np.vstack((
+            new_pt_west,
+            new_pt_east,
+        )))
+
+    treeline_SN_local_actual = []
+    for i in range(len(all_data_latlon['south'])):
+        treeline = [
+            all_data_local['south'][i],
+            all_data_local['north'][i],
+        ]
+        treeline_length = np.linalg.norm(treeline[1] - treeline[0])
+        alpha_south = south_offset / treeline_length
+        alpha_north = north_offset / treeline_length
+
+        new_pt_south = (treeline[1] - treeline[0]) * alpha_south + treeline[0]
+        new_pt_north = (treeline[1] - treeline[0]) * (1 - alpha_north) + treeline[0]
+
+        treeline_SN_local_actual.append(np.vstack((
+            new_pt_south,
+            new_pt_north,
+        )))
+
     # column-wise (index 0 start from west)
     column_data = []
-    for i in range(len(treeline_SN_latlon)-1):
+    for i in range(len(treeline_SN_local)-1):
         column_data.append({
             'index': i,
-            'vertice_latlon': np.vstack((
-                all_data_latlon['south'][i],
-                all_data_latlon['north'][i],
-                all_data_latlon['north'][i+1],
-                all_data_latlon['south'][i+1],
-            )),
-            'vertice_local': np.vstack((
+            'vertice': np.vstack((
                 all_data_local['south'][i],
                 all_data_local['north'][i],
                 all_data_local['north'][i+1],
                 all_data_local['south'][i+1],
             )),
-            'treelines_latlon': [
-                treeline_SN_latlon[i],
-                treeline_SN_latlon[i+1],
-            ],
-            'treelines_local': [
+            'vertice_actual': np.vstack((
+                treeline_SN_local_actual[i][0],
+                treeline_SN_local_actual[i][1],
+                treeline_SN_local_actual[i+1][1],
+                treeline_SN_local_actual[i+1][0],
+            )),
+            'treelines': [
                 treeline_SN_local[i],
                 treeline_SN_local[i+1],
             ],
-            'centerline_latlon': (treeline_SN_latlon[i] + treeline_SN_latlon[i+1]) / 2.0,
-            'centerline_local': (treeline_SN_local[i] + treeline_SN_local[i+1]) / 2.0,
-            'offsets': [
-                15, # north
-                15, # south
-                15, # west
-                10, # east
-            ]
+            'treelines_actual': [
+                treeline_SN_local_actual[i],
+                treeline_SN_local_actual[i+1],
+            ],
+            'centerline': (treeline_SN_local[i] + treeline_SN_local[i+1]) / 2.0,
         })
 
     # row_wise (index 0 start from south)
     row_data = []
-    for i in range(len(treeline_WE_latlon)-1):
+    for i in range(len(treeline_WE_local)-1):
         row_data.append({
             'index': i,
-            'vertice_latlon': np.vstack((
-                all_data_latlon['west'][i],
-                all_data_latlon['east'][i],
-                all_data_latlon['east'][i+1],
-                all_data_latlon['west'][i+1],
-            )),
-            'vertice_local': np.vstack((
+            'vertice': np.vstack((
                 all_data_local['west'][i],
                 all_data_local['east'][i],
                 all_data_local['east'][i+1],
                 all_data_local['west'][i+1],
             )),
-            'treelines_latlon': [
-                treeline_WE_latlon[i],
-                treeline_WE_latlon[i+1],
-            ],
-            'treelines_local': [
+            'vertice_actual': np.vstack((
+                treeline_WE_local_actual[i][0],
+                treeline_WE_local_actual[i][1],
+                treeline_WE_local_actual[i+1][1],
+                treeline_WE_local_actual[i+1][0],
+            )),
+            'treelines': [
                 treeline_WE_local[i],
                 treeline_WE_local[i+1],
             ],
-            'centerline_latlon': (treeline_WE_latlon[i] + treeline_WE_latlon[i+1]) / 2.0,
-            'centerline_local': (treeline_WE_local[i] + treeline_WE_local[i+1]) / 2.0,
-            'offset': [
-                15, # north
-                15, # south
-                15, # west
-                10, # east
-            ]
+            'treelines_actual': [
+                treeline_WE_local_actual[i],
+                treeline_WE_local_actual[i+1],
+            ],
+            'centerline': (treeline_WE_local[i] + treeline_WE_local[i+1]) / 2.0,
         })
 
     # save output
