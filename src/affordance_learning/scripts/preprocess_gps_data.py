@@ -165,6 +165,7 @@ if __name__ == "__main__":
                 treeline_SN_local_actual[i+1],
             ],
             'centerline': (treeline_SN_local[i] + treeline_SN_local[i+1]) / 2.0,
+            'centerline_actual': (treeline_SN_local_actual[i] + treeline_SN_local_actual[i+1]) / 2.0,
         })
 
     # row_wise (index 0 start from south)
@@ -193,6 +194,7 @@ if __name__ == "__main__":
                 treeline_WE_local_actual[i+1],
             ],
             'centerline': (treeline_WE_local[i] + treeline_WE_local[i+1]) / 2.0,
+            'centerline_actual': (treeline_WE_local_actual[i] + treeline_WE_local_actual[i+1]) / 2.0,
         })
 
     # save output

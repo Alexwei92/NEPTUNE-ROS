@@ -1,0 +1,6 @@
+<launch>
+    <!-- Uncompress images for color and depth -->
+    <node name="republish_color" type="republish" pkg="image_transport" args="compressed in:=/d435i/color/image_raw raw out:=/d435i/color/image_raw" />
+    <node name="republish_depth" type="republish" pkg="image_transport" args="compressed in:=/d435i/aligned_depth_to_color/image_raw raw out:=/d435i/aligned_depth_to_color/image_raw"/>
+
+</launch>

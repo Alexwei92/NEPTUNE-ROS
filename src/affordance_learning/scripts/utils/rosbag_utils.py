@@ -139,7 +139,7 @@ def parse_twist_msg(data):
 
     return pandas.DataFrame(twists)
 
-def timesync_topics(topic_list, force_use_first=True):
+def timesync_topics(topic_list, force_use_first=True, printout=True):
     """
     Time Synchronize different topics
     
@@ -161,7 +161,7 @@ def timesync_topics(topic_list, force_use_first=True):
             max_freq = topic_list[i]['frequency'][0]
         
     freq_diff = max_freq - min_freq
-    if freq_diff > 5:
+    if freq_diff > 5 and printout:
         print('Warning: The maximum and minimum frequencies differ by %d Hz. Use with caution!' % (freq_diff))
 
     # if force to use the first topic as the base
@@ -169,7 +169,8 @@ def timesync_topics(topic_list, force_use_first=True):
         base_index = 0
         min_freq = topic_list[0]['frequency'][0]
 
-    print("Use the %d column as the base. The synchronized frequency is %.0fHz." % (base_index, min_freq))
+    if printout:
+        print("Use the %d column as the base. The synchronized frequency is %.0fHz." % (base_index, min_freq))
 
     # query timestamp
     time_query = topic_list[base_index]['ros_time'].to_numpy().reshape(-1, 1)

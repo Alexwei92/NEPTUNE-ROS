@@ -211,6 +211,7 @@ class GPSListener():
         while not rospy.is_shutdown() and self.has_initialized:
             # tic = time.time()
             current_heading = -self.compass_heading + math.pi/2
+            print(current_heading)
             # Update graph
             if self.map_handler:
                 if use_piksi:
