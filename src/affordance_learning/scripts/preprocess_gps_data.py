@@ -208,5 +208,5 @@ if __name__ == "__main__":
     }
 
     with open(file_path, "wb") as f:
-        pickle.dump(output_results, f)
+        pickle.dump(output_results, f, protocol=2)
         print("Data saved to: " + file_path)
