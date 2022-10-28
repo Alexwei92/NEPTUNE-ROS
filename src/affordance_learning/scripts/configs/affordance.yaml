@@ -4,10 +4,10 @@ model_params:
 
 train_params:
   batch_size:             32
-  n_epochs:               50
+  n_epochs:               100
   optimizer:
     type:                 'Adam'
-    learning_rate:        0.0001
+    learning_rate:        0.00001
     betas:                (0.9, 0.999)
     weight_decay:         0.0
   manual_seed:            1234
@@ -19,5 +19,5 @@ train_params:
 log_params:
   name:                   'affordance'
   log_interval:           5
-  checkpoint_preload:     False
+  checkpoint_preload:     True
   use_tensorboard:        True

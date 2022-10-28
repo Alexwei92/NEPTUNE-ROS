@@ -1,3 +1,6 @@
+"""
+Pre-process the field data and save
+"""
 import os
 import pandas
 import utm
@@ -208,5 +211,5 @@ if __name__ == "__main__":
     }
 
     with open(file_path, "wb") as f:
-        pickle.dump(output_results, f)
+        pickle.dump(output_results, f, protocol=0)
         print("Data saved to: " + file_path)

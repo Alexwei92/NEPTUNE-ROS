@@ -1,3 +1,6 @@
+"""
+Extract from raw data and save them to a folder
+"""
 import os
 import shutil
 import numpy as np
@@ -122,8 +125,8 @@ class ExtractData():
                 res = {}
                 res['time'] = results['time'].iloc[i]
                 res['heading'] = wrap_2pi(results['compass_heading'].iloc[i] - np.pi/2)
-                res['local_pos_x'] = results['local_pos_x'].iloc[i]
-                res['local_pos_y'] = results['local_pos_y'].iloc[i]
+                res['pos_x'] = results['local_pos_x'].iloc[i]
+                res['pos_y'] = results['local_pos_y'].iloc[i]
                 res['index'] = i
                 filtered_results = filtered_results.append(res, ignore_index=True)
 
@@ -166,8 +169,8 @@ class ExtractData():
         dist_center = []
         for i in range(len(filtered_results)):
             point = [
-                filtered_results['local_pos_x'].iloc[i],
-                filtered_results['local_pos_y'].iloc[i],
+                filtered_results['pos_x'].iloc[i],
+                filtered_results['pos_y'].iloc[i],
             ]
             heading = filtered_results['heading'].iloc[i]
             lat_proj, lon_proj = get_projection_point2line(point, reference_line)
@@ -194,7 +197,7 @@ class ExtractData():
 
         filtered_results.to_csv(
             os.path.join(output_data_folder, 'pose.csv'),
-            columns=['time', 'local_pos_x', 'local_pos_y', 'heading', 'dist_center', 'rel_angle'],
+            columns=['time', 'pos_x', 'pos_y', 'heading', 'dist_center', 'rel_angle'],
             index=False,
         )
 
@@ -203,8 +206,8 @@ class ExtractData():
 
 
 if __name__ == "__main__":
-    root_folder_path = '/media/peng/Samsung/2022-10-17'
-    output_folder = '/media/peng/Samsung/tmp_datasets'
+    root_folder_path = '/media/lab/NEPTUNE2/field_raw_datasets/2022-10-14'
+    output_folder = '/media/lab/NEPTUNE2/field_datasets'
 
     #### 
     curr_dir = os.path.dirname(__file__)
