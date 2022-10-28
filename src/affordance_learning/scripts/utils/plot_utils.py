@@ -215,9 +215,9 @@ class FieldMapPlot():
             self.axis_dict['trajectory_history'] = plot_trajectory_history(self.axis_full, self.pose_history, is_first=True)
             # zoom in
             self.axis_dict_zoom = plot_vehicle(self.axis_zoomin, pos, heading, is_first=True)
-            self.axis_dict_zoom['trajectory_history'] = plot_trajectory_history(self.axis_zoomin, self.pose_history, is_first=True)
+            self.axis_dict_zoom['trajectory_history'] = plot_trajectory_history(self.axis_zoomin, self.pose_history, is_first=True, color='C1')
             if disp_second_gps:
-                self.axis_dict_zoom['trajectory2_history'] = plot_trajectory_history(self.axis_zoomin, self.pose2_history, is_first=True, color='y')
+                self.axis_dict_zoom['trajectory2_history'] = plot_trajectory_history(self.axis_zoomin, self.pose2_history, is_first=True, color='C0')
             self.update_zoom_in(self.axis_dict_zoom)
             self.has_initialized = True
 

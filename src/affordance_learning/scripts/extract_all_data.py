@@ -203,7 +203,7 @@ class ExtractData():
 
 
 if __name__ == "__main__":
-    root_folder_path = '/media/peng/Samsung/2022-10-14'
+    root_folder_path = '/media/peng/Samsung/2022-10-17'
     output_folder = '/media/peng/Samsung/tmp_datasets'
 
     #### 
