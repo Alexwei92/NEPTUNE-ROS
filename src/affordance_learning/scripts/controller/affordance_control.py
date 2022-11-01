@@ -77,6 +77,6 @@ class AffordanceCtrl():
             affordance_pred = {
                 'dist_center_width': out[0], # dist_center/width
                 'rel_angle': out[1] * (np.pi/2), # rel_angle
-                'dist_left_width': out[2] + 0.5} # dist_left/width
+            }
 
         return affordance_pred

@@ -41,7 +41,10 @@ class TestCamera(object):
         )
 
     def color_image_callback(self, msg):
-        cv_img = self.bridge.compressed_imgmsg_to_cv2(msg, desired_encoding='rgb8')
+        cv_img = np.frombuffer(msg.data, np.uint8)
+        cv_img = cv2.imdecode(cv_img, cv2.IMREAD_COLOR)
+        cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+        # cv_img = self.bridge.compressed_imgmsg_to_cv2(msg, desired_encoding='rgb8')
         self.color_img = cv_img
 
     def depth_image_callback(self, msg):
@@ -49,9 +52,9 @@ class TestCamera(object):
         self.depth_img = cv_img
 
     def compressed_depth_image_callback(self, msg):
-        # cv_img = np.frombuffer(msg.data, np.uint16)
-        # cv_img = cv2.imdecode(cv_img, cv2.IMREAD_COLOR)
-        cv_img = self.bridge.compressed_imgmsg_to_cv2(msg, desired_encoding='rgb16')
+        cv_img = np.frombuffer(msg.data, np.uint8)
+        cv_img = cv2.imdecode(cv_img, cv2.IMREAD_COLOR)
+        # cv_img = self.bridge.compressed_imgmsg_to_cv2(msg, desired_encoding='rgb16')
         self.compress_depth_img = cv_img
 
     def run(self):

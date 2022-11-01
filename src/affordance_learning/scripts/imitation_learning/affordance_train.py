@@ -31,6 +31,8 @@ class AffordanceTrain(BaseTrain):
         # loss history
         self.loss_history = {
             'total_loss': [],
+            'dist_loss': [],
+            'angle_loss': [],
         }               
 
     def train(self):

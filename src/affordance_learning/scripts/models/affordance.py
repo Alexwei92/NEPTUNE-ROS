@@ -4,7 +4,7 @@ import torchvision.models as models
 import torch.nn.functional as F
 
 class Resnet18(nn.Module):
-    def __init__(self, input_dim, n_image=1):
+    def __init__(self, input_dim, output_dim=3, n_image=1):
         super().__init__()
 
         self.n_feature_state = 512 * 4 * 4
@@ -32,17 +32,22 @@ class Resnet18(nn.Module):
         )
 
         self.fc1 = nn.Linear(self.n_feature_state, 256)
-        # dist_center_width, rel_angle, and dist_left_width
-        self.fc2 = nn.Linear(256, 3)
+        # dist_center_width, rel_angle
+        self.fc2 = nn.Linear(256, 1)
+        self.fc3 = nn.Linear(256, 1)
 
     def forward(self, x):
         x = self.encoder(x)
         x = self.last_conv_downsample(x)
         x = torch.flatten(x)
         x = x.view(-1, self.n_feature_state)
+
         x = self.fc1(x)
         x = F.relu(x)
-        x = self.fc2(x)
+
+        x1 = self.fc2(x)
+        x2 = self.fc3(x)
+        x = torch.cat((x1, x2), dim=1)
         x = F.tanh(x)
         return x
 
@@ -83,19 +88,26 @@ class AffordanceNet(nn.Module):
     def __init__(self,
                 name,
                 input_dim,
+                output_dim=3,
                 **kwargs):
         super().__init__()
         
         self.name = name
-        self.net = Resnet18(input_dim)
+        self.net = Resnet18(input_dim, output_dim)
         self.input_dim = input_dim
 
     def forward(self, x):
         return self.net(x)
 
     def loss_function(self, y_pred, y):
-        loss = F.mse_loss(y_pred, y, reduction='mean')
-        return {'total_loss': loss}
+        dist_loss = F.mse_loss(y_pred[:,0], y[:,0], reduction='mean')
+        angle_loss = F.mse_loss(y_pred[:,1], y[:,1], reduction='mean')
+        total_loss = 3.0*dist_loss + angle_loss
+        return {
+            'total_loss': total_loss,
+            'dist_loss': dist_loss,
+            'angle_loss': angle_loss,
+        }
 
 class AffordanceFC(nn.Module):
     def __init__(self,

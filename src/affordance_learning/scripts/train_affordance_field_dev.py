@@ -58,7 +58,7 @@ class AffordanceDataset(Dataset):
     def __init__(self,
             dataset_dir,
             resize=None,
-            affordance_dim=3,
+            affordance_dim=2,
             transform=None):
 
         self.rgb_file_list = []
@@ -187,8 +187,26 @@ if __name__ == '__main__':
                                             random_state=random_state)       
     print('Loaded Affordance datasets successfully!')
 
-    # Training loop
-    print('\n*** Start training ***')
-    train_agent.load_dataset(train_data, test_data)
-    train_agent.train()
-    print('Trained the model successfully.')
+    # # Training loop
+    # print('\n*** Start training ***')
+    # train_agent.load_dataset(train_data, test_data)
+    # train_agent.train()
+    # print('Trained the model successfully.')
+
+    # res_img = []
+    # for i in range(100, 104):
+    #     img = train_data[i]['image'].permute((1,2,0)).numpy()
+
+    #     img = ((img + 1.0) / 2.0 * 255.0).astype(np.uint8)
+    #     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+    #     res_img.append(img)
+    
+    # img = np.concatenate(
+    #     (res_img[0], res_img[1], res_img[2], res_img[3]),
+    #     axis=0
+    # )
+
+    # print(img, img.shape)
+    # cv2.imshow('disp', img)
+    # cv2.waitKey(0)
