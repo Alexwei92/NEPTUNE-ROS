@@ -61,17 +61,26 @@ class AffordanceCtrl():
         self.afford_model.eval()
         self.image_resize = [self.afford_model.input_dim, self.afford_model.input_dim]
         
-    def predict_affordance(self, image_color):
+    def predict_affordance(self, image_color_list):
         '''
         Output predicted affordance
         '''
-        image_np = image_color.copy()
-        image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
-        image_np = cv2.resize(image_np, (self.image_resize[0], self.image_resize[1]))
-        image_tensor = self.transform_composed(image_np)
         
+        if not isinstance(image_color_list, list):
+            image_color_list = [image_color_list]
+        
+        image_tensor_list = []
+        for image_color in image_color_list:
+            image_np = image_color.copy()
+            image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+            image_np = cv2.resize(image_np, (self.image_resize[0], self.image_resize[1]))
+            image_tensor = self.transform_composed(image_np)
+            image_tensor_list.append(image_tensor)
+
+        image_tensor_cat = torch.cat(tuple(image_tensor for image_tensor in image_tensor_list), dim=0)
+
         with torch.no_grad():
-            out = self.afford_model(image_tensor.unsqueeze(0).to(self.device))
+            out = self.afford_model(image_tensor_cat.unsqueeze(0).to(self.device))
             out = out.cpu().squeeze(0).numpy()
         
             affordance_pred = {

@@ -14,7 +14,7 @@ from piksi_rtk_msgs.msg import ReceiverState_V2_4_1
 from utils.plot_utils import FieldMapPlot
 from utils.navigation_utils import get_local_xy_from_latlon
 
-is_replay = False
+is_replay = True
 use_piksi = True
 
 px4_gps_fix_type = {

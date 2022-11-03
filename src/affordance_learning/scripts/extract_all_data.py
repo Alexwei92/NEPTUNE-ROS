@@ -43,19 +43,22 @@ class ExtractData():
         color_image = rosbag_utils.get_topic_from_bag(bag, "/d435i/color/image_raw/compressed", False)
         depth_image = rosbag_utils.get_topic_from_bag(bag, "/d435i/aligned_depth_to_color/image_raw/compressed", False)
         compass_hdg = rosbag_utils.get_topic_from_bag(bag, "/mavros/global_position/compass_hdg", False)
+        px4_global_position = rosbag_utils.get_topic_from_bag(bag, "/mavros/global_position/global", False)
         piksi_global_position = rosbag_utils.get_topic_from_bag(bag, "/piksi/navsatfix_best_fix", False)
 
         ros_time, sync_topics = rosbag_utils.timesync_topics([
             color_image,
             depth_image,
             piksi_global_position,
-            compass_hdg
+            compass_hdg,
+            px4_global_position
         ], printout=False)
     
         color_image_sync = sync_topics[0]
         depth_image_sync = sync_topics[1]
         piksi_global_position_sync = sync_topics[2]
         compass_hdg_sync = sync_topics[3]
+        px4_global_position_sync = sync_topics[4]
 
         # heading
         compass_heading = np.radians(compass_hdg_sync['data'])
@@ -67,6 +70,8 @@ class ExtractData():
             pos_xy = get_local_xy_from_latlon(
                 piksi_global_position_sync['latitude'].iloc[i],
                 piksi_global_position_sync['longitude'].iloc[i],
+                # px4_global_position_sync['latitude'].iloc[i],
+                # px4_global_position_sync['longitude'].iloc[i],
                 self.utm_T_local,
             )
             local_pos_x.append(pos_xy[0])
@@ -77,6 +82,7 @@ class ExtractData():
 
         results = {
             'time': piksi_global_position_sync['ros_time'],
+            # 'time': px4_global_position_sync['ros_time'],
             'compass_heading': compass_heading,
             'local_pos_x': local_pos_x,
             'local_pos_y': local_pos_y,
@@ -130,7 +136,7 @@ class ExtractData():
                 res['index'] = i
                 filtered_results = filtered_results.append(res, ignore_index=True)
 
-        print("{:.2%} of valid data".format(len(filtered_results) / len(results)))
+        print("{:.2%} of valid data".format(float(len(filtered_results)) / len(results)))
 
         ## read images
         bridge = CvBridge()
@@ -206,7 +212,7 @@ class ExtractData():
 
 
 if __name__ == "__main__":
-    root_folder_path = '/media/lab/NEPTUNE2/field_raw_datasets/2022-10-14'
+    root_folder_path = '/media/lab/NEPTUNE2/field_raw_datasets/2022-10-28'
     output_folder = '/media/lab/NEPTUNE2/field_datasets'
 
     #### 

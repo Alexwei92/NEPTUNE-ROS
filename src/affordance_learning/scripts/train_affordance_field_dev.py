@@ -39,11 +39,6 @@ class MyTransform:
 
     def __call__(self, img):
         img = transforms.functional.to_tensor(img)
-        if random.random() > 0.5:
-            img = transforms.functional.hflip(img)
-            is_flip = True
-        else:
-            is_flip = False
         img = transforms.functional.rotate(img, np.random.uniform(-15,15))
         img = transforms.functional.gaussian_blur(img, random.choice([1,3,5,7]))
         img = self.salt_pepper_noise(img)
@@ -52,7 +47,7 @@ class MyTransform:
         img = transforms.functional.adjust_contrast(img, np.random.uniform(max(0,1-self.contrast),1+self.contrast))
         img = transforms.functional.adjust_saturation(img, np.random.uniform(max(0,1-self.saturation),1+self.saturation))
         img = transforms.functional.normalize(img, (0.5), (0.5))
-        return img, is_flip
+        return img
 
 class AffordanceDataset(Dataset):
     def __init__(self,
@@ -90,11 +85,11 @@ class AffordanceDataset(Dataset):
         # Output
         width = 6.0 # = 15 ft
         if self.affordance_dim == 3:
-            result = np.column_stack([dist_center / width, # normalized
-                                    rel_angle / (np.pi/2), 
-                                    (dist_center + width / 2) / width - 0.5])
+            result = np.column_stack([dist_center / width, # normalized to [-0.5, 0.5]
+                                    rel_angle / (np.pi/2), # normalized to [-1, 1]
+                                    (dist_center + width / 2) / width - 0.5]) # normalized to [-0.5, 0.5]
         else:
-            result = np.column_stack([dist_center / width, # normalized
+            result = np.column_stack([dist_center / width,
                                     rel_angle / (np.pi/2)])
 
         return result.astype(np.float32)
@@ -107,13 +102,30 @@ class AffordanceDataset(Dataset):
             idx = idx.tolist()
         
         # Read RGB image
-        bgr_img = cv2.imread(self.rgb_file_list[idx], cv2.IMREAD_UNCHANGED)
-        rgb_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGB)
-        if self.resize is not None:
-            rgb_img = cv2.resize(rgb_img, (self.resize[0], self.resize[1]))
-        if self.transform is not None:
-            rgb_img, is_flip = self.transform(rgb_img)
+        prev_idx_range = [0, 2, 4, 10] # relative index
+        # prev_idx_range = [0, 2, 5, 12] # relative index
+        query_img_idx = int(self.rgb_file_list[idx][-11:-4])
+        output_img_list = []
+        for j in prev_idx_range:
+            new_img_idx = max(0, query_img_idx - j)
+            new_idx = idx - (query_img_idx - new_img_idx)
         
+            bgr_img = cv2.imread(self.rgb_file_list[new_idx], cv2.IMREAD_UNCHANGED)
+            rgb_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGB)
+            if self.resize is not None:
+                rgb_img = cv2.resize(rgb_img, (self.resize[0], self.resize[1]))
+            if self.transform is not None:
+                rgb_img = self.transform(rgb_img)
+            
+            output_img_list.append(rgb_img)
+
+        output_img = torch.cat(tuple(img for img in output_img_list), dim=0)
+
+        if random.random() > 0.5:
+            output_img = transforms.functional.hflip(output_img)
+            is_flip = True
+        else:
+            is_flip = False
         if is_flip:
             affordance = np.array(
                 [-self.affordance[idx, j] for j in range(self.affordance_dim)],
@@ -121,7 +133,7 @@ class AffordanceDataset(Dataset):
         else:
             affordance = self.affordance[idx,:]
 
-        return {'image': rgb_img, 'affordance': affordance}
+        return {'image': output_img, 'affordance': affordance}
 
 if __name__ == '__main__':
     # Read YAML configurations
@@ -152,11 +164,11 @@ if __name__ == '__main__':
     # Create the agent
     model = AffordanceNet(**model_config['model_params'])
     model_config['log_params']['output_dir'] = output_dir
-    train_agent = AffordanceTrain(model=model,
-                        device=device,
-                        is_eval=False,
-                        train_params=model_config['train_params'],
-                        log_params=model_config['log_params'])
+    # train_agent = AffordanceTrain(model=model,
+    #                     device=device,
+    #                     is_eval=False,
+    #                     train_params=model_config['train_params'],
+    #                     log_params=model_config['log_params'])
 
     # Warm start the model
     # train_agent.warm_start_model('/media/lab/Extreme SSD/my_outputs/warm_start/affordance_model.pt')
@@ -164,7 +176,7 @@ if __name__ == '__main__':
     # Random seed
     torch.manual_seed(model_config['train_params']['manual_seed'])
     torch.cuda.manual_seed(model_config['train_params']['manual_seed'])
-    np.random.seed(model_config['train_params']['manual_seed'])
+    # np.random.seed(model_config['train_params']['manual_seed'])
 
     # DataLoader
     all_data = AffordanceDataset(dataset_dir,
@@ -187,26 +199,20 @@ if __name__ == '__main__':
                                             random_state=random_state)       
     print('Loaded Affordance datasets successfully!')
 
-    # # Training loop
+    # Training loop
     # print('\n*** Start training ***')
     # train_agent.load_dataset(train_data, test_data)
     # train_agent.train()
     # print('Trained the model successfully.')
 
-    # res_img = []
-    # for i in range(100, 104):
-    #     img = train_data[i]['image'].permute((1,2,0)).numpy()
+    rbg_img = all_data[np.random.randint(0, 10000)]['image'].permute((1,2,0)).numpy()
+    rbg_img = ((rbg_img + 1.0) / 2.0 * 255.0).astype(np.uint8)
+    rbg_img_list = []
+    for k in range(int(rbg_img.shape[2] / 3)):
+        rbg_img_list.append(rbg_img[:, :, k*3:(k+1)*3])
 
-    #     img = ((img + 1.0) / 2.0 * 255.0).astype(np.uint8)
-    #     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    rbg_img = np.concatenate(tuple(img for img in rbg_img_list), axis=1)
+    bgr_img = cv2.cvtColor(rbg_img, cv2.COLOR_RGB2BGR)
 
-    #     res_img.append(img)
-    
-    # img = np.concatenate(
-    #     (res_img[0], res_img[1], res_img[2], res_img[3]),
-    #     axis=0
-    # )
-
-    # print(img, img.shape)
-    # cv2.imshow('disp', img)
-    # cv2.waitKey(0)
+    cv2.imshow('disp', bgr_img)
+    cv2.waitKey(0)

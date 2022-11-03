@@ -89,11 +89,12 @@ class AffordanceNet(nn.Module):
                 name,
                 input_dim,
                 output_dim=3,
+                n_image=1,
                 **kwargs):
         super().__init__()
         
         self.name = name
-        self.net = Resnet18(input_dim, output_dim)
+        self.net = Resnet18(input_dim, output_dim, n_image)
         self.input_dim = input_dim
 
     def forward(self, x):
