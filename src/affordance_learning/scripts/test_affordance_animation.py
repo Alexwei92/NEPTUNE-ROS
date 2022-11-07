@@ -16,7 +16,6 @@ from sensor_msgs.msg import Image, CompressedImage
 from utils.plot_utils import FieldMapPlot
 from controller import AffordanceCtrl
 
-
 BLACK  = (0,0,0)
 WHITE  = (255,255,255)
 RED    = (0,0,255)
@@ -24,24 +23,6 @@ BLUE   = (255,0,0)
 GREEN  = (0,255,0)
 YELLOW = (0,255,255)
 CYAN   = (255,255,0)
-
-# class TestAffordance():
-
-#     def __init__(self):
-#         rospy.init_node("test_affordance")
-#         self.define_subscriber()
-
-#     def define_subscriber(self):
-#         color_image_topic = "/d435i/color/image_raw/compressed"
-#         rospy.Subscriber(
-#             color_image_topic,
-#             CompressedImage,
-#             self.color_image_callback,
-#             queue_size=10,
-#         )
-
-#     def 
-
 
 if __name__ == "__main__":
     curr_dir = os.path.dirname(__file__)

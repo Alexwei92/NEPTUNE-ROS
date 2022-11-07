@@ -164,14 +164,11 @@ if __name__ == '__main__':
     # Create the agent
     model = AffordanceNet(**model_config['model_params'])
     model_config['log_params']['output_dir'] = output_dir
-    # train_agent = AffordanceTrain(model=model,
-    #                     device=device,
-    #                     is_eval=False,
-    #                     train_params=model_config['train_params'],
-    #                     log_params=model_config['log_params'])
-
-    # Warm start the model
-    # train_agent.warm_start_model('/media/lab/Extreme SSD/my_outputs/warm_start/affordance_model.pt')
+    train_agent = AffordanceTrain(model=model,
+                        device=device,
+                        is_eval=False,
+                        train_params=model_config['train_params'],
+                        log_params=model_config['log_params'])
 
     # Random seed
     torch.manual_seed(model_config['train_params']['manual_seed'])
@@ -200,19 +197,19 @@ if __name__ == '__main__':
     print('Loaded Affordance datasets successfully!')
 
     # Training loop
-    # print('\n*** Start training ***')
-    # train_agent.load_dataset(train_data, test_data)
-    # train_agent.train()
-    # print('Trained the model successfully.')
+    print('\n*** Start training ***')
+    train_agent.load_dataset(train_data, test_data)
+    train_agent.train()
+    print('Trained the model successfully.')
 
-    rbg_img = all_data[np.random.randint(0, 10000)]['image'].permute((1,2,0)).numpy()
-    rbg_img = ((rbg_img + 1.0) / 2.0 * 255.0).astype(np.uint8)
-    rbg_img_list = []
-    for k in range(int(rbg_img.shape[2] / 3)):
-        rbg_img_list.append(rbg_img[:, :, k*3:(k+1)*3])
+    # rbg_img = all_data[np.random.randint(0, 10000)]['image'].permute((1,2,0)).numpy()
+    # rbg_img = ((rbg_img + 1.0) / 2.0 * 255.0).astype(np.uint8)
+    # rbg_img_list = []
+    # for k in range(int(rbg_img.shape[2] / 3)):
+    #     rbg_img_list.append(rbg_img[:, :, k*3:(k+1)*3])
 
-    rbg_img = np.concatenate(tuple(img for img in rbg_img_list), axis=1)
-    bgr_img = cv2.cvtColor(rbg_img, cv2.COLOR_RGB2BGR)
+    # rbg_img = np.concatenate(tuple(img for img in rbg_img_list), axis=1)
+    # bgr_img = cv2.cvtColor(rbg_img, cv2.COLOR_RGB2BGR)
 
-    cv2.imshow('disp', bgr_img)
-    cv2.waitKey(0)
+    # cv2.imshow('disp', bgr_img)
+    # cv2.waitKey(0)

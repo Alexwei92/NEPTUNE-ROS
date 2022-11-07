@@ -307,14 +307,14 @@ def plot_single_data(axis, data):
     # vertice
     axis.scatter(data['vertice'][:,0], data['vertice'][:,1], s=10, color='b')
     # treeline
-    axis.plot(data['treelines_actual'][0][:,0], data['treelines_actual'][0][:,1], color='g', linestyle='-', linewidth=1.0)
-    axis.plot(data['treelines_actual'][1][:,0], data['treelines_actual'][1][:,1], color='g', linestyle='-', linewidth=1.0)
+    axis.plot(data['treelines_actual'][0][:,0], data['treelines_actual'][0][:,1], color='g', linestyle='-', linewidth=2.0)
+    axis.plot(data['treelines_actual'][1][:,0], data['treelines_actual'][1][:,1], color='g', linestyle='-', linewidth=2.0)
     # centerline
     axis.plot(data['centerline_actual'][:,0], data['centerline_actual'][:,1], color='k', linestyle='-.', linewidth=0.5)
     # polygon
-    axis.add_patch(patches.Polygon(data['vertice_actual'], color='w', linestyle='-', linewidth=3.0, alpha=0.1))
+    axis.add_patch(patches.Polygon(data['vertice_actual'], color='C0', linestyle='-', linewidth=3.0, alpha=0.1))
 
     axis.margins(y=0.5)
     axis.set_aspect(1.0)
-    axis.set_xlabel('x [m]')
-    axis.set_ylabel('y [m]')
+    # axis.set_xlabel('x [m]')
+    # axis.set_ylabel('y [m]')

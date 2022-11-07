@@ -48,7 +48,7 @@ if __name__ == "__main__":
     R = transformation.states2SE3([0, 0, 0, 0, 0, 0])
     local_T_utm = R.dot(T)
     utm_T_local = np.linalg.inv(local_T_utm)
-    # print('utm_T_local: \n' + str(utm_T_local))
+    print('utm_T_local: \n' + str(utm_T_local))
 
     # field bound local
     field_bound_local = [

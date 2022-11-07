@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Extract from raw data and save them to a folder
 """
@@ -41,24 +42,22 @@ class ExtractData():
     def extract_data_from_bag(self, bag):
         ## read topics
         color_image = rosbag_utils.get_topic_from_bag(bag, "/d435i/color/image_raw/compressed", False)
-        depth_image = rosbag_utils.get_topic_from_bag(bag, "/d435i/aligned_depth_to_color/image_raw/compressed", False)
+        # depth_image = rosbag_utils.get_topic_from_bag(bag, "/d435i/aligned_depth_to_color/image_raw/compressed", False)
         compass_hdg = rosbag_utils.get_topic_from_bag(bag, "/mavros/global_position/compass_hdg", False)
         px4_global_position = rosbag_utils.get_topic_from_bag(bag, "/mavros/global_position/global", False)
         piksi_global_position = rosbag_utils.get_topic_from_bag(bag, "/piksi/navsatfix_best_fix", False)
 
         ros_time, sync_topics = rosbag_utils.timesync_topics([
             color_image,
-            depth_image,
             piksi_global_position,
             compass_hdg,
             px4_global_position
         ], printout=False)
     
         color_image_sync = sync_topics[0]
-        depth_image_sync = sync_topics[1]
-        piksi_global_position_sync = sync_topics[2]
-        compass_hdg_sync = sync_topics[3]
-        px4_global_position_sync = sync_topics[4]
+        piksi_global_position_sync = sync_topics[1]
+        compass_hdg_sync = sync_topics[2]
+        px4_global_position_sync = sync_topics[3]
 
         # heading
         compass_heading = np.radians(compass_hdg_sync['data'])
@@ -148,7 +147,6 @@ class ExtractData():
             idx = int(filtered_results['index'].iloc[i])
             np_arr = np.frombuffer(color_image_sync['data'].iloc[idx], np.uint8)
             image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR) # RGB
-            # image_np = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
             color_image_list.append(image_np)
 
             # depth
@@ -212,7 +210,7 @@ class ExtractData():
 
 
 if __name__ == "__main__":
-    root_folder_path = '/media/lab/NEPTUNE2/field_raw_datasets/2022-10-28'
+    root_folder_path = '/media/lab/NEPTUNE2/field_raw_datasets/2022-11-06'
     output_folder = '/media/lab/NEPTUNE2/field_datasets'
 
     #### 

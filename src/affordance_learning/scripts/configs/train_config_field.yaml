@@ -1,7 +1,7 @@
 ## Global parameters
 path_params:
-  dataset_dir:                '/media/lab/NEPTUNE2/field_datasets/row_4_10' # source datasets directory
-  output_dir:                 '/media/lab/NEPTUNE2/field_outputs/row_4_10' # save output to this directory
+  dataset_dir:                '/media/lab/NEPTUNE2/field_datasets/row_4_10_13' # source datasets directory
+  output_dir:                 '/media/lab/NEPTUNE2/field_outputs/row_4_10_13' # save output to this directory
 
 ## Train parameters
 train_params:  
