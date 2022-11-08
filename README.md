@@ -106,5 +106,3 @@ roslaunch neptune_ros record_bag_gps.launch
 ```
 
 ## Known Issues
-In vision_to_mavros -> CMakeLists.txt
-Comment out line 149-152
