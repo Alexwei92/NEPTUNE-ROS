@@ -11,6 +11,11 @@ train_params:
 affordance_params:
   image_resize:               [256, 256] # resize image
 
+# VAE
+vae_params:
+  vae_type:                   'vanilla_vae'
+  image_resize:               [128, 128] # resize image before VAE
+
 # # Affordance Ctrl
 # affordanceCtrl_params:
 #   image_resize:               [256, 256] # resize image

@@ -1,6 +1,7 @@
 import os
 import datetime
 import torch
+import shutil
 from torch.utils.data import DataLoader
 import torchvision.utils as vutils
 from torch.optim.lr_scheduler import StepLR
@@ -8,6 +9,28 @@ from torch.utils.tensorboard import SummaryWriter
 
 SAMPLE_SIZE = 64 # number of images in the sample
 NUM_WORKER  = 4 # number of workers in parallel
+
+
+def genereate_sample_folder(folder_path, dataloader, checkpoint_preload):
+    '''
+    Generate a sample folder
+    '''
+    if not checkpoint_preload and os.path.isdir(folder_path):
+        shutil.rmtree(folder_path)
+    if not os.path.isdir(folder_path):
+        os.makedirs(folder_path)
+        _, example_data = next(enumerate(dataloader))
+        example_data = example_data['image']
+        torch.save(example_data, os.path.join(folder_path, 'sample_image_data.pt'))
+        vutils.save_image(example_data,
+                        os.path.join(folder_path, 'sample_image.png'),
+                        normalize=True,
+                        range=(-1,1))
+    else:
+        example_data = torch.load(os.path.join(folder_path, 'sample_image_data.pt'))
+    
+    return example_data
+
 
 class BaseTrain():
     """
@@ -48,13 +71,21 @@ class BaseTrain():
         if not os.path.isdir(self.log_folder):
             os.makedirs(self.log_folder)
 
+        if 'generate_samples' in log_params:
+            self.generate_samples   = log_params['generate_samples']
+        else:
+            self.generate_samples   = False
+
         # Filename, optimizer and loss history configure
         self.configure(train_params, log_params)
 
         # Load a checkpoint
         self.checkpoint_filename    = os.path.join(self.log_folder, self.checkpoint_filename)
         self.model_filename         = os.path.join(self.log_folder, self.model_filename)
-
+        
+        if self.generate_samples:
+            self.sample_folder_path = os.path.join(self.log_folder, self.sample_folder_path)
+        
         if is_eval or self.checkpoint_preload:
             self.load_checkpoint(self.checkpoint_filename)
 
@@ -107,6 +138,16 @@ class BaseTrain():
                                     shuffle=is_shuffle,
                                     num_workers=NUM_WORKER,
                                     drop_last=False)
+            # Generate sample folder
+            if self.generate_samples:
+                sample_dataloader = DataLoader(test_data,
+                                    batch_size=SAMPLE_SIZE,
+                                    shuffle=is_shuffle,
+                                    num_workers=NUM_WORKER,
+                                    drop_last=True)
+                self.validation_data = genereate_sample_folder(self.sample_folder_path, sample_dataloader, self.checkpoint_preload)
+        else:
+            self.generate_samples = False
 
     def load_dataset(self, train_data, test_data):
         self.load_train_dataset(train_data)
@@ -114,6 +155,18 @@ class BaseTrain():
 
     def save_model(self, file_path):
         torch.save(self.model.state_dict(), file_path)
+
+    def save_sample(self, epoch, validation_data, sample_folder_path):
+        self.model.eval()
+        with torch.no_grad():
+            results = self.model(validation_data.to(self.device))
+            vutils.save_image(results[0],
+                              os.path.join(sample_folder_path, 'reconstructed_image_epoch_{:d}.png'.format(epoch)),
+                              normalize=True,
+                              range=(-1, 1))
+            if self.use_tensorboard:
+                img_grid = vutils.make_grid(results[0], normalize=True, range=(-1, 1))
+                self.writer.add_image('reconstructed_image', img_grid, epoch)
 
     def get_current_epoch(self):
         return self.epoch[-1]
