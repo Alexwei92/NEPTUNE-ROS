@@ -16,7 +16,6 @@ from utils.navigation_utils import (
     get_local_xy_from_latlon,
     get_projection_point2line,
     whether_in_polygon,
-    get_angle_difference,
 )
 from utils.math_utils import wrap_2PI, wrap_PI, constrain_value
 
