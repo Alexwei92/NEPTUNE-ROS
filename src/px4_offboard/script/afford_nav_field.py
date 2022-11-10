@@ -6,17 +6,17 @@ import rospy
 import numpy as np
 from shapely.geometry.polygon import Polygon
 
-from std_msgs.msg import Float32, Float64
+from std_msgs.msg import Float64
 from sensor_msgs.msg import NavSatFix, Image
-from mavros_msgs.msg import HomePosition, GPSRAW
+from mavros_msgs.msg import GPSRAW
 from px4_offboard.msg import Affordance, ControlCmd
 from mavros_msgs.srv import SetMode
 
 from utils.navigation_utils import (
     get_local_xy_from_latlon,
     get_projection_point2line,
-    find_area_index,
     whether_in_polygon,
+    get_angle_difference,
 )
 from utils.math_utils import wrap_2PI, wrap_PI, constrain_value
 
@@ -34,29 +34,34 @@ from utils.math_utils import wrap_2PI, wrap_PI, constrain_value
 
 MAX_YAWRATE = 45 # rad/s
 
-def calc_affordance_cmd(affordance, max_yawrate=45):
+def calc_affordance_cmd(affordance, max_yawrate=45, flag=0):
     if affordance is None:
-        return 0
+        return 0.0
 
     dist_center = affordance['dist_center']
     rel_angle = -affordance['rel_angle']
 
-    dist_noise = np.random.random() * (1.5 * 2) - 1.5
-    dist_center += dist_noise
+    # dist_noise = np.random.random() * (1.5 * 2) - 1.5
+    # dist_center += dist_noise
+    # angle_noise = np.random.random() * (0.3 * 2) - 0.3
+    # rel_angle += angle_noise
 
-    angle_noise = np.random.random() * (0.3 * 2) - 0.3
-    rel_angle += angle_noise
+    if flag == 0: # Option 1: Sigmoid function
+        angle_gain = 15 # (higher is more responsive)
+        dist_gain = 10
+        cmd = 1.0 * (2 / (1 + math.exp(angle_gain * rel_angle/(math.pi/2) + dist_gain * dist_center/6.0)) - 1)
 
-    # Option 1: Sigmoid function
-    angle_gain = 15 # (higher is more responsive)
-    dist_gain = 10
-    
-    cmd = 1.0 * (2 / (1 + math.exp(angle_gain * rel_angle/(math.pi/2) + dist_gain * dist_center/6.0)) - 1)
-    
-    # Option 2: Stanley
-    # stanley_output = rel_angle + math.atan(2.5 * affordance['dist_center'] / 1.5)
-    # cmd = 0.8 * stanley_output * (15) / max_yawrate
-    # cmd = -cmd
+    elif flag == 1: # Option 2: Stanley
+        control_gain = 5.0
+        head_gain = 5.0
+
+        theta_e = head_gain * (-rel_angle)
+        theta_d = np.arctan2(control_gain * (-dist_center), 0.8)
+        stanley_output = theta_e + theta_d
+        cmd = 1.0 * stanley_output * (15) / max_yawrate
+
+    else:
+        cmd = 0.0
 
     return constrain_value(cmd, -1.0, 1.0)
 

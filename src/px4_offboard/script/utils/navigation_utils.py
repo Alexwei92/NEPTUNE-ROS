@@ -213,3 +213,14 @@ def whether_in_polygon(current_pose, polygon):
         return True
     else:
         return False
+
+def get_angle_difference(angle1, angle2):
+    vector1 = np.array([math.cos(angle1), math.sin(angle1)])
+    vector2 = np.array([math.cos(angle2), math.sin(angle2)])
+    dot_product = np.dot(vector1, vector2)
+    sin_angle_diff_sign = np.sign(math.sin(angle1 - angle2))
+    dot_product = min(dot_product, 1)
+    dot_product = max(dot_product, -1)
+    angle_v1_to_v2 = math.acos(dot_product) * sin_angle_diff_sign
+    
+    return angle_v1_to_v2
