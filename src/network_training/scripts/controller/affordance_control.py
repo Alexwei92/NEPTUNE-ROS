@@ -1,33 +1,22 @@
-import os, sys
-import yaml
+import os
 import numpy as np
 import cv2
 import torch
 from torchvision import transforms
 
+from models import AffordanceNet
+from utils.train_utils import read_yaml
+
 curr_dir        = os.path.dirname(os.path.abspath(__file__))
 parent_dir      = os.path.dirname(curr_dir)
-import_path     = os.path.join(parent_dir, '.')
-sys.path.insert(0, import_path)
+config_dir      = os.path.join(parent_dir, 'configs')
 
-config_dir = os.path.join(parent_dir, 'configs')
-
-from models import AffordanceNet
-
+###########################################
 TRANSFORM_COMPOSED = transforms.Compose([ 
     transforms.ToTensor(),
     transforms.Normalize((0.5), (0.5)),
 ]) 
-
-def read_yaml(file_path):
-    '''
-    Read yaml file
-    '''
-    file = open(file_path, 'r')
-    config = yaml.safe_load(file)
-    file.close()
-    return config
-
+###########################################
 
 class AffordanceCtrl():
     '''
@@ -60,7 +49,7 @@ class AffordanceCtrl():
         self.afford_model.load_state_dict(model)
         self.afford_model.eval()
         self.image_resize = [self.afford_model.input_dim, self.afford_model.input_dim]
-        
+
     def predict_affordance(self, image_color_list):
         '''
         Output predicted affordance

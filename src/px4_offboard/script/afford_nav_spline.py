@@ -10,7 +10,7 @@ from sensor_msgs.msg import NavSatFix
 from nav_msgs.msg import Odometry
 from mavros_msgs.msg import HomePosition
 from mavros_msgs.srv import SetMode
-from px4_offboard.msg import Affordance
+from px4_offboard.msg import Affordance, ControlCmd
 
 import matplotlib.pyplot as plt
 plt.style.use('dark_background')
@@ -29,7 +29,7 @@ class AffordanceNav():
     LOOP_RATE = 15
 
     def __init__(self, map_handler):
-        rospy.init_node('affordance_navigation', anonymous=True)
+        rospy.init_node('affordance_navigation')
         self.rate = rospy.Rate(self.LOOP_RATE)
         self.map_handler = map_handler
         
@@ -111,7 +111,7 @@ class AffordanceNav():
         # yaw control command
         self.cmd_pub = rospy.Publisher(
             "/my_controller/yaw_cmd", 
-            Float32,
+            ControlCmd,
             queue_size=5,
         )
 
@@ -140,7 +140,6 @@ class AffordanceNav():
             map_origin_wgs, (self.home_wgs[0], map_origin_wgs[1])).meters
         y_offset *= np.sign(self.home_wgs[0] - map_origin_wgs[0])
 
-        # print(x_offset, y_offset)
         # self.xy_offset = [x_offset, y_offset]
         self.xy_offset = [75, 15]
 
@@ -157,8 +156,6 @@ class AffordanceNav():
         self.current_lat = msg.latitude
         self.current_lon = msg.longitude
         self.current_alt = msg.altitude
-        status = msg.status.status
-        # print(self.current_lat, self.current_lon)
 
     def compass_callback(self, msg):
         """
@@ -192,11 +189,16 @@ class AffordanceNav():
         afford.in_bound = self.affordance['in_bound']
         self.afford_pub.publish(afford)
 
+    def publish_control_cmd(self, cmd):
+        control_cmd = ControlCmd()
+        control_cmd.header.stamp = rospy.Time.now()
+        control_cmd.command = cmd
+        self.cmd_pub.publish(control_cmd)
+
     def run(self):
         while not rospy.is_shutdown() and self.has_initialized:
             current_x = self.current_x + self.xy_offset[0]
             current_y = self.current_y + self.xy_offset[1]
-            # current_heading = self.current_heading
             current_heading = wrap_2PI(-self.compass_heading + math.pi/2)
 
             # Update graph
@@ -247,7 +249,7 @@ class AffordanceNav():
                         cmd = alpha * cmd + (1 - alpha) * self.last_cmd
                 
             self.last_cmd = cmd
-            self.cmd_pub.publish(Float32(cmd))
+            self.publish_control_cmd(cmd)
             self.rate.sleep()
 
     def reset(self):
@@ -260,7 +262,7 @@ class AffordanceNav():
 if __name__ == '__main__':
 
     curr_dir = os.path.dirname(__file__)
-    map_path = os.path.join(curr_dir, 'spline_result/spline_result.csv')
+    map_path = os.path.join(curr_dir, 'ground_truth/spline_result.csv')
    
     # Configure map
     map_origin_wgs = (38.5880275, -121.7063619) # origin GPS WGS

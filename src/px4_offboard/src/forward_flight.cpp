@@ -19,11 +19,13 @@
 #include "math_utils.h"
 #include "rulebased_ctrl.h"
 #include "px4_offboard/Affordance.h"
+#include "px4_offboard/ControlCmd.h"
 
 class ForwardCtrl
 {
 public:
     float LOOP_RATE_DEFAULT = 30; // Hz
+    double TOPIC_TIME_OUT = 0.5;  // second
 
 public:
     ForwardCtrl()
@@ -60,8 +62,9 @@ public:
                     boost::bind(&ForwardCtrl::SetpointRawCallback, this, _1));
 
         // 3) rc / joystick / auto command
+        last_cmd_time = ros::Time::now();
         if (control_source == "ai") {
-            cmd_sub = nh.subscribe<std_msgs::Float32>("/my_controller/yaw_cmd", 5, 
+            cmd_sub = nh.subscribe<px4_offboard::ControlCmd>("/my_controller/yaw_cmd", 5, 
                     boost::bind(&ForwardCtrl::CmdCallback, this, _1));
         }
         else if (control_source == "joystick")
@@ -90,6 +93,12 @@ public:
             target.header.stamp = ros::Time::now();
             target.header.seq++;
 
+            // if cmd callback timeout
+            if (ros::Time::now() - last_cmd_time > ros::Duration(TOPIC_TIME_OUT)) {
+                yaw_cmd = 0.0;
+                // ROS_WARN_THROTTLE(1, "Command Time Out!");
+            }
+               
             if (current_state.mode == "OFFBOARD") { 
                 target.coordinate_frame = target.FRAME_LOCAL_NED;
                 target.type_mask = 0b010111100011;
@@ -152,17 +161,20 @@ private:
     }
     
     void RCInCallback(const mavros_msgs::RCIn::ConstPtr& msg, int channel_index) {
+        last_cmd_time = msg->header.stamp;
         float cmd = rc_mapping(msg->channels[channel_index], yaw_pwm_min, yaw_pwm_max);
         yaw_cmd = constrain_float(cmd, -1.0, 1.0);
     }
 
     void JoystickCallback(const mavros_msgs::ManualControl::ConstPtr& msg) {
+        last_cmd_time = msg->header.stamp;
         float cmd = msg->r;
         yaw_cmd = constrain_float(cmd, -1.0, 1.0);
     }
 
-    void CmdCallback(const std_msgs::Float32::ConstPtr& msg) {
-        float cmd = msg->data;
+    void CmdCallback(const px4_offboard::ControlCmd::ConstPtr& msg) {
+        last_cmd_time = msg->header.stamp;
+        float cmd = msg->command;
         yaw_cmd = constrain_float(cmd, -1.0, 1.0);
     }
 
@@ -221,10 +233,11 @@ private:
     int yaw_pwm_min, yaw_pwm_max;
     float yaw_cmd; // in [-1.0, 1.0]
     float yaw_rad; // Down positive
-    
+
     float target_pose_z; // m
     float last_target_position_z; // m
 
+    ros::Time last_cmd_time;
     ros::Time offboard_start_time;
 };
 

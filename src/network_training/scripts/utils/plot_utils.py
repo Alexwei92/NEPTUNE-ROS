@@ -177,11 +177,11 @@ class FieldMapPlot():
             self.draw_vertice(axis, data['vertice'])
         # treeline
         if treelines:
-            self.draw_line(axis, data['treelines'][0])
-            self.draw_line(axis, data['treelines'][1])
+            self.draw_line(axis, data['treelines_actual'][0])
+            self.draw_line(axis, data['treelines_actual'][1])
         # centerline
         if centerline:
-            self.draw_line(axis, data['centerline'], color='r', linestyle='-.', linewidth=0.5)
+            self.draw_line(axis, data['centerline_actual'], color='r', linestyle='-.', linewidth=0.5)
         # polygon
         if polygon:
             self.draw_polygon(axis, data['vertice'])
@@ -212,20 +212,20 @@ class FieldMapPlot():
         else:
             # full
             self.axis_dict = plot_vehicle(self.axis_full, pos, heading, is_first=True)
-            self.axis_dict['trajectory_history'] = plot_trajectory_history(self.axis_full, self.pose_history, is_first=True)
+            self.axis_dict['trajectory_history'] = plot_trajectory_history(self.axis_full, self.pose_history, is_first=True, color='C0')
             # zoom in
             self.axis_dict_zoom = plot_vehicle(self.axis_zoomin, pos, heading, is_first=True)
-            self.axis_dict_zoom['trajectory_history'] = plot_trajectory_history(self.axis_zoomin, self.pose_history, is_first=True, color='C1')
+            self.axis_dict_zoom['trajectory_history'] = plot_trajectory_history(self.axis_zoomin, self.pose_history, is_first=True, color='C0')
             if disp_second_gps:
-                self.axis_dict_zoom['trajectory2_history'] = plot_trajectory_history(self.axis_zoomin, self.pose2_history, is_first=True, color='C0')
+                self.axis_dict_zoom['trajectory2_history'] = plot_trajectory_history(self.axis_zoomin, self.pose2_history, is_first=True, color='C1')
             self.update_zoom_in(self.axis_dict_zoom)
             self.has_initialized = True
 
         # gps status
         if disp_second_gps:
-            title_name = ("GPS Count: %d, GPS Type: %s \n GPS2 Count: %d, GPS2 Type: %s" % (num_sat, fix_type, num_sat2, fix_type2))
+            title_name = ("GPS1 Count: %d, GPS1 Type: %s \n GPS2 Count: %d, GPS2 Type: %s" % (num_sat, fix_type, num_sat2, fix_type2))
         else:
-            title_name = ("GPS Count: %d, GPS Type: %s" % (num_sat, fix_type))
+            title_name = ("GPS1 Count: %d, GPS1 Type: %s" % (num_sat, fix_type))
         self.axis_full.set_title(
             title_name,
             {'fontsize': 10, 'fontweight': 'normal'}, pad=1.5,

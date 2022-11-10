@@ -21,6 +21,7 @@ find_package(Boost REQUIRED)
 add_message_files(
   FILES
   Affordance.msg
+  ControlCmd.msg
 )
 
 generate_messages(

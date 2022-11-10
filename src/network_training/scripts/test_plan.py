@@ -14,8 +14,7 @@ from piksi_rtk_msgs.msg import ReceiverState_V2_4_1
 from utils.plot_utils import FieldMapPlot
 from utils.navigation_utils import get_local_xy_from_latlon
 
-is_replay = True
-use_piksi = True
+is_replay = False
 
 px4_gps_fix_type = {
     0: 'No GPS',    # No GPS connected
@@ -61,6 +60,7 @@ class GPSListener():
         self.local_y_px4 = 0.0
 
         # gps raw
+        self.use_piksi = False
         self.num_sat_piksi = 0
         self.fix_type_piksi = 'No GPS'
         self.num_sat_px4 = 0
@@ -77,7 +77,7 @@ class GPSListener():
             piksi_best_fix_topic,
             NavSatFix,
             self.navsatfix_best_fix_callback,
-            queue_size=10,
+            queue_size=1,
         )
 
         # piksi receiver state
@@ -85,7 +85,7 @@ class GPSListener():
             '/piksi/debug/receiver_state',
             ReceiverState_V2_4_1,
             self.receiver_state_callback,
-            queue_size=10,
+            queue_size=5,
         )
 
         # home position
@@ -94,7 +94,7 @@ class GPSListener():
             home_position_topic,
             HomePosition,
             self.home_position_callback,
-            queue_size=10,
+            queue_size=5,
         )
 
         # global position
@@ -103,7 +103,7 @@ class GPSListener():
             global_position_topic,
             NavSatFix,
             self.global_position_callback,
-            queue_size=10,
+            queue_size=5,
         )
 
         # compass
@@ -112,7 +112,7 @@ class GPSListener():
             compass_topic,
             Float64,
             self.compass_callback,
-            queue_size=10,
+            queue_size=5,
         )
 
         # gps status
@@ -121,7 +121,7 @@ class GPSListener():
             gps_status_topic,
             GPSRAW,
             self.gps_status_callback,
-            queue_size=10,
+            queue_size=5,
         )
 
         # realsense camera
@@ -131,7 +131,7 @@ class GPSListener():
                 color_image_topic,
                 CompressedImage,
                 self.color_image_callback,
-                queue_size=10,
+                queue_size=5,
             )
         else:
             color_image_topic = "/d435i/color/image_raw"
@@ -139,13 +139,16 @@ class GPSListener():
                 color_image_topic,
                 Image,
                 self.color_image_callback,
-                queue_size=10,
+                queue_size=5,
             )
     
     def set_utm_T_local(self, utm_T_local):
         self.utm_T_local = np.copy(utm_T_local)
 
     def navsatfix_best_fix_callback(self, msg):
+        if not self.use_piksi:
+            self.use_piksi = True
+
         self.current_lat_piksi = msg.latitude
         self.current_lon_piksi = msg.longitude
         self.current_alt_piksi = msg.altitude
@@ -213,7 +216,7 @@ class GPSListener():
             current_heading = -self.compass_heading + math.pi/2
             # Update graph
             if self.map_handler:
-                if use_piksi:
+                if self.use_piksi:
                     self.map_handler.update_graph(
                         pos=[self.local_x_piksi, self.local_y_piksi],
                         heading=current_heading,
@@ -254,15 +257,15 @@ if __name__ == "__main__":
 
     # Configure map
     with open(data_path, 'rb') as file:
-        data = pickle.load(file)
+        field_data = pickle.load(file)
 
     field_bound = {
-        'latlon': data['field_bound_latlon'],
-        'local': data['field_bound_local'],
+        'latlon': field_data['field_bound_latlon'],
+        'local': field_data['field_bound_local'],
     }
 
     map_handler = FieldMapPlot(
-        data['row_data'],
+        field_data['row_data'],
         field_bound,
     )
 
@@ -270,7 +273,7 @@ if __name__ == "__main__":
 
     # GPS Navigation
     handler = GPSListener(map_handler)
-    handler.set_utm_T_local(data['utm_T_local'])
+    handler.set_utm_T_local(field_data['utm_T_local'])
     handler.has_initialized = True
 
     # Sleep for 1 second

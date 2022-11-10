@@ -109,17 +109,41 @@ def euler_from_quaternion(quaternion, axes='sxyz'):
     """
     return euler_from_matrix(quaternion_matrix(quaternion), axes)
 
-def wrap_2PI(radian):
-    res = radian % (math.pi * 2.0)
-    if (res < 0):
-        res = res + math.pi * 2.0
-    return res
+def wrap_2PI(angle):
+    while angle < 0.0:
+        angle += 2.0 * math.pi
 
-def wrap_PI(radian):
-    res = wrap_2PI(radian)
-    if res > math.pi:
-        res -= math.pi * 2.0
-    return res
+    while angle > 2.0 * math.pi:
+        angle -= 2.0 * math.pi
+
+    return angle
+
+def wrap_PI(angle):
+    while angle < -math.pi:
+        angle += 2.0 * math.pi
+
+    while angle > math.pi:
+        angle -= 2.0 * math.pi
+
+    return angle
+
+def wrap_2pi(angle):
+    while angle < 0.0:
+        angle += 2.0 * math.pi
+
+    while angle > 2.0 * math.pi:
+        angle -= 2.0 * math.pi
+
+    return angle
+
+def wrap_pi(angle):
+    while angle < -math.pi:
+        angle += 2.0 * math.pi
+
+    while angle > math.pi:
+        angle -= 2.0 * math.pi
+
+    return angle
 
 def find_min_dist_line2points(query_line, points):
     """
@@ -142,7 +166,7 @@ def find_min_dist_line2points(query_line, points):
     return np.argmin(dist)
 
 
-def constrain_float(value, low, high):
+def constrain_value(value, low, high):
     if value < low:
         return low
 
