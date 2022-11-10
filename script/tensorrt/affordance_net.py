@@ -4,7 +4,7 @@ import torchvision.models as models
 import torch.nn.functional as F
 
 class Resnet18(nn.Module):
-    def __init__(self):
+    def __init__(self, input_dim, output_dim=3, n_image=1):
         super().__init__()
 
         self.n_feature_state = 512 * 4 * 4
@@ -19,7 +19,7 @@ class Resnet18(nn.Module):
         resnet18.layer4[0].downsample[0].kernel_size = (2, 2)
 
         new_conv1 = nn.Conv2d(
-            3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False
+            n_image * 3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False
         )
         resnet18.conv1 = new_conv1
 
@@ -32,27 +32,35 @@ class Resnet18(nn.Module):
         )
 
         self.fc1 = nn.Linear(self.n_feature_state, 256)
-        # dist_center_width, rel_angle, and dist_left_width
-        self.fc2 = nn.Linear(256, 3)
+        # dist_center_width, rel_angle
+        self.fc2 = nn.Linear(256, 1)
+        self.fc3 = nn.Linear(256, 1)
 
     def forward(self, x):
         x = self.encoder(x)
         x = self.last_conv_downsample(x)
         x = torch.flatten(x)
         x = x.view(-1, self.n_feature_state)
+
         x = self.fc1(x)
         x = F.relu(x)
-        x = self.fc2(x)
-        x = torch.tanh(x)
+
+        x1 = self.fc2(x)
+        x2 = self.fc3(x)
+        x = torch.cat((x1, x2), dim=1)
+        x = F.tanh(x)
         return x
 
 class AffordanceNet(nn.Module):
     """
     Affordance Prediction Model
     """
-    def __init__(self):
+    def __init__(self,
+                input_dim,
+                output_dim=3,
+                n_image=1):
         super().__init__()
-        self.net = Resnet18()
+        self.net = Resnet18(input_dim=input_dim, output_dim=output_dim, n_image=n_image)
 
     def forward(self, x):
         return self.net(x)

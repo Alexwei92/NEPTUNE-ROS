@@ -29,15 +29,27 @@ if __name__ == '__main__':
         transforms.Normalize((0.5), (0.5)),
     ])
     
-    img = cv2.imread('sample_image.jpg', cv2.IMREAD_UNCHANGED)
+    input_dim = 256
+    output_dim = 2
+    n_image = 4
+
+    img = cv2.imread('sample_image.png', cv2.IMREAD_UNCHANGED)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img = cv2.resize(img, (256, 256))
-    img_tensor = my_transform(img).unsqueeze(0)
+    img = cv2.resize(img, (input_dim, input_dim))
+    img_tensor = my_transform(img)
+    img_tensor_list = []
+    for i in range(n_image):
+        img_tensor_list.append(img_tensor)
+    img_tensor = torch.cat(tuple(img for img in img_tensor_list), dim=0)
+    img_tensor = img_tensor.unsqueeze(0)
     img_np = np.array(img_tensor)
 
     # Pytorch load time
     load_pytorch = timer('Load Pytorch Model')
-    pytorch_model = AffordanceNet().eval().cuda()
+    pytorch_model = AffordanceNet(
+                input_dim=input_dim,
+                output_dim=output_dim,
+                n_image=n_image).eval().cuda()
     model_weight = torch.load('affordance_model.pt')
     pytorch_model.load_state_dict(model_weight)
     load_pytorch.end()
@@ -56,29 +68,32 @@ if __name__ == '__main__':
 
     # Pytorch infer time
     infer_pytorch = timer('Run Pytorch Infer')
+    print("\n")
     with torch.no_grad():
         for i in range(10):
             tic = time.perf_counter()
             pytorch_outputs = pytorch_model(img_tensor.to(torch.device("cuda:0")))
-            print(1/(time.perf_counter() - tic))
+            print(1/(time.perf_counter() - tic), "Hz")
     print("Result: ", pytorch_outputs.cpu().squeeze(0).numpy())
     infer_pytorch.end()
     
     # ONNX infer time
     infer_onnx = timer('Run ONNX Infer')
+    print("\n")
     for i in range(10):
         tic = time.perf_counter()
         onnx_outputs = ort_session.run(None, {'input': img_np})[0]
-        print(1/(time.perf_counter() - tic))
+        print(1/(time.perf_counter() - tic), "Hz")
     print("Result: ", onnx_outputs[0])
     infer_onnx.end()
 
     # TRT infer time
     infer_trt = timer('Run TRT infer')
+    print("\n")
     with engine.create_execution_context() as context:
         for i in range(10):
             tic = time.perf_counter()
             trt_outputs = common.do_inference(context, bindings=bindings, inputs=inputs, outputs=outputs, stream=stream)
-            print(1/(time.perf_counter() - tic))
+            print(1/(time.perf_counter() - tic), "Hz")
     print("Result: ", trt_outputs[0])
     infer_trt.end()

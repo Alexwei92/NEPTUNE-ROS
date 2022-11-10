@@ -64,7 +64,7 @@ roslaunch neptune_ros bridge_t265.launch
 ```bash
 # Convert pytorch model to tensorrt model
 cd ./script/tensorrt
-python3 pytorch_to_trt.python3
+python3 pytorch_to_trt.py
 
 # Check the runtime performance
 python3 runtime_compare.py

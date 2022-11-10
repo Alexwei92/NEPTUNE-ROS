@@ -177,9 +177,9 @@ if __name__ == '__main__':
 
     # DataLoader
     all_data = AffordanceDataset(dataset_dir,
-                                resize=[256,256],
-                                affordance_dim=2,
-                                transform=MyTransform())
+                resize=[image_resize[0],image_resize[1]],
+                affordance_dim=model_config['model_params']['output_dim'],
+                transform=MyTransform())
 
     print('Total length of data: ', str(len(all_data)))
     print(all_data.affordance[:,0].min(), all_data.affordance[:,0].max(), all_data.affordance[:,0].mean())

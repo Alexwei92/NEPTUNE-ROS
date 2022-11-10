@@ -29,14 +29,20 @@ if __name__ == '__main__':
 
     # Load Pytorch model and weight
     load_pytorch = timer("Loading Pytorch model")
-    model = AffordanceNet().eval().cuda()
+    input_dim = 256
+    output_dim = 2
+    n_image = 4
+    model = AffordanceNet(
+            input_dim=input_dim,
+            output_dim=output_dim,
+            n_image=n_image).eval().cuda()
     model_weight = torch.load(MODEL_WEIGHT_PATH)
     model.load_state_dict(model_weight)
     load_pytorch.end()
 
     # Pytorch to onnx
     pytorch_to_onnx = timer("Convert Pytorch to ONNX file")
-    sample_input = torch.ones((1, 3, 256, 256)).cuda()
+    sample_input = torch.ones((1, 3*n_image, input_dim, input_dim)).cuda()
     torch.onnx.export(model, sample_input, ONNX_FILE_PATH, input_names=['input'],
                         output_names=['output'], export_params=True)
     pytorch_to_onnx.end()
