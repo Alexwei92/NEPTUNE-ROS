@@ -38,8 +38,8 @@ if __name__ == "__main__":
     ###
     # folder_path = "/media/lab/NEPTUNE2/field_datasets/row_4/2022-10-14-10-01-08"
     # folder_path = "/media/lab/NEPTUNE2/field_datasets/row_10/2022-10-14-10-41-06"
-    folder_path = "/media/lab/NEPTUNE2/field_datasets/row_12/2022-10-28-13-22-11"
-    # folder_path = "/media/lab/NEPTUNE2/field_datasets/row_13/2022-11-06-15-44-34"
+    # folder_path = "/media/lab/NEPTUNE2/field_datasets/row_12/2022-10-28-13-16-37"
+    folder_path = "/media/lab/NEPTUNE2/field_datasets/row_13/2022-11-06-15-44-34"
     # affordance
     data_pd = pandas.read_csv(os.path.join(folder_path, 'pose.csv'))
     dist_center = data_pd['dist_center'].to_numpy()
@@ -97,5 +97,14 @@ if __name__ == "__main__":
         last_index = j
     axes[0].quiver(pos_x[index_range], pos_y[index_range], np.cos(-heading[index_range]), np.sin(-heading[index_range]),
         color='r', alpha=0.7, scale=30, width=0.002)
+
+
+    fig2, axes2 = plt.subplots(2,1)
+
+    axes2[0].plot(dist_center_pred - affordance[:,0])
+    axes2[0].set_ylabel('dist_center error [m]')
+
+    axes2[1].plot(rel_angle_pred - affordance[:,1])
+    axes2[1].set_ylabel('rel_angle error [rad]')
 
     plt.show()

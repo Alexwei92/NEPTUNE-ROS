@@ -102,8 +102,8 @@ class AffordanceDataset(Dataset):
             idx = idx.tolist()
         
         # Read RGB image
-        prev_idx_range = [0, 2, 4, 10] # relative index
-        # prev_idx_range = [0, 2, 5, 12] # relative index
+        # prev_idx_range = [0, 2, 4, 10] # relative index
+        prev_idx_range = [0, 2, 5, 12] # relative index
         query_img_idx = int(self.rgb_file_list[idx][-11:-4])
         output_img_list = []
         for j in prev_idx_range:

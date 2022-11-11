@@ -88,8 +88,8 @@ class AffordanceNet(nn.Module):
     def __init__(self,
                 name,
                 input_dim,
-                output_dim=2,
-                n_image=4,
+                output_dim=3,
+                n_image=1,
                 **kwargs):
         super().__init__()
         
