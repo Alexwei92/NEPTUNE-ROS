@@ -7,6 +7,9 @@
                 /$(arg camera_name)/color/camera_info
                 /$(arg camera_name)/aligned_depth_to_color/image_raw
                 /$(arg camera_name)/aligned_depth_to_color/camera_info
+                /$(arg camera_name)/depth/color/points
+                /tf
+                /tf_static
                 /mavros/altitude
                 /mavros/distance_sensor/terange_60m_pub
                 /mavros/global_position/compass_hdg
@@ -29,9 +32,8 @@
                 /mavros/setpoint_raw/target_local
                 /mavros/state
                 /mavros/target_actuator_control 
-                /mavros/vfr_hud
                 --lz4
-                -o $(arg output_folder)/gps"
+                -o $(arg output_folder)/px4"
     />
 
 </launch>
