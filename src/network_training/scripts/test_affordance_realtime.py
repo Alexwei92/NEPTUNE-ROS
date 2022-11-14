@@ -2,6 +2,7 @@
 import os
 import numpy as np
 import cv2
+import time
 from collections import deque
 import rospy
 from sensor_msgs.msg import Image
@@ -10,7 +11,7 @@ from controller import AffordanceCtrl
 
 class CameraStream():
     LOOP_RATE = 15 # Hz
-    TIME_OUT  = 0.2 # second
+    TIME_OUT  = 0.5 # second
 
     def __init__(self):
         rospy.init_node("camera_stream")
@@ -73,6 +74,7 @@ class CameraStream():
 
     def run(self):
         while not rospy.is_shutdown():
+            tic = time.perf_counter()
             # check topic timeout
             if (self.last_color_timestamp is None) or (rospy.Time.now() - self.last_color_timestamp).to_sec() > self.TIME_OUT:
                 rospy.logwarn('Color image stream is lost!')
@@ -97,9 +99,10 @@ class CameraStream():
             color_img_list.reverse()
 
             results = self.agent_controller.predict_affordance(color_img_list)
-            print(results)
+            # print(results)
 
             self.rate.sleep()
+            print(1. / (time.perf_counter() - tic))
 
 if __name__ == "__main__":
     # init
