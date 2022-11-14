@@ -19,7 +19,7 @@ train_config_dir  = os.path.join(curr_dir, 'configs')
 spline_data_dir  = os.path.join(curr_dir, 'ground_truth')
 
 class SaltAndPepperNoise(object):
-    def __init__(self,threshold = 0.05):
+    def __init__(self,threshold = 0.03):
         self.threshold = threshold
 
     def __call__(self, img):
@@ -30,22 +30,27 @@ class SaltAndPepperNoise(object):
         return torch.transpose(img_transpose,1,0)
 
 class MyTransform:
-    def __init__(self, brightness=0.2, contrast=0.2, saturation=0.2, sharpness=0.2):
+    def __init__(self, brightness=0.3, contrast=0.3, saturation=0.3, sharpness=0.3, hue=0.15):
         self.brightness = brightness
         self.contrast = contrast
         self.saturation = saturation
         self.salt_pepper_noise = SaltAndPepperNoise()
         self.sharpness = sharpness
+        self.hue = hue
 
     def __call__(self, img):
         img = transforms.functional.to_tensor(img)
-        img = transforms.functional.rotate(img, np.random.uniform(-15,15))
+        img = transforms.functional.affine(img, angle=np.random.uniform(-10,10), translate=(int(np.random.uniform(-8,8)), int(np.random.uniform(-8,8))),
+                                                scale=np.random.uniform(0.9,1.1), shear=np.random.uniform(-5,5))
+        # img = transforms.functional.rotate(img, np.random.uniform(-15,15))
         img = transforms.functional.gaussian_blur(img, random.choice([1,3,5,7]))
         img = self.salt_pepper_noise(img)
+        # img = transforms.functional.solarize(img, 1.0)
         img = transforms.functional.adjust_sharpness(img, np.random.uniform(max(0,1-self.sharpness),1+self.sharpness))
         img = transforms.functional.adjust_brightness(img, np.random.uniform(max(0,1-self.brightness),1+self.brightness))
         img = transforms.functional.adjust_contrast(img, np.random.uniform(max(0,1-self.contrast),1+self.contrast))
         img = transforms.functional.adjust_saturation(img, np.random.uniform(max(0,1-self.saturation),1+self.saturation))
+        img = transforms.functional.adjust_hue(img, np.random.uniform(-self.hue,self.hue))
         img = transforms.functional.normalize(img, (0.5), (0.5))
         return img
 
@@ -102,8 +107,7 @@ class AffordanceDataset(Dataset):
             idx = idx.tolist()
         
         # Read RGB image
-        # prev_idx_range = [0, 2, 4, 10] # relative index
-        prev_idx_range = [0, 2, 5, 12] # relative index
+        prev_idx_range = [0, 2, 4, 10] # relative index
         query_img_idx = int(self.rgb_file_list[idx][-11:-4])
         output_img_list = []
         for j in prev_idx_range:

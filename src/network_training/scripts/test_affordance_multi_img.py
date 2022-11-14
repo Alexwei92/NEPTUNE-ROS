@@ -38,8 +38,8 @@ if __name__ == "__main__":
     ###
     # folder_path = "/media/lab/NEPTUNE2/field_datasets/row_4/2022-10-14-10-01-08"
     # folder_path = "/media/lab/NEPTUNE2/field_datasets/row_10/2022-10-14-10-41-06"
-    # folder_path = "/media/lab/NEPTUNE2/field_datasets/row_12/2022-10-28-13-16-37"
-    folder_path = "/media/lab/NEPTUNE2/field_datasets/row_13/2022-11-06-15-44-34"
+    folder_path = "/media/lab/NEPTUNE2/field_datasets/row_12/2022-10-28-13-30-28"
+    # folder_path = "/media/lab/NEPTUNE2/field_datasets/row_13/2022-11-06-15-44-34"
     # affordance
     data_pd = pandas.read_csv(os.path.join(folder_path, 'pose.csv'))
     dist_center = data_pd['dist_center'].to_numpy()
@@ -62,7 +62,9 @@ if __name__ == "__main__":
         raw_img_list = []
         for j in [0,2,4,10]:
             color_file = color_file_list[max(0, index-j)]
-            raw_img_list.append(cv2.imread(color_file, cv2.IMREAD_UNCHANGED))
+            img_bgr = cv2.imread(color_file, cv2.IMREAD_UNCHANGED)
+            img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+            raw_img_list.append(img_rgb)
  
         affordance_pred = agent_controller.predict_affordance(raw_img_list)
 

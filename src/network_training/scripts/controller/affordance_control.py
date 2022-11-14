@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 import torch
 from torchvision import transforms
+import tensorrt as trt
 
 from models import AffordanceNet
 from utils.train_utils import read_yaml
@@ -10,13 +11,6 @@ from utils.train_utils import read_yaml
 curr_dir        = os.path.dirname(os.path.abspath(__file__))
 parent_dir      = os.path.dirname(curr_dir)
 config_dir      = os.path.join(parent_dir, 'configs')
-
-###########################################
-TRANSFORM_COMPOSED = transforms.Compose([ 
-    transforms.ToTensor(),
-    transforms.Normalize((0.5), (0.5)),
-]) 
-###########################################
 
 class AffordanceCtrl():
     '''
@@ -31,7 +25,10 @@ class AffordanceCtrl():
         Configure
         '''
         self.device             = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.transform_composed = TRANSFORM_COMPOSED
+        self.transform_composed = transforms.Compose([ 
+                                    transforms.ToTensor(),
+                                    transforms.Normalize((0.5), (0.5)),
+                                ]) 
         
     def load_model(self, afford_model_path, ctrl_model_path=None, **kwargs):
         '''
@@ -61,7 +58,7 @@ class AffordanceCtrl():
         image_tensor_list = []
         for image_color in image_color_list:
             image_np = image_color.copy()
-            image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+            # image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
             image_np = cv2.resize(image_np, (self.image_resize[0], self.image_resize[1]))
             image_tensor = self.transform_composed(image_np)
             image_tensor_list.append(image_tensor)
@@ -71,7 +68,7 @@ class AffordanceCtrl():
         with torch.no_grad():
             out = self.afford_model(image_tensor_cat.unsqueeze(0).to(self.device))
             out = out.cpu().squeeze(0).numpy()
-        
+
             affordance_pred = {
                 'dist_center_width': out[0], # dist_center/width
                 'rel_angle': out[1] * (np.pi/2), # rel_angle
