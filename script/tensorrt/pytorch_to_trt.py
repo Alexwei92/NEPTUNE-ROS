@@ -1,3 +1,4 @@
+import os
 import torch
 from affordance_net import AffordanceNet
 import tensorrt as trt
@@ -7,9 +8,14 @@ from log_utils import timer, logger
 trt_logger = trt.Logger(trt.Logger.WARNING)
 trt_runtime = trt.Runtime(trt_logger)
 
-MODEL_WEIGHT_PATH = 'affordance_model.pt'
-ONNX_FILE_PATH = 'affordance_net.onnx'
-TRT_PATH = 'affordance_net.trt'
+curr_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(curr_dir)
+root_dir = os.path.dirname(parent_dir)
+model_dir = os.path.join(root_dir, 'model')
+
+MODEL_WEIGHT_PATH = os.path.join(model_dir, 'affordance/affordance_model.pt')
+ONNX_FILE_PATH = os.path.join(model_dir, 'affordance/affordance_net.onnx')
+TRT_PATH = os.path.join(model_dir, 'affordance/affordance_net.trt')
 
 def build_engine(onnx_path):
     with trt.Builder(trt_logger) as builder, builder.create_network(1) as network, trt.OnnxParser(network, trt_logger) as parser:

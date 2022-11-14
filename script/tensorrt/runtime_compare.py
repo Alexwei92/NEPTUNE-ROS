@@ -1,3 +1,4 @@
+import os
 import cv2
 import torch
 import numpy as np
@@ -13,9 +14,14 @@ import common
 trt_logger = trt.Logger(trt.Logger.WARNING)
 trt_runtime = trt.Runtime(trt_logger)
 
-MODEL_WEIGHT_PATH = 'affordance_model.pt'
-ONNX_FILE_PATH = 'affordance_net.onnx'
-TRT_PATH = 'affordance_net.trt'
+curr_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(curr_dir)
+root_dir = os.path.dirname(parent_dir)
+model_dir = os.path.join(root_dir, 'model')
+
+MODEL_WEIGHT_PATH = os.path.join(model_dir, 'affordance/affordance_model.pt')
+ONNX_FILE_PATH = os.path.join(model_dir, 'affordance/affordance_net.onnx')
+TRT_PATH = os.path.join(model_dir, 'affordance/affordance_net.trt')
 
 def load_engine(trt_runtime, engine_path):
     with open(engine_path, 'rb') as f:
@@ -50,7 +56,7 @@ if __name__ == '__main__':
                 input_dim=input_dim,
                 output_dim=output_dim,
                 n_image=n_image).eval().cuda()
-    model_weight = torch.load('affordance_model.pt')
+    model_weight = torch.load(MODEL_WEIGHT_PATH)
     pytorch_model.load_state_dict(model_weight)
     load_pytorch.end()
     
@@ -70,6 +76,8 @@ if __name__ == '__main__':
     infer_pytorch = timer('Run Pytorch Infer')
     print("\n")
     with torch.no_grad():
+        for i in range(2): # warm start
+            pytorch_outputs = pytorch_model(img_tensor.to(torch.device("cuda:0")))
         for i in range(10):
             tic = time.perf_counter()
             pytorch_outputs = pytorch_model(img_tensor.to(torch.device("cuda:0")))
@@ -80,6 +88,8 @@ if __name__ == '__main__':
     # ONNX infer time
     infer_onnx = timer('Run ONNX Infer')
     print("\n")
+    for i in range(2): # warm start
+        ort_session.run(None, {'input': img_np})[0]
     for i in range(10):
         tic = time.perf_counter()
         onnx_outputs = ort_session.run(None, {'input': img_np})[0]
@@ -91,6 +101,8 @@ if __name__ == '__main__':
     infer_trt = timer('Run TRT infer')
     print("\n")
     with engine.create_execution_context() as context:
+        for i in range(2): # warm start
+            common.do_inference(context, bindings=bindings, inputs=inputs, outputs=outputs, stream=stream)
         for i in range(10):
             tic = time.perf_counter()
             trt_outputs = common.do_inference(context, bindings=bindings, inputs=inputs, outputs=outputs, stream=stream)
