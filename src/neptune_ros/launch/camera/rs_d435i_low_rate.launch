@@ -10,11 +10,11 @@
   <arg name="output"              default="screen"/>
   <arg name="respawn"             default="true"/>
 
-  <arg name="depth_width"         default="640"/>
+  <arg name="depth_width"         default="848"/>
   <arg name="depth_height"        default="480"/>
   <arg name="enable_depth"        default="true"/>
 
-  <arg name="infra_width"         default="640"/>
+  <arg name="infra_width"         default="848"/>
   <arg name="infra_height"        default="480"/>
   <arg name="enable_infra"        default="true"/>
   <arg name="enable_infra1"       default="true"/>
@@ -25,8 +25,8 @@
   <arg name="color_height"        default="480"/>
   <arg name="enable_color"        default="true"/>
 
-  <arg name="depth_fps"           default="6"/>
-  <arg name="infra_fps"           default="6"/>
+  <arg name="depth_fps"           default="10"/>
+  <arg name="infra_fps"           default="10"/>
   <arg name="color_fps"           default="6"/>
   <arg name="gyro_fps"            default="200"/>
   <arg name="accel_fps"           default="250"/>

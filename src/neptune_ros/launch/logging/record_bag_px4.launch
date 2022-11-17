@@ -11,7 +11,7 @@
                 /tf
                 /tf_static
                 /mavros/altitude
-                /mavros/distance_sensor/terange_60m_pub
+                /mavros/distance_sensor/rangefinder_pub
                 /mavros/global_position/compass_hdg
                 /mavros/global_position/global
                 /mavros/global_position/local
