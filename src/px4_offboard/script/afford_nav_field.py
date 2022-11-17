@@ -19,21 +19,9 @@ from utils.navigation_utils import (
 )
 from utils.math_utils import wrap_2PI, wrap_PI, constrain_value
 
-# px4_gps_fix_type = {
-#     0: 'No GPS',    # No GPS connected
-#     1: 'No Fix',    # No position information, GPS is connected
-#     2: '2D Fix',    # 2D position
-#     3: '3D Fix',    # 3D position
-#     4: '3D DGPS',   # DGPS/SBAS aided 3D position
-#     5: 'RTK Float', # TK float, 3D position
-#     6: 'RTK_Fixed', # TK Fixed, 3D position
-#     7: 'Static',    # Static fixed, typically used for base stations
-#     8: 'PPP',
-# }
-
 MAX_YAWRATE = 45 # rad/s
 
-def calc_affordance_cmd(affordance, max_yawrate=45, flag=0):
+def calc_affordance_cmd(affordance, flag=0):
     if affordance is None:
         return 0.0
 
@@ -57,7 +45,7 @@ def calc_affordance_cmd(affordance, max_yawrate=45, flag=0):
         theta_e = head_gain * (-rel_angle)
         theta_d = np.arctan2(control_gain * (-dist_center), 0.8)
         stanley_output = theta_e + theta_d
-        cmd = 1.0 * stanley_output * (15) / max_yawrate
+        cmd = 1.0 * stanley_output * (15) / MAX_YAWRATE
 
     else:
         cmd = 0.0

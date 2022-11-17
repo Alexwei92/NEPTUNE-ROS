@@ -25,9 +25,6 @@ if __name__ == "__main__":
         'local': data['field_bound_local'],
     }
 
-
-    # print('Load field data successfully!')
-
     ### Load Network
     model_param = {
         'afford_model_path': '/media/lab/NEPTUNE2/field_outputs/row_4_10_13/affordance/affordance_model.pt'
@@ -38,8 +35,10 @@ if __name__ == "__main__":
     ###
     # folder_path = "/media/lab/NEPTUNE2/field_datasets/row_4/2022-10-14-10-01-08"
     # folder_path = "/media/lab/NEPTUNE2/field_datasets/row_10/2022-10-14-10-41-06"
-    folder_path = "/media/lab/NEPTUNE2/field_datasets/row_12/2022-10-28-13-30-28"
+    # folder_path = "/media/lab/NEPTUNE2/field_datasets/row_12/2022-10-28-13-33-03"
     # folder_path = "/media/lab/NEPTUNE2/field_datasets/row_13/2022-11-06-15-44-34"
+    folder_path = "/media/lab/NEPTUNE2/field_datasets/row_18/2022-11-15-11-16-24"
+
     # affordance
     data_pd = pandas.read_csv(os.path.join(folder_path, 'pose.csv'))
     dist_center = data_pd['dist_center'].to_numpy()
@@ -76,7 +75,7 @@ if __name__ == "__main__":
 
 
     fig, axes = plt.subplots(3,1)
-    plot_single_data(axes[0], data['row_data'][12])
+    plot_single_data(axes[0], data['row_data'][18])
     axes[0].plot(pos_x, pos_y, color='r', linewidth=1.0)
 
     axes[1].plot(affordance[:,0], label='ground truth')

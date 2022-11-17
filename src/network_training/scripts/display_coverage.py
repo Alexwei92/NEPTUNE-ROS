@@ -24,7 +24,7 @@ if __name__ == "__main__":
     }
 
     print('Load field data successfully!')
-    row_index = 13
+    row_index = 18
     dataset_dir = "/media/lab/NEPTUNE2/field_datasets/row_" + str(row_index)
     fig, axis = plt.subplots(3,1)
     for i in range(len(axis)):

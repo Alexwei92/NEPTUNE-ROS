@@ -193,7 +193,12 @@ if __name__ == '__main__':
     if test_size == 0:
         # train_data = shuffle(all_data, random_state=random_state)
         train_data = all_data
-        test_data = all_data
+        # test_data = None
+        test_data = AffordanceDataset("/media/lab/NEPTUNE2/field_datasets/row_18",
+                resize=[image_resize[0],image_resize[1]],
+                affordance_dim=model_config['model_params']['output_dim'],
+                transform=MyTransform())
+
     else:
         train_data, test_data = train_test_split(all_data,
                                             test_size=test_size,

@@ -63,15 +63,21 @@ class AffordanceTrain(BaseTrain):
             n_batch = len(self.train_dataloader)
             train_total_loss /= n_batch
             
+            # Test
+            if self.test_dataloader is not None:
+                test_total_loss = self.test()
+            else:
+                test_total_loss = 0
+
             # Update learning rate
             if self.lr_scheduler is not None:
                 self.lr_scheduler.step()
 
             # Logging
             self.epoch.append(epoch + self.last_epoch)
-            tqdm.write('Epoch: {:d}, train loss = {:.3e}'.
+            tqdm.write('Epoch: {:d}, train loss = {:.3e} | test loss = {:.3e}'.
                         format(epoch + self.last_epoch,
-                            train_total_loss))
+                            train_total_loss, test_total_loss))
             
             if epoch % self.log_interval == 0:
                 self.save_checkpoint(self.checkpoint_filename)
@@ -82,7 +88,17 @@ class AffordanceTrain(BaseTrain):
             self.writer.close()
 
     def test(self):
-        pass
+        self.model.eval()
+        test_total_loss = 0.0
+        for _, batch_data in enumerate(self.test_dataloader):
+            batch_image = batch_data['image'].to(self.device)
+            batch_y = batch_data['affordance'].to(self.device)
+            batch_y_pred = self.model(batch_image)          
+            test_loss = self.model.loss_function(batch_y_pred, batch_y)
+            test_total_loss += test_loss['total_loss'].item()
+        
+        n_batch = len(self.test_dataloader)
+        return test_total_loss / n_batch
 
 
 class AffordanceCtrlTrain(BaseTrain):
@@ -149,15 +165,21 @@ class AffordanceCtrlTrain(BaseTrain):
             n_batch = len(self.train_dataloader)
             train_total_loss /= n_batch
 
+            # Test
+            if self.test_dataloader is not None:
+                test_total_loss = self.test()
+            else:
+                test_total_loss = 0
+    
             # Update learning rate
             if self.lr_scheduler is not None:
                 self.lr_scheduler.step() 
                 
             # Logging
             self.epoch.append(epoch + self.last_epoch)
-            tqdm.write('Epoch: {:d}, train loss = {:.3e}'.
+            tqdm.write('Epoch: {:d}, train loss = {:.3e} | test loss = {:.3e}'.
                         format(epoch + self.last_epoch,
-                            train_total_loss))
+                            train_total_loss, test_total_loss))
             
             if epoch % self.log_interval == 0:
                 self.save_checkpoint(self.checkpoint_filename)
@@ -168,4 +190,16 @@ class AffordanceCtrlTrain(BaseTrain):
             self.writer.close()
 
     def test(self):
-        pass
+        # Start testing
+        self.model.eval()
+        test_total_loss = 0.0
+        with torch.no_grad():
+            for _, batch_data in enumerate(self.test_dataloader):
+                batch_image = batch_data['image'].to(self.device)
+                batch_y = batch_data['affordance'].to(self.device)
+                batch_y_pred = self.model(batch_image)
+                test_loss = self.model.loss_function(batch_y_pred, batch_y)
+                test_total_loss += test_loss['total_loss'].item()
+
+            n_batch = len(self.test_dataloader)
+            return test_total_loss / n_batch

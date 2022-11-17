@@ -210,7 +210,7 @@ class ExtractData():
 
 
 if __name__ == "__main__":
-    root_folder_path = '/media/lab/NEPTUNE2/field_raw_datasets/2022-11-06'
+    root_folder_path = '/media/lab/NEPTUNE2/field_raw_datasets/2022-11-15'
     output_folder = '/media/lab/NEPTUNE2/field_datasets'
 
     #### 

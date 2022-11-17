@@ -74,7 +74,7 @@ class CameraStream():
 
     def run(self):
         while not rospy.is_shutdown():
-            tic = time.perf_counter()
+            # tic = time.perf_counter()
             # check topic timeout
             if (self.last_color_timestamp is None) or (rospy.Time.now() - self.last_color_timestamp).to_sec() > self.TIME_OUT:
                 rospy.logwarn('Color image stream is lost!')
@@ -86,7 +86,10 @@ class CameraStream():
             last_color_img = self.color_img_queue[-1]
             if last_color_img is not None:
                 cv2.imshow('color', cv2.cvtColor(last_color_img, cv2.COLOR_RGB2BGR))
-                cv2.waitKey(1)
+                key = cv2.waitKey(100) & 0xFF
+                if (key == 27 or key == ord('q')):
+                    break
+
     
             if self.frame_rate == 6:
                 index_list = [1, 2, 4, 10]
@@ -102,7 +105,9 @@ class CameraStream():
             # print(results)
 
             self.rate.sleep()
-            print(1. / (time.perf_counter() - tic))
+            # print(1. / (time.perf_counter() - tic))
+
+        cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     # init

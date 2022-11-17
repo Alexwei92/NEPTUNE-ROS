@@ -9,7 +9,7 @@ train_params:
   n_epochs:               50
   optimizer:
     type:                 'Adam'
-    learning_rate:        0.00005
+    learning_rate:        0.00001
     betas:                (0.9, 0.999)
     weight_decay:         0.0
   manual_seed:            1234

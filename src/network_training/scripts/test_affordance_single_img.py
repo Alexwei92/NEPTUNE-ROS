@@ -16,15 +16,6 @@ from utils.plot_utils import FieldMapPlot
 from controller import AffordanceCtrl
 
 
-BLACK  = (0,0,0)
-WHITE  = (255,255,255)
-RED    = (0,0,255)
-BLUE   = (255,0,0)
-GREEN  = (0,255,0)
-YELLOW = (0,255,255)
-CYAN   = (255,255,0)
-
-
 if __name__ == "__main__":
     curr_dir = os.path.dirname(__file__)
     data_path = os.path.join(curr_dir, "ground_truth/plant_field.pkl")
