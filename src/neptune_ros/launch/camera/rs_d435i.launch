@@ -2,7 +2,7 @@
   <arg name="serial_no"           default=""/>
   <arg name="usb_port_id"         default=""/>
   <arg name="device_type"         default="d435i"/>
-  <arg name="json_file_path"      default="$(find neptune_ros)/config/camera/d435i_emitter_disabled_high_accuracy.json"/>
+  <arg name="json_file_path"      default="$(find neptune_ros)/config/camera/d435i_emitter_enabled.json"/>
   <arg name="camera"              default="d435i"/>
   <arg name="tf_prefix"           default="$(arg camera)"/>
   <arg name="external_manager"    default="false"/>
