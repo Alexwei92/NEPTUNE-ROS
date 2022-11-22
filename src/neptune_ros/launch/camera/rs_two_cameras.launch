@@ -3,9 +3,9 @@
   <include file="$(find neptune_ros)/launch/camera/rs_d435i.launch" > 
     <arg name="camera"            value="d435i"/>
     <arg name="enable_depth"      value="false"/>
-    <arg name="enable_gyro"       value="false"/>
-    <arg name="enable_accel"      value="false"/>
-    <arg name="filters"           value="pointcloud"/>
+    <arg name="enable_infra"      value="true"/>
+    <arg name="enable_infra1"     value="true"/>
+    <arg name="enable_infra2"     value="true"/>
   </include>
 
   <!-- T265 -->
