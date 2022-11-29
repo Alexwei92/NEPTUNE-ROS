@@ -38,7 +38,9 @@
                 /mavros/setpoint_raw/target_attitude 
                 /mavros/setpoint_raw/target_local
                 /mavros/state
-                /mavros/target_actuator_control 
+                /mavros/target_actuator_control
+                /my_controller/pos_z_pid
+                /my_controller/yaw_cmd
                 --lz4
                 -o $(arg output_folder)/px4"
     />
