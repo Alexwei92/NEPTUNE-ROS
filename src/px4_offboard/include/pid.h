@@ -10,8 +10,8 @@ class PID
 {
 public:
 	/* Constructor for PID */
-	PID(float kp, float ki, float kd, float dt,
-		float integral_limit, float output_limit);
+	PID(float kp=1.0f, float ki=0.0f, float kd=0.0f, float dt=0.05f,
+		float integral_limit=INF, float output_limit=INF);
 
 	~PID() {};
 
