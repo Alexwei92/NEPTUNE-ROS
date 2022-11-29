@@ -22,6 +22,6 @@
         <arg name="respawn_mavros" default="$(arg respawn_mavros)" />
     </include>
 
-    <node pkg="tf" type="static_transform_publisher" name="camera_to_drone" args="-0.108 -0.018 0.043 0 0 0 /d435i_link /base_link 1000"/>
+    <node pkg="tf" type="static_transform_publisher" name="baselink_to_d435" args="0.108 0.018 -0.043 0 0 0 /base_link /d435i_link 1000"/>
 
 </launch>
