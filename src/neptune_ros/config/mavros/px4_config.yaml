@@ -79,11 +79,6 @@ local_position:
 # rc_io
 # None
 
-# safety_area
-safety_area:
-  p1: {x:  1.0, y:  1.0, z:  1.0}
-  p2: {x: -1.0, y: -1.0, z: -1.0}
-
 # setpoint_accel
 setpoint_accel:
   send_force: false
@@ -116,9 +111,6 @@ setpoint_position:
 setpoint_velocity:
   mav_frame: LOCAL_NED
 
-# vfr_hud
-# None
-
 # waypoint
 mission:
   pull_after_gcs: true  # update mission if gcs updates
@@ -126,12 +118,6 @@ mission:
                              # for uploading waypoints to FCU
 
 # --- mavros extras plugins (same order) ---
-
-# adsb
-# None
-
-# debug_value
-# None
 
 # distance_sensor
 ## Currently available orientations:
