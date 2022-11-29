@@ -18,8 +18,10 @@
 #include "common.h"
 #include "math_utils.h"
 #include "rulebased_ctrl.h"
+#include "pid.h"
 #include "px4_offboard/Affordance.h"
 #include "px4_offboard/ControlCmd.h"
+#include "px4_offboard/Pid.h"
 
 class ForwardCtrl
 {
@@ -32,6 +34,7 @@ public:
     {  
         // Get ROS parameters
         std::string control_source;
+        bool hover_test;
 
         ros::param::param<float>("~forward_speed", forward_speed, 0.5);
         ros::param::param<float>("~max_yawrate", max_yawrate, 45);
@@ -39,15 +42,32 @@ public:
         ros::param::param<int>("~yaw_pwm_min", yaw_pwm_min, 982);
         ros::param::param<int>("~yaw_pwm_max", yaw_pwm_max, 2006);
         ros::param::param<std::string>("~control_source", control_source, "rc");
+        ros::param::param<bool>("~hover_test", hover_test, false);
+
+        if (hover_test) {
+            forward_speed = 0.0f;
+        }
+        
+        // position z pid parameters
+        float kp, ki, kd;
+        float integral_limit, output_limit;
+        ros::param::param<float>("~kp", kp, 1.0);
+        ros::param::param<float>("~ki", ki, 0.0);
+        ros::param::param<float>("~kd", kd, 0.0);
+        ros::param::param<float>("~integral_limit", integral_limit, INF);
+        ros::param::param<float>("~output_limit", output_limit, INF);
 
         ROS_INFO("Forward speed is set to %.2f m/s", forward_speed);
         ROS_INFO("Maximum yaw rate is set to %.2f deg/s", max_yawrate);
         ROS_INFO("Yaw channel index is %d", yaw_channel);
         ROS_INFO("Yaw Channel PWM range in [%d, %d]", yaw_pwm_min, yaw_pwm_max);
         ROS_INFO("Control source is %s", control_source.c_str());
+        ROS_INFO("Position Z PID: kp=%.2f, ki=%.2f, kd=%.2f", kp, ki, kd);
+        ROS_INFO("Position Z PID: integral_limit=%.2f, output_limit=%.2f", integral_limit, output_limit);
 
         // ROS Publisher
-        target_setpoint_pub = nh.advertise<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/local", 1);  
+        target_setpoint_pub = nh.advertise<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/local", 5);
+        pos_z_pid_pub = nh.advertise<px4_offboard::Pid>("/my_controller/pos_z_pid", 5);
 
         // ROS Subscriber
         // 1) state
@@ -83,6 +103,9 @@ public:
 
         // init set_point_local_target
         InitializeTarget();
+
+        // init position z pid controller
+        pos_z_pid = new PID(kp, ki, kd, (1./30.0f), integral_limit, output_limit);
     }
 
     void run()
@@ -100,10 +123,8 @@ public:
             }
                
             if (current_state.mode == "OFFBOARD") { 
-                target.coordinate_frame = target.FRAME_LOCAL_NED;
-                target.type_mask = 0b010111100011;
-                // position
-                target.position.z = target_pose_z;
+                // target.coordinate_frame = target.FRAME_BODY_NED;
+                // target.type_mask = 0b010111000111;
                 // velocity (2 seconds fade in)
                 double ratio = 1.0;
                 double dt = (ros::Time::now() - offboard_start_time).toSec();
@@ -111,13 +132,17 @@ public:
                     ratio = dt / 2.0;
                 }
                 geometry_msgs::Vector3 velocity;
+                // forward flight with a constant speed
                 velocity.x = forward_speed * ratio;
                 velocity.y = 0.0; 
-                velocity.z = 0.0;
-                rotate_body_frame_to_NE(velocity.x, velocity.y, yaw_rad);
+                // calculate position z pid
+                velocity.z = pos_z_pid->calculate(target_pose_z, current_pose_z);
+                // update target
                 target.velocity = velocity;
                 // yaw rate
                 target.yaw_rate = (-yaw_cmd) * max_yawrate * DEG2RAD;
+                // publish pid internal states
+                publish_pid_internal(target_pose_z, current_pose_z, velocity.z);
             } 
             
             target_setpoint_pub.publish(target);
@@ -150,11 +175,15 @@ private:
             else {
                 target_pose_z = 5.0;
             }
+            // reset position z pid again for the sake of safety
+            pos_z_pid->reset();
         }
 
         if (msg->mode != "OFFBOARD" && current_state.mode == "OFFBOARD") {
             ROS_INFO("Switched to %s Mode!", (msg->mode).c_str());
             InitializeTarget();
+            // reset position z pid
+            pos_z_pid->reset();
         }
         
         current_state = *msg;
@@ -186,6 +215,9 @@ private:
         tf2Scalar yaw, pitch, roll;
         q_mat.getEulerYPR(yaw, pitch, roll);
         yaw_rad = wrap_2PI((float)yaw);
+        
+        // current local position z
+        current_pose_z = msg->pose.position.z;
     }
 
     void SetpointRawCallback(const mavros_msgs::PositionTarget::ConstPtr& msg) {
@@ -213,9 +245,26 @@ private:
         }
     }
 
+    void publish_pid_internal(float target, float current, float output)
+    {
+        px4_offboard::Pid pid_msg;
+        pid_msg.header.stamp = ros::Time::now();
+        pid_msg.k_p = pos_z_pid->get_kp();
+        pid_msg.k_i = pos_z_pid->get_ki();
+        pid_msg.k_d = pos_z_pid->get_kd();
+        pid_msg.error = pos_z_pid->get_error();
+        pid_msg.derivative = pos_z_pid->get_derivative();
+        pid_msg.integral = pos_z_pid->get_integral();
+        pid_msg.target = target;
+        pid_msg.current = current;
+        pid_msg.output = output;
+        pos_z_pid_pub.publish(pid_msg);
+    }
+
 private:
     ros::NodeHandle nh;
     ros::Publisher target_setpoint_pub;
+    ros::Publisher pos_z_pid_pub;
     ros::Subscriber state_sub;
     ros::Subscriber local_pose_sub;
     ros::Subscriber setpoint_raw_sub;
@@ -225,7 +274,7 @@ private:
 
     mavros_msgs::State current_state;
     mavros_msgs::PositionTarget target;
-    
+
     float forward_speed; // m/s
     float max_yawrate; // deg/s
     
@@ -234,11 +283,14 @@ private:
     float yaw_cmd; // in [-1.0, 1.0]
     float yaw_rad; // Down positive
 
+    float current_pose_z; // m
     float target_pose_z; // m
     float last_target_position_z; // m
 
     ros::Time last_cmd_time;
     ros::Time offboard_start_time;
+
+    PID *pos_z_pid; // position z pid control
 };
 
 int main(int argc, char **argv)

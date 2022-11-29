@@ -22,6 +22,7 @@ add_message_files(
   FILES
   Affordance.msg
   ControlCmd.msg
+  Pid.msg
 )
 
 generate_messages(
@@ -45,7 +46,8 @@ include_directories(
 # add_executable(set_attitude src/set_attitude.cpp)
 add_executable(forward_flight 
   src/forward_flight.cpp
-  src/rulebased_ctrl.cpp)
+  src/rulebased_ctrl.cpp
+  src/pid.cpp)
 
 # target_link_libraries(offboard_test ${catkin_LIBRARIES})
 # target_link_libraries(set_attitude ${catkin_LIBRARIES})
