@@ -4,6 +4,7 @@ plugin_blacklist:
 - cam_imu_sync
 - debug_value
 - fake_gps
+- geofence
 - hil
 - image_pub
 - landing_target
