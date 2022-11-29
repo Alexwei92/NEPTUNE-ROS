@@ -51,6 +51,52 @@ class Resnet18(nn.Module):
         x = F.tanh(x)
         return x
 
+class Resnet50(nn.Module):
+    def __init__(self, input_dim, output_dim=3, n_image=1):
+        super().__init__()
+
+        self.n_feature_state = 2048 * 4 * 4
+      
+        resnet50 = models.resnet50(pretrained=False)
+
+        new_conv1 = nn.Conv2d(
+            n_image * 3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False
+        )
+        resnet50.conv1 = new_conv1
+
+        self.encoder = torch.nn.Sequential(
+            *(list(resnet50.children())[:-2])
+        )
+        self.last_conv_downsample = nn.Sequential(
+            nn.Conv2d(2048, 2048, kernel_size=(2, 2), stride=(2, 2), bias=False),
+            nn.BatchNorm2d(2048, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        )
+
+        self.fc0 = nn.Linear(self.n_feature_state, 1024)
+        self.fc1 = nn.Linear(1024, 256)
+        # dist_center_width, rel_angle
+        self.fc_lateral = nn.Linear(256, 1)
+        self.fc_heading = nn.Linear(256, 1)
+
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.last_conv_downsample(x)
+        x = torch.flatten(x)
+        x = x.view(-1, self.n_feature_state)
+
+        x = self.fc0(x)
+        x = F.leaky_relu(x)
+
+        x = self.fc1(x)
+        x = F.leaky_relu(x)
+
+        x_lateral = self.fc_lateral(x)
+        x_heading = self.fc_heading(x)
+        x = torch.cat((x_lateral, x_heading), dim=1)
+        x = F.tanh(x)
+        return x
+
+
 class FC_NN(nn.Module):
     def __init__(self, input_dim, with_yawRate=None):
         super().__init__()
@@ -109,6 +155,37 @@ class AffordanceNet(nn.Module):
             'dist_loss': dist_loss,
             'angle_loss': angle_loss,
         }
+
+
+class AffordanceNet_New(nn.Module):
+    """
+    Affordance Prediction Model
+    """
+    def __init__(self,
+                name,
+                input_dim,
+                output_dim=3,
+                n_image=1,
+                **kwargs):
+        super().__init__()
+        
+        self.name = name
+        self.net = Resnet50(input_dim, output_dim, n_image)
+        self.input_dim = input_dim
+
+    def forward(self, x):
+        return self.net(x)
+
+    def loss_function(self, y_pred, y):
+        dist_loss = F.mse_loss(y_pred[:,0], y[:,0], reduction='mean')
+        angle_loss = F.mse_loss(y_pred[:,1], y[:,1], reduction='mean')
+        total_loss = 3.0*dist_loss + angle_loss
+        return {
+            'total_loss': total_loss,
+            'dist_loss': dist_loss,
+            'angle_loss': angle_loss,
+        }
+
 
 class AffordanceFC(nn.Module):
     def __init__(self,

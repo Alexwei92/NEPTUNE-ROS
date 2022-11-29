@@ -5,7 +5,7 @@ import torch
 from torchvision import transforms
 import tensorrt as trt
 
-from models import AffordanceNet
+from models import AffordanceNet, AffordanceNet_New
 from utils.train_utils import read_yaml
 
 curr_dir        = os.path.dirname(os.path.abspath(__file__))

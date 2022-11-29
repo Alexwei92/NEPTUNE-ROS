@@ -11,7 +11,7 @@ from affordance_net import AffordanceNet
 from log_utils import timer, logger
 import common
 
-trt_logger = trt.Logger(trt.Logger.WARNING)
+trt_logger = trt.Logger(trt.Logger.ERROR)
 trt_runtime = trt.Runtime(trt_logger)
 
 curr_dir = os.path.dirname(os.path.abspath(__file__))

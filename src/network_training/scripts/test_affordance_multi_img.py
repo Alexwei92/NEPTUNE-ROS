@@ -37,7 +37,7 @@ if __name__ == "__main__":
     # folder_path = "/media/lab/NEPTUNE2/field_datasets/row_10/2022-10-14-10-41-06"
     # folder_path = "/media/lab/NEPTUNE2/field_datasets/row_12/2022-10-28-13-33-03"
     # folder_path = "/media/lab/NEPTUNE2/field_datasets/row_13/2022-11-06-15-44-34"
-    folder_path = "/media/lab/NEPTUNE2/field_datasets/row_18/2022-11-15-11-16-24"
+    folder_path = "/media/lab/NEPTUNE2/field_datasets/row_18/2022-11-15-11-26-08"
 
     # affordance
     data_pd = pandas.read_csv(os.path.join(folder_path, 'pose.csv'))

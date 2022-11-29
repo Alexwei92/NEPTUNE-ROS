@@ -10,7 +10,7 @@ from torch.utils.data import Dataset
 from sklearn.model_selection import train_test_split
 
 from utils.train_utils import *
-from models import AffordanceNet
+from models import AffordanceNet, AffordanceNet_New
 from imitation_learning import AffordanceTrain
 
 # Path settings
@@ -30,7 +30,7 @@ class SaltAndPepperNoise(object):
         return torch.transpose(img_transpose,1,0)
 
 class MyTransform:
-    def __init__(self, brightness=0.3, contrast=0.3, saturation=0.3, sharpness=0.3, hue=0.15):
+    def __init__(self, brightness=0.3, contrast=0.3, saturation=0.3, sharpness=0.3, hue=0.3):
         self.brightness = brightness
         self.contrast = contrast
         self.saturation = saturation
@@ -42,7 +42,6 @@ class MyTransform:
         img = transforms.functional.to_tensor(img)
         img = transforms.functional.affine(img, angle=np.random.uniform(-10,10), translate=(int(np.random.uniform(-8,8)), int(np.random.uniform(-8,8))),
                                                 scale=np.random.uniform(0.9,1.1), shear=np.random.uniform(-5,5))
-        # img = transforms.functional.rotate(img, np.random.uniform(-15,15))
         img = transforms.functional.gaussian_blur(img, random.choice([1,3,5,7]))
         img = self.salt_pepper_noise(img)
         # img = transforms.functional.solarize(img, 1.0)

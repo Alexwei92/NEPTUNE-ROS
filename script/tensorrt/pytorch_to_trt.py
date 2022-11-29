@@ -5,7 +5,7 @@ import tensorrt as trt
 
 from log_utils import timer, logger
 
-trt_logger = trt.Logger(trt.Logger.WARNING)
+trt_logger = trt.Logger(trt.Logger.ERROR)
 trt_runtime = trt.Runtime(trt_logger)
 
 curr_dir = os.path.dirname(os.path.abspath(__file__))
@@ -20,7 +20,7 @@ TRT_PATH = os.path.join(model_dir, 'affordance/affordance_net.trt')
 def build_engine(onnx_path):
     with trt.Builder(trt_logger) as builder, builder.create_network(1) as network, trt.OnnxParser(network, trt_logger) as parser:
         config = builder.create_builder_config()
-        config.max_workspace_size = (1 << 30)
+        # config.max_workspace_size = (1 << 30)
         # config.set_flag(trt.BuilderFlag.FP16) # if use FP_16 precision
         parser.parse_from_file(onnx_path)        
         serialized_engine = builder.build_serialized_network(network, config)
