@@ -44,6 +44,7 @@ public:
         ros::param::param<std::string>("~control_source", control_source, "rc");
         ros::param::param<bool>("~hover_test", hover_test, false);
 
+        // set forward speed to 0 for hover test
         if (hover_test) {
             forward_speed = 0.0f;
         }
@@ -119,7 +120,7 @@ public:
             // if cmd callback timeout
             if (ros::Time::now() - last_cmd_time > ros::Duration(TOPIC_TIME_OUT)) {
                 yaw_cmd = 0.0;
-                // ROS_WARN_THROTTLE(1, "Command Time Out!");
+                ROS_WARN_THROTTLE(1, "Command Time Out!");
             }
                
             if (current_state.mode == "OFFBOARD") { 
@@ -144,7 +145,7 @@ public:
                 // publish pid internal states
                 publish_pid_internal(target_pose_z, current_pose_z, velocity.z);
             } 
-            
+            // publisg setpoint_raw
             target_setpoint_pub.publish(target);
             ros::spinOnce();
             loop_rate.sleep();
@@ -175,7 +176,7 @@ private:
             else {
                 target_pose_z = 5.0;
             }
-            // reset position z pid again for the sake of safety
+            // reset position z pid again for safety
             pos_z_pid->reset();
         }
 
@@ -280,8 +281,8 @@ private:
     
     int yaw_channel;
     int yaw_pwm_min, yaw_pwm_max;
-    float yaw_cmd; // in [-1.0, 1.0]
-    float yaw_rad; // Down positive
+    float yaw_cmd; // normalized to [-1.0, 1.0]
+    float yaw_rad; // rad (Down is positive)
 
     float current_pose_z; // m
     float target_pose_z; // m
