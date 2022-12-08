@@ -8,17 +8,17 @@
     name="drone_link">
     <inertial>
       <origin
-        xyz="0.0047978 0.0011606 0.02062"
+        xyz="0.0056157 0.0031681 0.0028674"
         rpy="0 0 0" />
       <mass
-        value="0.94206" />
+        value="1.1106" />
       <inertia
-        ixx="0.0009056"
-        ixy="2.2396E-07"
-        ixz="3.9682E-07"
-        iyy="0.0011612"
-        iyz="7.4602E-09"
-        izz="0.0013815" />
+        ixx="0.00097383"
+        ixy="2.6302E-07"
+        ixz="4.1204E-07"
+        iyy="0.0012224"
+        iyz="3.3163E-07"
+        izz="0.0014577" />
     </inertial>
     <visual>
       <origin
@@ -71,7 +71,7 @@
       <material
         name="">
         <color
-          rgba="0.25098 0.25098 0.25098 1" />
+          rgba="0 0 0 1" />
       </material>
     </visual>
     <collision>
@@ -88,7 +88,7 @@
     name="rotor1_joint"
     type="revolute">
     <origin
-      xyz="0.15689 -0.15689 0.080664"
+      xyz="0.15631 -0.15652 0.060014"
       rpy="0 0 0" />
     <parent
       link="drone_link" />
@@ -129,7 +129,7 @@
       <material
         name="">
         <color
-          rgba="0.25098 0.25098 0.25098 1" />
+          rgba="0 0 0 1" />
       </material>
     </visual>
     <collision>
@@ -146,7 +146,7 @@
     name="rotor2_joint"
     type="revolute">
     <origin
-      xyz="-0.15689 0.15689 0.080664"
+      xyz="-0.15748 0.15727 0.060014"
       rpy="0 0 0" />
     <parent
       link="drone_link" />
@@ -187,7 +187,7 @@
       <material
         name="">
         <color
-          rgba="0.25098 0.25098 0.25098 1" />
+          rgba="0 0 0 1" />
       </material>
     </visual>
     <collision>
@@ -204,14 +204,14 @@
     name="rotor3_joint"
     type="revolute">
     <origin
-      xyz="0.15689 0.15689 0.080664"
+      xyz="0.15630948387772 0.157266901286137 0.0600141878263292"
       rpy="0 0 0" />
     <parent
       link="drone_link" />
     <child
       link="rotor3_link" />
     <axis
-      xyz="-0.061628 -0.061628 0.99619" />
+      xyz="-0.0616284167162217 -0.0616284167162192 0.996194698091745" />
     <limit
       lower="-3.1416"
       upper="3.1416"
@@ -245,7 +245,7 @@
       <material
         name="">
         <color
-          rgba="0.25098 0.25098 0.25098 1" />
+          rgba="0 0 0 1" />
       </material>
     </visual>
     <collision>
@@ -262,7 +262,7 @@
     name="rotor4_joint"
     type="revolute">
     <origin
-      xyz="-0.15689 -0.15689 0.080664"
+      xyz="-0.15748 -0.15652 0.060014"
       rpy="0 0 0" />
     <parent
       link="drone_link" />
