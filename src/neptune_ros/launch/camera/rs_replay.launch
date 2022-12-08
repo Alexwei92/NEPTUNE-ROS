@@ -1,22 +1,31 @@
+<!-- To replay the logged data -->
 <launch>
-    <!-- Uncompress images for color and depth -->
+    <arg name="use_compressedDepth" default="true"/>
+
+    <param name="use_sim_time" type="bool" value="true"/>
+
+    <!-- Uncompress images -->
     <node name="republish_color" type="republish" pkg="image_transport" args="compressed in:=/d435i/color/image_raw raw out:=/d435i/color/image_raw" />
-    <node name="republish_depth" type="republish" pkg="image_transport" args="compressed in:=/d435i/aligned_depth_to_color/image_raw raw out:=/d435i/aligned_depth_to_color/image_raw"/>
-    <!-- Uncompress images for stereo_image_rect -->
-    <node name="republish_left" type="republish" pkg="image_transport" args="compressed in:=/d435i/infra1/image_rect_raw raw out:=/d435i/infra1/image_rect_raw" />
-    <node name="republish_right" type="republish" pkg="image_transport" args="compressed in:=/d435i/infra2/image_rect_raw raw out:=/d435i/infra2/image_rect_raw" />
+    <node name="republish_depth" type="republish" pkg="image_transport" args="compressedDepth in:=/d435i/aligned_depth_to_color/image_raw raw out:=/d435i/aligned_depth_to_color/image_raw"
+        if="$(eval arg('use_compressedDepth') == true)"/>
+    <node name="republish_depth" type="republish_depth.py" pkg="neptune_ros" output="screen"
+        if="$(eval arg('use_compressedDepth') == false)"/>
 
-    <!-- stereo image proc --> 
-    <group name="stereo">
-        <node name="stereo_image_proc" type="stereo_image_proc" pkg="stereo_image_proc" output="screen" >
-            <remap from="left/image_raw"    to="/d435i/infra1/image_rect_raw"/>
-            <remap from="left/camera_info"  to="/d435i/infra1/camera_info"/>
-            <remap from="right/image_raw"   to="/d435i/infra2/image_rect_raw"/>
-            <remap from="right/camera_info" to="/d435i/infra2/camera_info"/>
-            <remap from="/points2"          to="/stereo/pointcloud"/>
-        </node>
+    <!-- Vehicle description -->
+    <arg name="urdf_folder" default="$(find edu_450)/urdf" />
+    <arg name="vehicle_model" default="$(arg urdf_folder)/edu_450.urdf" />
 
-        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find neptune_ros)/rviz/pointcloud.rviz" />
-    </group>
+    <param name="robot_description" textfile="$(arg vehicle_model)" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+        <param name="rate" value="200" />
+    </node>
+
+    <!-- static tf -->
+    <node pkg="tf" type="static_transform_publisher" name="baselink_to_drone" args="0 0 0 0 0 0 /base_link /drone_link 5"/>
+    
+    <!-- rviz for visualization -->
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find neptune_ros)/rviz/replay.rviz"/>
 
 </launch>
