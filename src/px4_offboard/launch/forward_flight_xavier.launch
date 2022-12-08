@@ -1,4 +1,6 @@
 <launch>
+    <arg name="forward_speed"   default="0.5"/>
+    <!-- PID param -->
     <arg name="kp"              default="1.0"/>
     <arg name="ki"              default="0.15"/>
     <arg name="kd"              default="0.05"/>
@@ -7,7 +9,7 @@
     <arg name="hover_test"      default="False"/>
 
     <node name="forward_flight"  pkg="px4_offboard"  type="forward_flight"  output="screen">
-        <param name="forward_speed"  type="double"  value="0.8"/>
+        <param name="forward_speed"  type="double"  value="$(arg forward_speed)"/>
         <param name="max_yawrate"    type="double"  value="45.0"/>
         <param name="yaw_channel"    type="int"     value="3"/>
         <param name="yaw_pwm_min"    type="int"     value="1067"/>
