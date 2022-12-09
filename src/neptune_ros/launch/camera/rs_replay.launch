@@ -18,13 +18,16 @@
     <param name="robot_description" textfile="$(arg vehicle_model)" />
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
 
-    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-        <param name="rate" value="200" />
-    </node>
+    <!-- Replay Mavros -->
+    <group ns='replay'>
+        <node name="replay_mavros" pkg="neptune_ros" type="replay_mavros.py" output="screen">
+            <param name="rate" value="200" />
+        </node>
 
-    <!-- static tf -->
-    <node pkg="tf" type="static_transform_publisher" name="baselink_to_drone" args="0 0 0 0 0 0 /base_link /drone_link 5"/>
-    
+        <!-- static tf -->
+        <node pkg="tf" type="static_transform_publisher" name="baselink_to_drone" args="0 0 0 0 0 0 /base_link /drone_link 5"/>
+    </group>
+
     <!-- rviz for visualization -->
     <node type="rviz" name="rviz" pkg="rviz" args="-d $(find neptune_ros)/rviz/replay.rviz"/>
 
