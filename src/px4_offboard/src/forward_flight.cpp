@@ -141,7 +141,11 @@ public:
                 // update target
                 target.velocity = velocity;
                 // yaw rate
-                target.yaw_rate = (-yaw_cmd) * max_yawrate * DEG2RAD;
+                float filtered_cmd = yaw_cmd;
+                if (abs(filtered_cmd) < 1e-2){
+                    filtered_cmd = 0.0f;
+                }
+                target.yaw_rate = (-filtered_cmd) * max_yawrate * DEG2RAD;
                 // publish pid internal states
                 publish_pid_internal(target_pose_z, current_pose_z, velocity.z);
             } 
