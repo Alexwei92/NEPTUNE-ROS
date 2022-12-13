@@ -11,6 +11,7 @@
 #include <mavros_msgs/ManualControl.h>
 #include <mavros_msgs/State.h>
 #include <mavros_msgs/SetMode.h>
+#include <mavros_msgs/ParamGet.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <boost/bind.hpp>
@@ -39,10 +40,22 @@ public:
         ros::param::param<float>("~forward_speed", forward_speed, 0.5);
         ros::param::param<float>("~max_yawrate", max_yawrate, 45);
         ros::param::param<int>("~yaw_channel", yaw_channel, 3);
-        ros::param::param<int>("~yaw_pwm_min", yaw_pwm_min, 982);
-        ros::param::param<int>("~yaw_pwm_max", yaw_pwm_max, 2006);
         ros::param::param<std::string>("~control_source", control_source, "rc");
         ros::param::param<bool>("~hover_test", hover_test, false);
+
+        ros::service::waitForService("/mavros/param/get");
+        mavros_msgs::ParamGet srv1, srv2;
+        srv1.request.param_id = "RC" + std::to_string(yaw_channel+1) + "_MIN";
+        srv2.request.param_id = "RC" + std::to_string(yaw_channel+1) + "_MAX";
+        if (ros::service::call("/mavros/param/get", srv1)
+            && ros::service::call("/mavros/param/get", srv2)) 
+        {
+            yaw_pwm_min = int(srv1.response.value.real);
+            yaw_pwm_max = int(srv2.response.value.real);
+        } else {
+            yaw_pwm_min = 1000;
+            yaw_pwm_max = 2000;
+        }
 
         // set forward speed to 0 for hover test
         if (hover_test) {
