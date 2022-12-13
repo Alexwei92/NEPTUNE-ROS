@@ -1,0 +1,11 @@
+<launch>
+  <!-- D435i -->
+  <include file="$(find neptune_ros)/launch/camera/rs_d435i.launch" /> 
+
+  <!-- T265 -->
+  <include file="$(find neptune_ros)/launch/camera/rs_t265.launch" />
+
+  <!-- bridge to mavros -->
+  <include file="$(find neptune_ros)/launch/vio/bridge_t265.launch" />
+
+</launch>
