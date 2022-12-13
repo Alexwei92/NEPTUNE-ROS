@@ -50,9 +50,11 @@ public:
         if (ros::service::call("/mavros/param/get", srv1)
             && ros::service::call("/mavros/param/get", srv2)) 
         {
+            ROS_INFO("Read PWM Range from vehicle successfully!");
             yaw_pwm_min = int(srv1.response.value.real);
             yaw_pwm_max = int(srv2.response.value.real);
         } else {
+            ROS_WARN("Read PWM Range from vehicle failed!");
             yaw_pwm_min = 1000;
             yaw_pwm_max = 2000;
         }
