@@ -7,7 +7,7 @@ import onnxruntime as ort
 import tensorrt as trt
 import time
 
-from affordance_net import AffordanceNet
+from affordance_net import AffordanceNet_Resnet18
 from log_utils import timer, logger
 import common
 
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     # Pytorch load time
     load_pytorch = timer('Load Pytorch Model')
-    pytorch_model = AffordanceNet(
+    pytorch_model = AffordanceNet_Resnet18(
                 input_dim=input_dim,
                 output_dim=output_dim,
                 n_image=n_image).eval().cuda()

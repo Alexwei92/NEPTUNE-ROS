@@ -51,7 +51,7 @@ class Resnet18(nn.Module):
         x = F.tanh(x)
         return x
 
-class AffordanceNet(nn.Module):
+class AffordanceNet_Resnet18(nn.Module):
     """
     Affordance Prediction Model
     """

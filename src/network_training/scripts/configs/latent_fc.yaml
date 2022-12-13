@@ -1,11 +1,10 @@
 model_params:
-  name:                   'vanilla_vae'
+  name:                   'latent_fc'
   in_channels:            3
-  z_dim:                  128
-  input_dim:              128
+  with_yawRate:           False
 
 train_params:
-  batch_size:             128
+  batch_size:             256
   n_epochs:               100
   optimizer:
     type:                 'Adam'
@@ -17,10 +16,9 @@ train_params:
     enable:               False
     step_size:            50
     gamma:                0.5
-
+    
 log_params:
-  name:                   'vanilla_vae'
+  name:                   'latent_fc'
   log_interval:           10
-  checkpoint_preload:     True
-  generate_samples:       True
+  checkpoint_preload:     False
   use_tensorboard:        True

@@ -5,7 +5,7 @@ import torch
 from torchvision import transforms
 import tensorrt as trt
 
-from models import AffordanceNet, AffordanceNet_New
+from models import AffordanceNet_Resnet18, AffordanceNet_Resnet50
 from utils.train_utils import read_yaml
 
 curr_dir        = os.path.dirname(os.path.abspath(__file__))
@@ -42,7 +42,7 @@ class AffordanceCtrl():
         '''
         afford_model_config = read_yaml(os.path.join(config_dir, 'affordance.yaml'))
         model = torch.load(model_path)
-        self.afford_model = AffordanceNet(**afford_model_config['model_params']).to(self.device)
+        self.afford_model = AffordanceNet_Resnet18(**afford_model_config['model_params']).to(self.device)
         self.afford_model.load_state_dict(model)
         self.afford_model.eval()
         self.image_resize = [self.afford_model.input_dim, self.afford_model.input_dim]

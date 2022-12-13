@@ -1,6 +1,6 @@
 import os
 import torch
-from affordance_net import AffordanceNet
+from affordance_net import AffordanceNet_Resnet18
 import tensorrt as trt
 
 from log_utils import timer, logger
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     input_dim = 256
     output_dim = 2
     n_image = 4
-    model = AffordanceNet(
+    model = AffordanceNet_Resnet18(
             input_dim=input_dim,
             output_dim=output_dim,
             n_image=n_image).eval().cuda()

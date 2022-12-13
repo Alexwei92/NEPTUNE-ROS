@@ -62,7 +62,7 @@ class ExtractData():
         # heading
         compass_heading = np.radians(compass_hdg_sync['data'])
 
-        # local position utm
+        # local position
         local_pos_x = []
         local_pos_y = []
         for i in range(len(piksi_global_position_sync)):

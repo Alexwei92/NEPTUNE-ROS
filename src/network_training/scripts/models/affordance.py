@@ -127,7 +127,7 @@ class FC_NN(nn.Module):
         
         return x
 
-class AffordanceNet(nn.Module):
+class AffordanceNet_Resnet18(nn.Module):
     """
     Affordance Prediction Model
     """
@@ -157,7 +157,7 @@ class AffordanceNet(nn.Module):
         }
 
 
-class AffordanceNet_New(nn.Module):
+class AffordanceNet_Resnet50(nn.Module):
     """
     Affordance Prediction Model
     """

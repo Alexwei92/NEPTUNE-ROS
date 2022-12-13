@@ -21,8 +21,8 @@ from imitation_learning import VAETrain
 transform_composed = transforms.Compose([
     transforms.ToTensor(),
     transforms.RandomHorizontalFlip(),
-    transforms.RandomAdjustSharpness(np.random.uniform(0.8,1.2)),
-    transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+    transforms.RandomAdjustSharpness(np.random.uniform(1-0.3, 1+0.3)),
+    transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.3),
     transforms.Normalize((0.5), (0.5))
 ])
 ###################################################
@@ -46,13 +46,14 @@ class VAEDataset(Dataset):
         self.configure(dataset_dir)
 
     def configure(self, dataset_dir):
-        for subfolder in os.listdir(dataset_dir):
-            subfolder_path = os.path.join(dataset_dir, subfolder)
-            print(subfolder_path)
-            # RGB image
-            rgb_file_list = glob.glob(os.path.join(subfolder_path, 'color', '*.png'))
-            rgb_file_list.sort()
-            self.rgb_file_list.extend(rgb_file_list)
+        for folder in dataset_dir:
+            for subfolder in os.listdir(folder):
+                subfolder_path = os.path.join(folder, subfolder)
+                print(subfolder_path)
+                # RGB image
+                rgb_file_list = glob.glob(os.path.join(subfolder_path, 'color', '*.png'))
+                rgb_file_list.sort()
+                self.rgb_file_list.extend(rgb_file_list)
 
     def __len__(self):
         return len(self.rgb_file_list)
@@ -83,6 +84,13 @@ if __name__ == '__main__':
         raise IOError("No such folder {:s}".format(dataset_dir))
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
+
+    # Extra data folder
+    extra_dataset_dir   = train_config['path_params']['extra_dataset_dir']
+    if extra_dataset_dir != 'None':
+        dataset_dir = [dataset_dir, extra_dataset_dir]
+    else:
+        dataset_dir = [dataset_dir]
 
     # Load training settings
     device              = torch.device(train_config['train_params']['device'])

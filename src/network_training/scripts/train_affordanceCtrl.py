@@ -11,7 +11,7 @@ from sklearn.utils import shuffle
 from torchvision import transforms
 from torch.utils.data import Dataset
 
-from models import AffordanceFC, AffordanceNet
+from models import AffordanceFC, AffordanceNet_Resnet18
 from imitation_learning import AffordanceCtrlTrain
 from utils.train_utils import *
 
@@ -197,7 +197,7 @@ if __name__ == '__main__':
     map_data            = read_map_data(os.path.join(spline_data_dir, map_name+'_spline_result.csv'))
 
     # Load affordance model
-    afford_model = AffordanceNet(**afford_model_config['model_params'])
+    afford_model = AffordanceNet_Resnet18(**afford_model_config['model_params'])
 
     if not os.path.isfile(model_path):
         raise IOError("***No such file!", model_path)

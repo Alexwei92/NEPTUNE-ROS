@@ -10,7 +10,7 @@ from torch.utils.data import Dataset
 from sklearn.model_selection import train_test_split
 
 from utils.train_utils import *
-from models import AffordanceNet, AffordanceNet_New
+from models import AffordanceNet_Resnet18, AffordanceNet_Resnet50
 from imitation_learning import AffordanceTrain
 
 # Path settings
@@ -165,7 +165,7 @@ if __name__ == '__main__':
     model_config   = read_yaml(os.path.join(train_config_dir, 'affordance' + '.yaml'))
 
     # Create the agent
-    model = AffordanceNet(**model_config['model_params'])
+    model = AffordanceNet_Resnet18(**model_config['model_params'])
     model_config['log_params']['output_dir'] = output_dir
     train_agent = AffordanceTrain(model=model,
                         device=device,
