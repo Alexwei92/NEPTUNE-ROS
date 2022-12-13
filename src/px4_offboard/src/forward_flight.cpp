@@ -48,16 +48,17 @@ public:
         mavros_msgs::ParamGet srv1, srv2;
         srv1.request.param_id = "RC" + std::to_string(yaw_channel+1) + "_MIN";
         srv2.request.param_id = "RC" + std::to_string(yaw_channel+1) + "_MAX";
-        yaw_pwm_min = 1000;
-        yaw_pwm_max = 2000;
-        if (ros::service::call("/mavros/param/get", srv1)
-            && ros::service::call("/mavros/param/get", srv2)) 
+
+        if (ros::service::call("/mavros/param/get", srv1) && srv1.response.value.real != 0 
+            && ros::service::call("/mavros/param/get", srv2) && srv2.response.value.real != 0)
         {
             ROS_INFO("Read PWM Range from vehicle successfully!");
             yaw_pwm_min = int(srv1.response.value.real);
             yaw_pwm_max = int(srv2.response.value.real);
         } else {
             ROS_WARN("Read PWM Range from vehicle failed!");
+            yaw_pwm_min = 1000;
+            yaw_pwm_max = 2000;
         }
 
         // set forward speed to 0 for hover test
