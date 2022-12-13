@@ -12,7 +12,7 @@
         <param name="forward_speed"  type="double"  value="$(arg forward_speed)"/>
         <param name="max_yawrate"    type="double"  value="45.0"/>
         <param name="yaw_channel"    type="int"     value="3"/>
-        <param name="yaw_pwm_min"    type="int"     value="1067"/>
+        <param name="yaw_pwm_min"    type="int"     value="1066"/>
         <param name="yaw_pwm_max"    type="int"     value="1932"/>
         <param name="control_source" type="string"  value="rc"/>
         <param name="hover_test"     type="bool"    value="$(arg hover_test)"/>
