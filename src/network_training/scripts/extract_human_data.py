@@ -148,11 +148,7 @@ class ExtractHumanData():
         states['yaw_rate'] = angular_z
         states['control_cmd'] = control_cmd
 
-        parent_folder_name = os.path.join(self.output_folder, "human_data")
-        if not os.path.isdir(parent_folder_name):
-            os.mkdir(parent_folder_name)
-
-        output_data_folder = os.path.join(parent_folder_name, self.bag_folder_name)
+        output_data_folder = os.path.join(self.output_folder, self.bag_folder_name)
         if os.path.isdir(output_data_folder):
             shutil.rmtree(output_data_folder)
 
@@ -170,8 +166,8 @@ class ExtractHumanData():
 
 
 if __name__ == "__main__":
-    root_folder_path = '/media/lab/NEPTUNE2/field_raw_datasets/2022-12-06_Human'
-    output_folder = '/media/lab/NEPTUNE2/field_datasets'
+    root_folder_path = '/media/lab/NEPTUNE2/field_raw_datasets/2022-12-13_Demon'
+    output_folder = '/media/lab/NEPTUNE2/field_datasets/human_data'
 
     #### 
     curr_dir = os.path.dirname(__file__)

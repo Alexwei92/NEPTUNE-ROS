@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Extract from raw camera and GPS data and save them to a folder
+Extract from raw camera and GPS (i.e., px4 and piksi) data and save them to a folder
 """
 import os
 import shutil

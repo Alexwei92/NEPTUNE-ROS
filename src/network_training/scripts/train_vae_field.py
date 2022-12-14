@@ -22,7 +22,7 @@ transform_composed = transforms.Compose([
     transforms.ToTensor(),
     transforms.RandomHorizontalFlip(),
     transforms.RandomAdjustSharpness(np.random.uniform(1-0.3, 1+0.3)),
-    transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.3),
+    transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.0),
     transforms.Normalize((0.5), (0.5))
 ])
 ###################################################
