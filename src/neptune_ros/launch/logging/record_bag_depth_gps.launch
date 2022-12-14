@@ -5,7 +5,7 @@
     <node pkg="rosbag" type="record" name="record_bag" 
         args="record /$(arg camera_name)/color/image_raw/compressed
                 /$(arg camera_name)/color/camera_info
-                /$(arg camera_name)/aligned_depth_to_color/image_raw/compressedDepth
+                /$(arg camera_name)/aligned_depth_to_color/image_raw
                 /$(arg camera_name)/aligned_depth_to_color/camera_info
                 /$(arg camera_name)/infra1/image_rect_raw/compressed
                 /$(arg camera_name)/infra1/camera_info
