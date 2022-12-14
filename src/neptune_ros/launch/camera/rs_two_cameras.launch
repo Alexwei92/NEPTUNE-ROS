@@ -15,7 +15,7 @@
   </include>
 
   <!-- tf static -->
-  <node pkg="tf" type="static_transform_publisher" name="t265_to_d435i" args="-0.00143 0.0084 0.03782 0 -0.64577 0 /t265_link /d435i_link 50"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="t265_to_d435i" args="-0.00143 0.0084 0.03782 0 -0.64577 0 /t265_link /d435i_link"/>
 
   <!-- Duplicate the tf tree -->
   <node pkg="neptune_ros" type="duplicate_tf_tree.py" name="duplicate_tf_tree">

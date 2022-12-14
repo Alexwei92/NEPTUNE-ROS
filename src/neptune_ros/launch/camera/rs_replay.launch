@@ -25,7 +25,7 @@
         </node>
 
         <!-- static tf -->
-        <node pkg="tf" type="static_transform_publisher" name="baselink_to_drone" args="0 0 0 0 0 0 /base_link /drone_link 5"/>
+        <node pkg="tf2_ros" type="static_transform_publisher" name="baselink_to_drone" args="0 0 0 0 0 0 /base_link /drone_link"/>
     </group>
 
     <!-- rviz for visualization -->
