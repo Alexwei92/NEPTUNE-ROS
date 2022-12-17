@@ -2,8 +2,6 @@
 
 *.trt
 
-*.pt
-
 **/__pycache__/
 
 *.pyc
