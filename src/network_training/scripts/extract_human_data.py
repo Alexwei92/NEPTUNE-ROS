@@ -15,6 +15,7 @@ from tqdm import tqdm
 import rosbag
 from utils import rosbag_utils
 from utils.navigation_utils import *
+from utils.math_utils import euler_from_quaternion
 
 
 class ExtractHumanData():
@@ -73,6 +74,7 @@ class ExtractHumanData():
             global_position_crop,
             local_position_crop,
             velocity_body_crop,
+            rc_in_crop,
         ], printout=False)
 
         color_image_sync = sync_topics[0]
@@ -81,6 +83,7 @@ class ExtractHumanData():
         global_position_sync = sync_topics[3]
         local_position_sync = sync_topics[4]
         velocity_body_sync = sync_topics[5]
+        rc_in_sync = sync_topics[6]
 
         # heading
         compass_heading = np.radians(compass_hdg_sync['data'])
@@ -106,25 +109,50 @@ class ExtractHumanData():
 
         # local position odom
         odom_local_pos_z = []
+        roll_angle = []
+        pitch_angle = []
         for pose_msg in local_position_sync['pose']:
             odom_local_pos_z.append(pose_msg.pose.position.z)
+            roll, pitch, _ = euler_from_quaternion(pose_msg.pose.orientation)
+            roll_angle.append(roll)
+            pitch_angle.append(pitch)
+
         odom_local_pos_z = np.array(odom_local_pos_z)
+        roll_angle = np.array(roll_angle)
+        pitch_angle = np.array(pitch_angle)
 
         # velocity body
-        linear_x = []
+        linear_x, linear_y, linear_z = [], [], []
+        angular_x, angular_y, angular_z = [], [], []
+
         for twist_msg in velocity_body_sync['twist']:
             linear_x.append(twist_msg.linear.x)
-        linear_x = np.array(linear_x)
-
-        angular_z = []
-        for twist_msg in velocity_body_sync['twist']:
+            linear_y.append(twist_msg.linear.y)
+            linear_z.append(twist_msg.linear.z)
+            angular_x.append(twist_msg.angular.x)
+            angular_y.append(twist_msg.angular.y)
             angular_z.append(twist_msg.angular.z)
+
+        linear_x = np.array(linear_x)
+        linear_y = np.array(linear_y)  
+        linear_z = np.array(linear_z)
+        angular_x = np.array(angular_x)            
+        angular_y = np.array(angular_y)          
         angular_z = np.array(angular_z)
 
         # human input
         control_cmd = setpoint_raw_sync['yaw_rate'].to_numpy()
         control_cmd = -control_cmd / (45.0 * np.pi / 180)
         control_cmd[abs(control_cmd) < 1e-2] = 0.0
+
+        # ai mode
+        ai_mode = []
+        for msg in rc_in_sync['channels']:
+            if msg[6] > 1500:
+                ai_mode.append(True)
+            else:
+                ai_mode.append(False)
+        ai_mode = np.array(ai_mode)
 
         ## read images
         bridge = CvBridge()
@@ -145,8 +173,16 @@ class ExtractHumanData():
         states['utm_pos_y'] = utm_local_pos_y
         states['heading'] = heading
         states['odom_pos_z'] = odom_local_pos_z
-        states['yaw_rate'] = angular_z
+        states['roll_rad'] = roll_angle
+        states['pitch_rad'] = pitch_angle
+        states['body_linear_x'] = linear_x
+        states['body_linear_y'] = linear_y
+        states['body_linear_z'] = linear_z
+        states['body_angular_x'] = angular_x
+        states['body_angular_y'] = angular_y
+        states['body_angular_z'] = angular_z
         states['control_cmd'] = control_cmd
+        states['ai_mode'] = ai_mode
 
         output_data_folder = os.path.join(self.output_folder, self.bag_folder_name)
         if os.path.isdir(output_data_folder):
@@ -157,7 +193,23 @@ class ExtractHumanData():
 
         states.to_csv(
             os.path.join(output_data_folder, 'states.csv'),
-            columns=['time', 'utm_pos_x', 'utm_pos_y', 'heading', 'odom_pos_z', 'yaw_rate', 'control_cmd'],
+            columns=[
+                'time',
+                'utm_pos_x',
+                'utm_pos_y',
+                'heading',
+                'odom_pos_z',
+                'roll_rad',
+                'pitch_rad',
+                'body_linear_x',
+                'body_linear_y',
+                'body_linear_z',
+                'body_angular_x',
+                'body_angular_y',
+                'body_angular_z',
+                'control_cmd',
+                'ai_mode',
+            ],
             index=False,
         )
 
@@ -166,7 +218,7 @@ class ExtractHumanData():
 
 
 if __name__ == "__main__":
-    root_folder_path = '/media/lab/NEPTUNE2/field_raw_datasets/2022-12-13_Demon'
+    root_folder_path = '/media/lab/NEPTUNE2/field_raw_datasets/2022-12-15_Demon'
     output_folder = '/media/lab/NEPTUNE2/field_datasets/human_data'
 
     #### 

@@ -9,8 +9,8 @@ from torchvision import transforms
 from torch.utils.data import Dataset
 
 from utils.train_utils import read_yaml
-from models import VanillaVAE
-from imitation_learning import VAETrain
+from models import VAEGAN
+from imitation_learning import VAEGANTrain
 
 # torch.backends.cudnn.enabled = True
 # torch.backends.cudnn.benchmark = True
@@ -99,15 +99,14 @@ if __name__ == '__main__':
     random_state        = train_config['dataset_params']['random_state']
 
     ##########  Training   ###########
-    print('============== VAE training ================')
+    print('============== VAE GAN training ================')
     # Load parameters
-    vae_type       = train_config['vae_params']['vae_type']
-    model_config   = read_yaml(os.path.join(train_config_dir, vae_type + '.yaml'))
+    model_config   = read_yaml(os.path.join(train_config_dir, 'vae_gan.yaml'))
 
     # Create the agent
-    model = VanillaVAE(**model_config['model_params'])
+    model = VAEGAN(**model_config['model_params'])
     model_config['log_params']['output_dir'] = output_dir
-    train_agent = VAETrain(model=model,
+    train_agent = VAEGANTrain(model=model,
                         device=device,
                         is_eval=False,
                         train_params=model_config['train_params'],
@@ -133,7 +132,7 @@ if __name__ == '__main__':
         train_data, test_data = train_test_split(all_data,
                                             test_size=test_size,
                                             random_state=random_state)       
-    print('Loaded VAE datasets successfully!')
+    print('Loaded VAE GAN datasets successfully!')
     print('Total number of images = %d' % len(train_data))
 
     # Training loop

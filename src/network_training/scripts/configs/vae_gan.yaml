@@ -1,0 +1,36 @@
+model_params:
+  name:                   'vae_gan'
+  in_channels:            3
+  z_dim:                  1000
+  input_dim:              128
+
+train_params:
+  batch_size:             64
+  n_epochs:               50
+  optimizerE:             # Encoder
+    type:                 'Adam'
+    learning_rate:        0.0001
+    betas:                (0.5, 0.999)
+    weight_decay:         0.0
+  optimizerG:             # Generater
+    type:                 'Adam'
+    learning_rate:        0.0001
+    betas:                (0.5, 0.999)
+    weight_decay:         0.0
+  optimizerD:             # Discriminator
+    type:                 'Adam'
+    learning_rate:        0.00001
+    betas:                (0.5, 0.999)
+    weight_decay:         0.0
+  manual_seed:            1234
+  lr_scheduler:
+    enable:               False
+    step_size:            50
+    gamma:                0.5
+
+log_params:
+  name:                   'vae_gan'
+  log_interval:           1
+  checkpoint_preload:     True
+  generate_samples:       True
+  use_tensorboard:        True

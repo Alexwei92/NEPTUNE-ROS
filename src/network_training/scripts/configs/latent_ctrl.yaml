@@ -1,14 +1,14 @@
 model_params:
-  name:                   'latent_fc'
+  name:                   'latent_ctrl'
   in_channels:            3
-  with_yawRate:           False
+  extra_dim:              5
 
 train_params:
-  batch_size:             256
-  n_epochs:               100
+  batch_size:             128
+  n_epochs:               150
   optimizer:
     type:                 'Adam'
-    learning_rate:        0.00005
+    learning_rate:        0.0001
     betas:                (0.9, 0.999)
     weight_decay:         0.0
   manual_seed:            1234
@@ -18,7 +18,7 @@ train_params:
     gamma:                0.5
     
 log_params:
-  name:                   'latent_fc'
-  log_interval:           10
+  name:                   'latent_ctrl'
+  log_interval:           5
   checkpoint_preload:     False
   use_tensorboard:        True

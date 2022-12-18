@@ -15,54 +15,17 @@ def weights_init(m):
         torch.nn.init.zeros_(m.bias)
 
 
-class NN1(nn.Module):
+class FC(nn.Module):
     '''
     Simple fully-connected network
-    with extra state appended to the last net
+    with extra states appended to the first net
     '''
     def __init__(self, z_dim, extra_dim=0):
         super().__init__()
-        self.linear1 = nn.Linear(z_dim, 256)
-        self.linear2 = nn.Linear(256, 256)
-        self.linear3 = nn.Linear(256, 256)
-        self.linear4 = nn.Linear(256, 1)
-        if extra_dim > 0:
-            self.linear5 = nn.Linear(extra_dim + 1, 1)
-
-    def forward(self, x, x_extra):
-        # Hidden layers
-        x = self.linear1(x)
-        x = F.relu(x)
-
-        x = self.linear2(x)
-        x = F.relu(x)
-
-        x = self.linear3(x)
-        x = F.relu(x)
-
-        x = self.linear4(x)
-        x = torch.tanh(x)
-
-        if x_extra is not None:
-            x = torch.cat([x, x_extra], axis=1)
-            x = self.linear5(x)
-        
-        return x
-
-class NN2(nn.Module):
-    '''
-    Simple fully-connected network
-    with yaw rate appended to the first net
-    '''
-    def __init__(self, z_dim, with_yawRate=False):
-        super().__init__()
-        if with_yawRate:
-            self.input_layer = nn.Linear(z_dim+1, 256)
-        else:
-            self.input_layer = nn.Linear(z_dim, 256)
-        self.hidden_layer1 = nn.Linear(256, 256)
-        self.hidden_layer2 = nn.Linear(256, 256)
-        self.final_layer = nn.Linear(256, 1)
+        self.input_layer = nn.Linear(z_dim + extra_dim, 512)
+        self.hidden_layer1 = nn.Linear(512, 256)
+        self.hidden_layer2 = nn.Linear(256, 64)
+        self.final_layer = nn.Linear(64, 1)
 
     def forward(self, x, x_extra):
         # Hidden layers
@@ -83,19 +46,19 @@ class NN2(nn.Module):
         
         return x
 
-class LatentFC(nn.Module):
+class LatentCtrl(nn.Module):
     """
     Latent Fully Connected Model
     """
     def __init__(self,
                 name,
                 z_dim, 
-                with_yawRate,
+                extra_dim,
                 **kwargs):
         super().__init__()
         
         self.name = name
-        self.NN = NN2(z_dim, with_yawRate)
+        self.NN = FC(z_dim, extra_dim)
         self.NN.apply(weights_init)
         self.z_dim = z_dim
 
