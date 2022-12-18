@@ -136,7 +136,7 @@ class AgentControl():
                         rospy.logerr("Switched to AI agent control Failed!")
                     else:
                         self.is_active = True
-                        rospy.loginfo(1, "Switched to AI agent control!")
+                        rospy.loginfo("Switched to AI agent control!")
             else:
                 if self.is_active:
                     self.is_active = False
