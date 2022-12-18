@@ -38,6 +38,14 @@ class AgentControl():
 
     def init_agent(self):
         self.agent = VAECtrl(**model_config)
+        self.warm_start()
+
+    def warm_start(self):
+        image_size = self.agent.VAE_model.input_dim
+        test_color_img = np.zeros((image_size, image_size, 3), dtype=np.uint8)
+        test_state_extra = np.array([0, 0, 0, 0, 0], dtype=np.float32)
+        for i in range(5):
+            self.agent.predict(test_color_img, state_extra=test_state_extra)
 
     def init_variable(self):
         # flag
@@ -122,17 +130,17 @@ class AgentControl():
 
     def rc_in_callback(self, msg):
         if msg is not None:
-            if msg[6] > 1500: # use channel 7 to control the mode
+            if msg.channels[6] > 1500: # use channel 7 to control the mode
                 if not self.is_active:
                     if (not self.camera_is_ready) or (not self.mavros_is_ready):
-                        rospy.logerr("Switched to AI control Failed!")
+                        rospy.logerr("Switched to AI agent control Failed!")
                     else:
                         self.is_active = True
-                        rospy.loginfo(1, "Switched to AI control Successfully!")
+                        rospy.loginfo(1, "Switched to AI agent control!")
             else:
                 if self.is_active:
                     self.is_active = False
-                    rospy.loginfo_throttle(1, "Switched to Manual Control!")
+                    rospy.loginfo("Switched to Manual Control!")
 
     def publish_control_cmd(self, control_cmd, is_active):
         msg = ControlCmd()
