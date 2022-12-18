@@ -1,17 +1,31 @@
-import torch
 import os
 import cv2
 import numpy as np
+import yaml
+import torch
 from torchvision import transforms
 
 from models import VanillaVAE, LatentCtrl
-from utils.train_utils import read_yaml
 
 curr_dir        = os.path.dirname(os.path.abspath(__file__))
 parent_dir      = os.path.dirname(curr_dir)
 config_dir      = os.path.join(parent_dir, 'configs')
 
 MAX_YAWRATE = 45.0 
+
+def read_yaml(file_path):
+    '''
+    Read yaml file
+    '''
+    try:
+        file = open(file_path, 'r')
+        config = yaml.safe_load(file)
+        file.close()
+        return config
+
+    except Exception as error:
+        print(error)
+        exit('Exit the program.')
 
 class VAECtrl():
     '''
@@ -31,7 +45,7 @@ class VAECtrl():
                                     transforms.Normalize((0.5), (0.5)),
                                 ]) 
         
-    def load_model(self, vae_model_path, latent_model_path=None, **kwargs):
+    def load_model(self, vae_model_path, latent_model_path, **kwargs):
         '''
         Load Model
         '''
@@ -42,7 +56,9 @@ class VAECtrl():
         '''
         Load VAE model
         '''
-        model_config = read_yaml(os.path.join(config_dir, 'vanilla_vae.yaml'))
+        model_config = {
+            
+        }
         model = torch.load(model_path)
         self.VAE_model = VanillaVAE(**model_config['model_params']).to(self.device)
         self.VAE_model.load_state_dict(model)
