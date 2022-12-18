@@ -197,7 +197,7 @@ class AgentControl():
 
     def reset(self):
         self.init_variable()
-
+        rospy.loginfo('Reset!')
 
 if __name__ == "__main__":
     handler = AgentControl()
