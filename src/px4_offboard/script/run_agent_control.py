@@ -49,7 +49,7 @@ class AgentControl():
 
     def init_variable(self):
         # flag
-        self.is_active = True
+        self.is_active = False
         self.camera_is_ready = False
         self.mavros_is_ready = False
 
