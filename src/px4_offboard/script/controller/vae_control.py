@@ -56,9 +56,7 @@ class VAECtrl():
         '''
         Load VAE model
         '''
-        model_config = {
-            
-        }
+        model_config = read_yaml(os.path.join(config_dir, 'vanilla_vae.yaml'))
         model = torch.load(model_path)
         self.VAE_model = VanillaVAE(**model_config['model_params']).to(self.device)
         self.VAE_model.load_state_dict(model)

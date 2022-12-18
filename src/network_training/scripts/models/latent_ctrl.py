@@ -24,8 +24,8 @@ class FC(nn.Module):
         super().__init__()
         self.input_layer = nn.Linear(z_dim + extra_dim, 512)
         self.hidden_layer1 = nn.Linear(512, 256)
-        self.hidden_layer2 = nn.Linear(256, 64)
-        self.final_layer = nn.Linear(64, 1)
+        self.hidden_layer2 = nn.Linear(256, 256)
+        self.final_layer = nn.Linear(256, 1)
 
     def forward(self, x, x_extra):
         # Hidden layers
