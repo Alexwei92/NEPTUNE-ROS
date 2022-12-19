@@ -181,8 +181,8 @@ if __name__ == '__main__':
     if not os.path.isfile(vae_model_path):
         raise IOError("***No such file!", vae_model_path)
     else:
-        model = torch.load(vae_model_path, map_location='cpu')
-        vae_model.load_state_dict(model)
+        model_weight = torch.load(vae_model_path)
+        vae_model.load_state_dict(model_weight)
                 
     # Create the agent
     latent_model_config['log_params']['output_dir'] = output_dir

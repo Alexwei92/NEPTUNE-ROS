@@ -7,7 +7,7 @@ import cv2
 import time
 import matplotlib.pyplot as plt
 
-from controller import AffordanceCtrl
+from controller import AffordanceController
 
 import torch
 from torch import nn
@@ -94,7 +94,7 @@ if __name__ == '__main__':
         'afford_model_path': '/media/lab/NEPTUNE2/field_outputs/row_4_10_13/affordance (copy)/affordance_model.pt'
     }
     
-    agent_controller = AffordanceCtrl(**model_param)
+    agent_controller = AffordanceController(**model_param)
 
     ### 
     model = agent_controller.afford_model

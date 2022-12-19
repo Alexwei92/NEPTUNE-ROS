@@ -201,6 +201,6 @@ class BaseTrain():
         torch.save(checkpoint_dict, file_path)
 
     def warm_start_model(self, model_path):
-        model = torch.load(model_path)
-        self.model.load_state_dict(model)
+        model_weight = torch.load(model_path)
+        self.model.load_state_dict(model_weight)
         print('Warm start the model from {:s} successfully.'.format(model_path))

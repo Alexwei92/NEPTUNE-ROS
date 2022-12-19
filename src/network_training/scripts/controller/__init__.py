@@ -1,1 +1,1 @@
-from .affordance_control import AffordanceCtrl
+from .affordance_control import AffordanceController

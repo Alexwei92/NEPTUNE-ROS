@@ -9,16 +9,15 @@ from sensor_msgs.msg import Image
 from mavros_msgs.msg import RCIn
 from px4_offboard.msg import ControlCmd
 
-from controller import VAECtrl
+from controller import VAELatentController
 from utils.math_utils import euler_from_quaternion, constrain_value
 
 ######################
 curr_dir = os.path.dirname(os.path.abspath(__file__))
-trained_model_dir = os.path.abspath(os.path.join(curr_dir, "../../../model/vae"))
+trained_model_dir = os.path.abspath(os.path.join(curr_dir, "../../../model_weight/vae"))
 
 model_config = {
-    'vae_model_path': os.path.join(trained_model_dir, 'vanilla_vae_model_z_1000.pt'),
-    'latent_model_path': os.path.join(trained_model_dir, 'latent_ctrl_vanilla_vae_model_z_1000.pt'),
+    'model_path': os.path.join(trained_model_dir, 'combined_vae_latent_ctrl_z_1000.pt'),
 }
 ######################
 
@@ -37,11 +36,11 @@ class AgentControl():
         rospy.loginfo("The agent controller has been initialized!")
 
     def init_agent(self):
-        self.agent = VAECtrl(**model_config)
+        self.agent = VAELatentController(**model_config)
         self.warm_start()
 
     def warm_start(self):
-        image_size = self.agent.VAE_model.input_dim
+        image_size = self.agent.model.input_dim
         test_color_img = np.zeros((image_size, image_size, 3), dtype=np.uint8)
         test_state_extra = np.array([0, 0, 0, 0, 0], dtype=np.float32)
         for i in range(5):
@@ -151,11 +150,11 @@ class AgentControl():
 
     def check_status(self):
         # check topic timeout
-        if self.camera_is_ready and (rospy.Time.now() - self.last_color_timestamp).to_sec() > 0.2:
+        if self.camera_is_ready and (rospy.Time.now() - self.last_color_timestamp).to_sec() > 0.3:
             rospy.logwarn_throttle(1, 'Color image stream rate is slow!')
             self.camera_timeout_counter += 1
 
-        if self.mavros_is_ready and (rospy.Time.now() - self.last_local_position_timestamp).to_sec() > 0.1:
+        if self.mavros_is_ready and (rospy.Time.now() - self.last_local_position_timestamp).to_sec() > 0.2:
             rospy.logwarn_throttle(1, 'Mavros data stream rate is slow!')
             self.mavros_timeout_counter += 1
 
@@ -169,7 +168,6 @@ class AgentControl():
             self.reset()
 
     def run(self):
-        rospy.loginfo("Start running!")
         while not rospy.is_shutdown():
             # check status
             self.check_status()
@@ -201,5 +199,6 @@ class AgentControl():
 
 if __name__ == "__main__":
     handler = AgentControl()
-    rospy.sleep(3.0)
+    rospy.sleep(2.0)
+    rospy.loginfo("Start running!")
     handler.run()

@@ -9,7 +9,7 @@ import cv2
 import matplotlib.pyplot as plt
 
 from utils.plot_utils import plot_single_data
-from controller import AffordanceCtrl
+from controller import AffordanceController
 
 
 if __name__ == "__main__":
@@ -30,7 +30,7 @@ if __name__ == "__main__":
         'afford_model_path': '/media/lab/NEPTUNE2/field_outputs/row_4_10_13/affordance/affordance_model.pt'
     }
     
-    agent_controller = AffordanceCtrl(**model_param)
+    agent_controller = AffordanceController(**model_param)
 
     ###
     # folder_path = "/media/lab/NEPTUNE2/field_datasets/row_4/2022-10-14-10-01-08"

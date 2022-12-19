@@ -1,5 +1,0 @@
-model_params:
-  name:                   'vanilla_vae'
-  in_channels:            3
-  z_dim:                  1000
-  input_dim:              128

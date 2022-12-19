@@ -1,6 +1,6 @@
 model_params:
   name:                   'latent_ctrl'
-  in_channels:            3
+  z_dim:                  1000
   extra_dim:              5
 
 train_params:

@@ -7,7 +7,7 @@ from collections import deque
 import rospy
 from sensor_msgs.msg import Image
 
-from controller import AffordanceCtrl
+from controller import AffordanceController
 
 class CameraStream():
     LOOP_RATE = 15 # Hz
@@ -69,7 +69,7 @@ class CameraStream():
         self.depth_img_queue.append(img_np)
 
     def load_affordance_model(self, **model_param):
-        self.agent_controller = AffordanceCtrl(**model_param)
+        self.agent_controller = AffordanceController(**model_param)
         rospy.loginfo("Load Affordance Model Successfully!")
 
     def run(self):

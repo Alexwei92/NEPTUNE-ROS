@@ -2,6 +2,8 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
+from .vanilla_vae import Encoder
+
 # Weights initialization
 def weights_init(m):
     classname = m.__class__.__name__
@@ -69,6 +71,35 @@ class LatentCtrl(nn.Module):
     def loss_function(self, y_pred, y):
         loss = F.mse_loss(y_pred, y, reduction='mean')
         return {'total_loss': loss}
+
+    def get_latent_dim(self):
+        return self.z_dim
+
+
+class VAELatentCtrl(nn.Module):
+    """
+    VAE Encoder + Latent FC Model
+    """
+    def __init__(self,
+                name,
+                input_dim,
+                in_channels,
+                z_dim, 
+                extra_dim,
+                **kwargs):
+        super().__init__()
+        
+        self.name = name
+        self.Encoder = Encoder(input_dim, z_dim, in_channels)
+        self.LatentFC = FC(z_dim, extra_dim)
+        self.input_dim = input_dim
+        self.z_dim = z_dim
+
+    def forward(self, x, z_extra=None):
+        mu, _ = self.Encoder(x)
+        z = mu # ignore logvar
+        y_pred = self.LatentFC(z, z_extra)
+        return y_pred
 
     def get_latent_dim(self):
         return self.z_dim

@@ -8,7 +8,7 @@ import cv2
 import pandas
 import time
 
-from controller.vae_control import VAECtrl
+from controller.vae_latent_control import VAECtrl, VAELatentController
 
 BLACK = (0,0,0)
 WHITE = (255,255,255)
@@ -110,10 +110,12 @@ if __name__ == '__main__':
     # Load VAE parameter
     model_config = {
         'vae_model_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/vanilla_vae/vanilla_vae_model_z_1000.pt',
-        'latent_model_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/latent_ctrl/latent_ctrl_vanilla_vae_model_z_1000.pt'
+        'latent_model_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/latent_ctrl/latent_ctrl_vanilla_vae_model_z_1000.pt',
+        'model_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/combined_vae_latent_ctrl_z_1000.pt'
     }
 
     controller_agent = VAECtrl(**model_config)
+    test_controller_agent = VAELatentController(**model_config)
 
     tic = time.time()
     for i in range(len(data_dict['color_file_list'])):
@@ -134,10 +136,16 @@ if __name__ == '__main__':
 
         # predict
         predicted_action = controller_agent.predict(image_bgr, is_bgr=True, state_extra=state_extra)
+        test_predicted_action = test_controller_agent.predict(image_bgr, is_bgr=True, state_extra=state_extra)
         image_raw, image_pred = controller_agent.reconstruct_image(image_bgr, is_bgr=True)
 
         if abs(predicted_action) < 1e-2:
             predicted_action = 0.0
+
+        if abs(test_predicted_action) < 1e-2:
+            test_predicted_action = 0.0
+
+        # print(predicted_action, test_predicted_action)
 
         # plot
         image_raw = cv2.resize(image_raw, (320, 240))
@@ -146,7 +154,6 @@ if __name__ == '__main__':
         cv2.imshow('VAE', cv2.cvtColor(image_combine, cv2.COLOR_RGB2BGR))
 
         plot_with_cmd_compare('control', image_bgr, data_dict['control_cmd'][i], predicted_action)
-
 
         elapsed_time = time.time() - tic
         time.sleep(max(data_dict['timestamp'][i] - elapsed_time, 0))

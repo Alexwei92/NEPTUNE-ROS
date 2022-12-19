@@ -1,4 +1,0 @@
-model_params:
-  name:                   'latent_ctrl'
-  in_channels:            3
-  extra_dim:              5
