@@ -83,11 +83,14 @@ class VanillaVAE(nn.Module):
     Vanilla VAE Model
     """
     def __init__(self,
+                name,
                 input_dim,
                 in_channels,
-                z_dim):
+                z_dim,
+                **kwargs):
         super().__init__()
         
+        self.name = name
         self.Encoder = Encoder(input_dim, z_dim, in_channels)
         self.Decoder = Decoder(input_dim, z_dim, in_channels)
         self.z_dim = z_dim

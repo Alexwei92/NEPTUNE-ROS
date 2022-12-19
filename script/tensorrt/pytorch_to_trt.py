@@ -1,26 +1,36 @@
 import os
 import torch
-from network.affordance_net import AffordanceNet_Resnet18
-from network.vanilla_vae import VanillaVAE
+from models.affordance import AffordanceNet_Resnet18
+from models.vanilla_vae import VanillaVAE
+from models.latent_ctrl import VAELatentCtrl
 import tensorrt as trt
 
 from log_utils import timer, logger
 
-trt_logger = trt.Logger(trt.Logger.ERROR)
-trt_runtime = trt.Runtime(trt_logger)
-
+#################
 curr_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(curr_dir)
 root_dir = os.path.dirname(parent_dir)
-model_dir = os.path.join(root_dir, 'model')
+model_weight_dir = os.path.join(root_dir, 'model_weight')
+#################
 
-# MODEL_WEIGHT_PATH = os.path.join(model_dir, 'affordance/affordance_model.pt')
-# ONNX_FILE_PATH = os.path.join(model_dir, 'affordance/affordance_net.onnx')
-# TRT_PATH = os.path.join(model_dir, 'affordance/affordance_net.trt')
+MODEL_OPTION = 3
 
-MODEL_WEIGHT_PATH = os.path.join(model_dir, 'vae/vanilla_vae_model_z_1000.pt')
-ONNX_FILE_PATH = os.path.join(model_dir, 'vae/vanilla_vae_model_z_1000.onnx')
-TRT_PATH = os.path.join(model_dir, 'vae/vanilla_vae_model_z_1000.trt')
+if MODEL_OPTION == 1: # Affordance Net
+    MODEL_WEIGHT_PATH = os.path.join(model_weight_dir, 'affordance/affordance_model.pt')
+    ONNX_FILE_PATH = os.path.join(model_weight_dir, 'affordance/affordance_net.onnx')
+    TRT_PATH = os.path.join(model_weight_dir, 'affordance/affordance_net.trt')
+
+if MODEL_OPTION == 2: # VAE 
+    MODEL_WEIGHT_PATH = os.path.join(model_weight_dir, 'vae/vanilla_vae_model_z_1000.pt')
+    ONNX_FILE_PATH = os.path.join(model_weight_dir, 'vae/vanilla_vae_model_z_1000.onnx')
+    TRT_PATH = os.path.join(model_weight_dir, 'vae/vanilla_vae_model_z_1000.trt')
+
+if MODEL_OPTION == 3: # VAELatentCtrl
+    MODEL_WEIGHT_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000.pt')
+    ONNX_FILE_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000.onnx')
+    TRT_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000.trt')
+
 
 def build_engine(onnx_path):
     with trt.Builder(trt_logger) as builder, builder.create_network(1) as network, trt.OnnxParser(network, trt_logger) as parser:
@@ -38,20 +48,40 @@ def save_engine(serialized_engine, engine_path):
 
 if __name__ == '__main__':
 
+    trt_logger = trt.Logger(trt.Logger.ERROR)
+    trt_runtime = trt.Runtime(trt_logger)
+
     # Load Pytorch model and weight
     load_pytorch = timer("Loading Pytorch model")
 
-    # # Affordance Net
-    # model = AffordanceNet_Resnet18(
-    #         input_dim=256,
-    #         output_dim=2,
-    #         n_image=4).eval().cuda()
+    if MODEL_OPTION == 1:
+        model = AffordanceNet_Resnet18(
+            name='affordance',
+            input_dim=256,
+            output_dim=2,
+            n_image=4).eval().cuda()
 
-    # VAE
-    model = VanillaVAE(
+        sample_input = torch.ones((1, 3*4, 256, 256)).cuda()
+
+    if MODEL_OPTION == 2:
+        model = VanillaVAE(
+            name='vanilla_vae',
             input_dim=128,
             in_channels=3,
             z_dim=1000).eval().cuda()
+
+        sample_input = torch.ones((1, 3, 128, 128)).cuda()
+
+
+    if MODEL_OPTION == 3:
+        model = VAELatentCtrl(
+            name='vae_latent_ctrl',
+            input_dim=128,
+            in_channels=3,
+            z_dim=1000, 
+            extra_dim=5).eval().cuda()
+
+        sample_input = (torch.ones((1, 3, 128, 128)).cuda(), torch.zeros((1,5)).cuda())
 
     model_weight = torch.load(MODEL_WEIGHT_PATH)
     model.load_state_dict(model_weight)
@@ -59,8 +89,6 @@ if __name__ == '__main__':
 
     # Pytorch to onnx
     pytorch_to_onnx = timer("Convert Pytorch to ONNX file")
-    # sample_input = torch.ones((1, 3*4, 256, 256)).cuda()
-    sample_input = torch.ones((1, 3, 128, 128)).cuda()
     torch.onnx.export(model, sample_input, ONNX_FILE_PATH, input_names=['input'],
                         output_names=['output'], export_params=True)
     pytorch_to_onnx.end()
