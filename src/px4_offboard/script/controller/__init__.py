@@ -1,1 +1,1 @@
-from .vae_latent_control import VAELatentController
+from .vae_latent_control import VAELatentController, VAELatentController_TRT

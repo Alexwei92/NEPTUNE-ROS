@@ -3,7 +3,6 @@ import numpy as np
 import cv2
 import torch
 from torchvision import transforms
-import tensorrt as trt
 
 from models import AffordanceNet_Resnet18, AffordanceNet_Resnet50
 from utils.train_utils import read_yaml

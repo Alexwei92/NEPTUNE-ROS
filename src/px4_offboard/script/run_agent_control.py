@@ -1,4 +1,5 @@
 import os
+import sys
 import rospy
 import time
 import numpy as np
@@ -9,47 +10,51 @@ from sensor_msgs.msg import Image
 from mavros_msgs.msg import RCIn
 from px4_offboard.msg import ControlCmd
 
-from controller import VAELatentController
+from controller import VAELatentController, VAELatentController_TRT
 from utils.math_utils import euler_from_quaternion, constrain_value
 
 ######################
 curr_dir = os.path.dirname(os.path.abspath(__file__))
 model_weight_dir = os.path.abspath(os.path.join(curr_dir, "../../../model_weight/vae"))
-model_dir = os.path.abspath(os.path.join(curr_dir, "../../network_training/scripts/models"))
+extra_dir = os.path.abspath(os.path.join(curr_dir, "../../network_training/scripts"))
 
 model_config = {
     'model_weight_path': os.path.join(model_weight_dir, 'combined_vae_latent_ctrl_z_1000.pt'),
+    'tensorrt_engine_path': os.path.join(model_weight_dir, 'combined_vae_latent_ctrl_z_1000.trt'),
 }
 ######################
 
 class AgentControl():
-    def __init__(self):
+    def __init__(self, use_tensorrt=False):
         rospy.init_node("agent_control")
         self.rate = rospy.Rate(15)
 
-        self.start_time = time.time()
-
-        self.init_agent()
-        
+        self.init_agent(use_tensorrt)
         self.init_variable()
         self.define_subscriber()
         self.define_publisher()
+
         rospy.loginfo("The agent controller has been initialized!")
 
-    def init_agent(self):
-        self.agent = VAELatentController(**model_config)
+    def init_agent(self, use_tensorrt):
+        if use_tensorrt:
+            self.agent = VAELatentController_TRT(**model_config)
+        else:
+            self.agent = VAELatentController(**model_config)
+        
+        self.use_tensorrt = use_tensorrt
         self.warm_start()
 
-    def warm_start(self):
-        image_size = self.agent.model.input_dim
+    def warm_start(self, iter=3):
+        image_size = self.agent.input_dim
         test_color_img = np.zeros((image_size, image_size, 3), dtype=np.uint8)
         test_state_extra = np.array([0, 0, 0, 0, 0], dtype=np.float32)
-        for i in range(5):
+        for _ in range(int(iter)):
             self.agent.predict(test_color_img, state_extra=test_state_extra)
 
     def init_variable(self):
         # flag
-        self.is_active = False
+        self.is_active = True
         self.camera_is_ready = False
         self.mavros_is_ready = False
 
@@ -185,7 +190,9 @@ class AgentControl():
                 ], dtype=np.float32)
 
                 agent_output = self.agent.predict(self.color_img, is_bgr=False, state_extra=state_extra)
-
+                # print(agent_output)
+                
+                # remove trunction error
                 if abs(agent_output) < 1e-2:
                     agent_output = 0.0
 
@@ -199,7 +206,7 @@ class AgentControl():
         rospy.loginfo('Reset!')
 
 if __name__ == "__main__":
-    handler = AgentControl()
+    handler = AgentControl(use_tensorrt=True)
     rospy.sleep(2.0)
     rospy.loginfo("Start running!")
     handler.run()
