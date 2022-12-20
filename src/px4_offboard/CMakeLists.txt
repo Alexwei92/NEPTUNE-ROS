@@ -54,7 +54,6 @@ add_executable(forward_flight
 
 add_executable(forward_flight_dev
   src/forward_flight_dev.cpp
-  src/rulebased_ctrl.cpp
   src/pid.cpp)
 
 # target_link_libraries(offboard_test ${catkin_LIBRARIES})

@@ -18,7 +18,6 @@
 
 #include "common.h"
 #include "math_utils.h"
-#include "rulebased_ctrl.h"
 #include "pid.h"
 #include "px4_offboard/Affordance.h"
 #include "px4_offboard/ControlCmd.h"

@@ -1,7 +1,6 @@
+#!/usr/bin/env python3
 import os
-import sys
 import rospy
-import time
 import numpy as np
 
 from nav_msgs.msg import Odometry
