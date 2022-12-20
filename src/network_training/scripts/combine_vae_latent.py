@@ -8,7 +8,7 @@ from models import VanillaVAE, LatentCtrl, VAELatentCtrl
 if __name__ == '__main__':
 
     # Load VAE parameter
-    model_config = {
+    model_weight_config = {
         'vae_model_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/vanilla_vae/vanilla_vae_model_z_1000.pt',
         'latent_ctrl_model_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/latent_ctrl/latent_ctrl_vanilla_vae_model_z_1000.pt',
         'vae_latent_ctrl_model_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/combined_vae_latent_ctrl_z_1000.pt',
@@ -38,12 +38,12 @@ if __name__ == '__main__':
     try:
         # VAE
         vae_model = VanillaVAE(**vae_model_config)
-        vae_model_weight = torch.load(model_config['vae_model_path'])
+        vae_model_weight = torch.load(model_weight_config['vae_model_path'])
         vae_model.load_state_dict(vae_model_weight)
 
         # Latent Ctrl
         latent_ctrl_model = LatentCtrl(**latent_ctrl_model_config)
-        latent_ctrl_model_weight = torch.load(model_config['latent_ctrl_model_path'])
+        latent_ctrl_model_weight = torch.load(model_weight_config['latent_ctrl_model_path'])
         latent_ctrl_model.load_state_dict(latent_ctrl_model_weight)
 
         # Combine VAE Latent Ctrl
@@ -51,8 +51,8 @@ if __name__ == '__main__':
         vae_latent_ctrl_model.Encoder = vae_model.Encoder
         vae_latent_ctrl_model.LatentFC = latent_ctrl_model.NN
 
-        torch.save(vae_latent_ctrl_model.state_dict(), model_config['vae_latent_ctrl_model_path'])
-        print('File saved to %s' % model_config['vae_latent_ctrl_model_path'])
+        torch.save(vae_latent_ctrl_model.state_dict(), model_weight_config['vae_latent_ctrl_model_path'])
+        print('File saved to %s' % model_weight_config['vae_latent_ctrl_model_path'])
         print("Successful!")
 
     except Exception as error:

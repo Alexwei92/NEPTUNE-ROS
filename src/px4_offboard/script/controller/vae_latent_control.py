@@ -1,7 +1,13 @@
+import os
+import sys
 import cv2
 import numpy as np
 import torch
 from torchvision import transforms
+
+curr_dir = os.path.dirname(os.path.abspath(__file__))
+model_dir = os.path.abspath(os.path.join(curr_dir, "../../../network_training/scripts"))
+sys.path.insert(0, model_dir)
 
 from models import VAELatentCtrl
 
@@ -31,12 +37,12 @@ class VAELatentController():
                                     transforms.Normalize((0.5), (0.5)),
                                 ]) 
         
-    def load_model(self, model_path, **kwargs):
+    def load_model(self, model_weight_path, **kwargs):
         '''
         Load Model
         '''
         self.model = VAELatentCtrl(**vae_latent_ctrl_model_config).to(self.device)
-        model_weight = torch.load(model_path)
+        model_weight = torch.load(model_weight_path)
         self.model.load_state_dict(model_weight)
 
     def predict(self, image_color, is_bgr=True, state_extra=None):

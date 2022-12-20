@@ -14,10 +14,11 @@ from utils.math_utils import euler_from_quaternion, constrain_value
 
 ######################
 curr_dir = os.path.dirname(os.path.abspath(__file__))
-trained_model_dir = os.path.abspath(os.path.join(curr_dir, "../../../model_weight/vae"))
+model_weight_dir = os.path.abspath(os.path.join(curr_dir, "../../../model_weight/vae"))
+model_dir = os.path.abspath(os.path.join(curr_dir, "../../network_training/scripts/models"))
 
 model_config = {
-    'model_path': os.path.join(trained_model_dir, 'combined_vae_latent_ctrl_z_1000.pt'),
+    'model_weight_path': os.path.join(model_weight_dir, 'combined_vae_latent_ctrl_z_1000.pt'),
 }
 ######################
 

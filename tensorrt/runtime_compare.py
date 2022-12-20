@@ -1,4 +1,5 @@
 import os
+import sys
 import cv2
 import torch
 import numpy as np
@@ -7,18 +8,20 @@ import onnxruntime as ort
 import tensorrt as trt
 import time
 
-from models.affordance import AffordanceNet_Resnet18
-from models.vanilla_vae import VanillaVAE
-from models.latent_ctrl import VAELatentCtrl
 from log_utils import timer, logger
 import common
 
 #################
 curr_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(curr_dir)
-root_dir = os.path.dirname(parent_dir)
+root_dir = os.path.dirname(curr_dir)
 model_weight_dir = os.path.join(root_dir, 'model_weight')
+model_dir = os.path.abspath(os.path.join(root_dir, "src/network_training/scripts"))
+sys.path.insert(0, model_dir)
 #################
+
+from models import AffordanceNet_Resnet18
+from models import VanillaVAE
+from models import VAELatentCtrl
 
 MODEL_OPTION = 3
 
