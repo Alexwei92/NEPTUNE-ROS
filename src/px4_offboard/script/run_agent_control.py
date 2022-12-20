@@ -54,7 +54,7 @@ class AgentControl():
 
     def init_variable(self):
         # flag
-        self.is_active = True
+        self.is_active = False
         self.camera_is_ready = False
         self.mavros_is_ready = False
 
@@ -160,7 +160,7 @@ class AgentControl():
             rospy.logwarn_throttle(1, 'Color image stream rate is slow!')
             self.camera_timeout_counter += 1
 
-        if self.mavros_is_ready and (rospy.Time.now() - self.last_local_position_timestamp).to_sec() > 0.2:
+        if self.mavros_is_ready and (rospy.Time.now() - self.last_local_position_timestamp).to_sec() > 0.1:
             rospy.logwarn_throttle(1, 'Mavros data stream rate is slow!')
             self.mavros_timeout_counter += 1
 
@@ -191,7 +191,7 @@ class AgentControl():
 
                 agent_output = self.agent.predict(self.color_img, is_bgr=False, state_extra=state_extra)
                 # print(agent_output)
-                
+
                 # remove trunction error
                 if abs(agent_output) < 1e-2:
                     agent_output = 0.0
