@@ -150,7 +150,7 @@ public:
                 reset();
             }
             
-            ROS_INFO_THROTTLE(1, "%i", fsm_state);
+            // ROS_INFO_THROTTLE(1, "FSM = %i", fsm_state);
             if (current_state.mode == "OFFBOARD") { 
                 // target.coordinate_frame = target.FRAME_BODY_NED;
                 // target.type_mask = 0b010111000111;
