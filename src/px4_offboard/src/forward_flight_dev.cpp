@@ -149,7 +149,8 @@ public:
                 ROS_WARN_THROTTLE(1, "RC Command Time Out!");
                 reset();
             }
-               
+            
+            ROS_INFO_THROTTLE(1, "%i", fsm_state);
             if (current_state.mode == "OFFBOARD") { 
                 // target.coordinate_frame = target.FRAME_BODY_NED;
                 // target.type_mask = 0b010111000111;
