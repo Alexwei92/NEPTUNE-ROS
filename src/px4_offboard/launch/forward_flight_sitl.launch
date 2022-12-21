@@ -1,5 +1,6 @@
 <launch>
     <arg name="forward_speed"   default="0.5"/>
+    <arg name="enable_ai"       default="True"/>
     <!-- PID param -->
     <arg name="kp"              default="1.0"/>
     <arg name="ki"              default="0.15"/>
@@ -8,12 +9,12 @@
     <arg name="output_limit"    default="1.5"/>
     <arg name="hover_test"      default="False"/>
 
-    <node name="forward_flight"  pkg="px4_offboard"  type="forward_flight"  output="screen">
+    <node name="forward_flight"  pkg="px4_offboard"  type="forward_flight_dev"  output="screen">
         <param name="forward_speed"  type="double"  value="$(arg forward_speed)"/>
         <param name="max_yawrate"    type="double"  value="45.0"/>
         <param name="yaw_channel"    type="int"     value="3"/>
         <param name="control_source" type="string"  value="joystick"/>
-        <!-- <param name="control_source" type="string"  value="ai"/> -->
+        <param name="enable_ai"      type="bool"    value="$(arg enable_ai)"/>
         <param name="hover_test"     type="bool"    value="$(arg hover_test)"/>
         <param name="kp"             type="double"  value="$(arg kp)"/>
         <param name="ki"             type="double"  value="$(arg ki)"/>

@@ -242,6 +242,7 @@ class AffordanceNav():
         control_cmd = ControlCmd()
         control_cmd.header.stamp = rospy.Time.now()
         control_cmd.command = cmd
+        control_cmd.is_active = True
         self.cmd_pub.publish(control_cmd)
 
     def raise_emergency(self):

@@ -49,7 +49,6 @@ include_directories(
 # add_executable(set_attitude src/set_attitude.cpp)
 add_executable(forward_flight 
   src/forward_flight.cpp
-  src/rulebased_ctrl.cpp
   src/pid.cpp)
 
 add_executable(forward_flight_dev

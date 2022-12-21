@@ -16,11 +16,9 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <boost/bind.hpp>
 
-#include "common.h"
+#include "forward_flight.h"
 #include "math_utils.h"
-#include "rulebased_ctrl.h"
 #include "pid.h"
-#include "px4_offboard/Affordance.h"
 #include "px4_offboard/ControlCmd.h"
 #include "px4_offboard/Pid.h"
 
@@ -28,7 +26,7 @@ class ForwardCtrl
 {
 public:
     float LOOP_RATE_DEFAULT = 30; // Hz
-    double TOPIC_TIME_OUT = 0.5;  // second
+    double TOPIC_TIME_OUT = 0.3;  // second
 
 public:
     ForwardCtrl()
@@ -42,6 +40,7 @@ public:
         ros::param::param<int>("~yaw_channel", yaw_channel, 3);
         ros::param::param<std::string>("~control_source", control_source, "rc");
         ros::param::param<bool>("~hover_test", hover_test, false);
+        ros::param::param<bool>("~enable_ai", enable_ai, false);
 
         // Get PWM Range from vehicle
         ros::service::waitForService("/mavros/param/get");
@@ -83,29 +82,25 @@ public:
         ROS_INFO("Position Z PID: kp=%.2f, ki=%.2f, kd=%.2f", kp, ki, kd);
         ROS_INFO("Position Z PID: integral_limit=%.2f, output_limit=%.2f", integral_limit, output_limit);
 
-        // ROS Publisher
+        // ROS Publisher:
         target_setpoint_pub = nh.advertise<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/local", 5);
         pos_z_pid_pub = nh.advertise<px4_offboard::Pid>("/my_controller/pos_z_pid", 5);
 
-        // ROS Subscriber
+        // ROS Subscriber:
         // 1) state
         state_sub = nh.subscribe<mavros_msgs::State>("/mavros/state", 5, 
                 &ForwardCtrl::StateCallback, this);
         // 2) local pose
         local_pose_sub = nh.subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 5,
                 &ForwardCtrl::LocalPoseCallback, this);
-
         // 3) local pose setpoint
         setpoint_raw_sub = nh.subscribe<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/target_local", 5, 
                     boost::bind(&ForwardCtrl::SetpointRawCallback, this, _1));
-
-        // 3) rc / joystick / auto command
+        // 4) control command
         last_cmd_time = ros::Time::now();
-        if (control_source == "ai") {
-            cmd_sub = nh.subscribe<px4_offboard::ControlCmd>("/my_controller/yaw_cmd", 5, 
-                    boost::bind(&ForwardCtrl::CmdCallback, this, _1));
-        }
-        else if (control_source == "joystick")
+        custom_cmd_sub = nh.subscribe<px4_offboard::ControlCmd>("/my_controller/yaw_cmd", 5, 
+                boost::bind(&ForwardCtrl::CustomCmdCallback, this, _1));
+        if (control_source == "joystick")
         {
             rc_sub = nh.subscribe<mavros_msgs::ManualControl>("/mavros/manual_control/control", 5, 
                     boost::bind(&ForwardCtrl::JoystickCallback, this, _1));
@@ -115,15 +110,12 @@ public:
             rc_sub = nh.subscribe<mavros_msgs::RCIn>("/mavros/rc/in", 5, 
                     boost::bind(&ForwardCtrl::RCInCallback, this, _1, yaw_channel));
         }
-        // 4) Affordance
-        afford_sub = nh.subscribe<px4_offboard::Affordance>("/estimated_affordance", 5, 
-                    &ForwardCtrl::AffordanceCallback, this);
 
         // init set_point_local_target
         InitializeTarget();
 
         // init position z pid controller
-        pos_z_pid = new PID(kp, ki, kd, (1./30.0f), integral_limit, output_limit);
+        pos_z_pid = new PID(kp, ki, kd, (1./LOOP_RATE_DEFAULT), integral_limit, output_limit);
     }
 
     void run()
@@ -135,7 +127,7 @@ public:
             target.header.seq++;
 
             // if cmd callback timeout
-            if (ros::Time::now() - last_cmd_time > ros::Duration(TOPIC_TIME_OUT)) {
+            if (last_cmd_time.toSec() == 0.0 || ros::Time::now() - last_cmd_time > ros::Duration(TOPIC_TIME_OUT)) {
                 yaw_cmd = 0.0;
                 ROS_WARN_THROTTLE(1, "Command Time Out!");
             }
@@ -212,49 +204,48 @@ private:
     }
     
     void RCInCallback(const mavros_msgs::RCIn::ConstPtr& msg, int channel_index) {
-        last_cmd_time = msg->header.stamp;
-        float cmd = rc_mapping(msg->channels[channel_index], yaw_pwm_min, yaw_pwm_max);
-        yaw_cmd = constrain_float(cmd, -1.0, 1.0);
+        if (msg && !enable_ai) {
+            last_cmd_time = msg->header.stamp;
+            float cmd = rc_mapping(msg->channels[channel_index], yaw_pwm_min, yaw_pwm_max);
+            yaw_cmd = constrain_float(cmd, -1.0, 1.0);
+        }
     }
 
     void JoystickCallback(const mavros_msgs::ManualControl::ConstPtr& msg) {
-        last_cmd_time = msg->header.stamp;
-        float cmd = msg->r;
-        yaw_cmd = constrain_float(cmd, -1.0, 1.0);
+        if (msg && !enable_ai) {
+            last_cmd_time = msg->header.stamp;
+            float cmd = msg->r;
+            yaw_cmd = constrain_float(cmd, -1.0, 1.0);
+        }
     }
 
-    void CmdCallback(const px4_offboard::ControlCmd::ConstPtr& msg) {
-        last_cmd_time = msg->header.stamp;
-        float cmd = msg->command;
-        yaw_cmd = constrain_float(cmd, -1.0, 1.0);
+    void CustomCmdCallback(const px4_offboard::ControlCmd::ConstPtr& msg) {
+        if (msg && enable_ai) {
+            last_cmd_time = msg->header.stamp;
+            float cmd = msg->command;
+            yaw_cmd = constrain_float(cmd, -1.0, 1.0);
+        }
     }
 
     void LocalPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
-        // yaw angle (rad)
-        tf2::Quaternion q_tf;
-        tf2::convert((msg->pose).orientation, q_tf);
-        tf2::Matrix3x3 q_mat(q_tf);
-        tf2Scalar yaw, pitch, roll;
-        q_mat.getEulerYPR(yaw, pitch, roll);
-        yaw_rad = wrap_2PI((float)yaw);
-        
-        // current local position z
-        current_pose_z = msg->pose.position.z;
+        if (msg) {
+            // yaw angle (rad)
+            tf2::Quaternion q_tf;
+            tf2::convert((msg->pose).orientation, q_tf);
+            tf2::Matrix3x3 q_mat(q_tf);
+            tf2Scalar yaw, pitch, roll;
+            q_mat.getEulerYPR(yaw, pitch, roll);
+            yaw_rad = wrap_2PI((float)yaw);
+            
+            // current local position z
+            current_pose_z = msg->pose.position.z;
+        }
     }
 
     void SetpointRawCallback(const mavros_msgs::PositionTarget::ConstPtr& msg) {
         if (msg && !isnan(msg->position.z)) {
             last_target_position_z = msg->position.z;
             // ROS_INFO("Last target position z: %.3f", last_target_position_z);
-        }
-    }
-
-    void AffordanceCallback(const px4_offboard::Affordance::ConstPtr& msg) {
-        if (msg) {
-            bool in_bound = msg->in_bound;
-            if (!in_bound) {
-                set_mode("POSCTL");
-            }
         }
     }
 
@@ -291,11 +282,12 @@ private:
     ros::Subscriber local_pose_sub;
     ros::Subscriber setpoint_raw_sub;
     ros::Subscriber rc_sub;
-    ros::Subscriber cmd_sub;
-    ros::Subscriber afford_sub;
+    ros::Subscriber custom_cmd_sub;
 
     mavros_msgs::State current_state;
     mavros_msgs::PositionTarget target;
+
+    bool enable_ai; 
 
     float forward_speed; // m/s
     float max_yawrate; // deg/s
@@ -318,10 +310,10 @@ private:
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "forward_flight_node");
-    ForwardCtrl ctrl;
+    ForwardCtrl controller;
 
     ros::Duration(1.0).sleep(); // sleep for one second
-    ctrl.run();
+    controller.run();
 
     return 0;
 }
