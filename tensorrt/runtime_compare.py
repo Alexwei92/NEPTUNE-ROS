@@ -83,7 +83,7 @@ if __name__ == '__main__':
         img = cv2.resize(img, (128, 128))
         img_tensor = my_transform(img)
 
-        state_extra = np.zeros(5, dtype=np.float32)
+        state_extra = np.zeros(6, dtype=np.float32)
         state_extra_tensor = torch.from_numpy(state_extra).unsqueeze(0)
         state_extra = np.array(state_extra_tensor)
 
@@ -114,7 +114,7 @@ if __name__ == '__main__':
             input_dim=128,
             in_channels=3,
             z_dim=1000, 
-            extra_dim=5).eval().cuda()
+            extra_dim=6).eval().cuda()
 
     model_weight = torch.load(MODEL_WEIGHT_PATH)
     pytorch_model.load_state_dict(model_weight)

@@ -93,8 +93,8 @@ def plot_with_cmd_compare(window_name, image_raw, pilot_input, agent_input):
 
 if __name__ == '__main__':
     # Datafolder
-    # folder_path = '/media/lab/NEPTUNE2/field_datasets/row_10/2022-10-14-10-41-06'
-    folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/2022-12-15-09-35-34'
+    # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/2022-12-15-09-35-34'
+    folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data_validation/2022-12-23-13-00-21'
 
     # Read data
     data_dict = read_data(folder_path)
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     body_linear_x = states['body_linear_x'].to_numpy()
     body_linear_y = states['body_linear_y'].to_numpy()
     body_angular_z = states['body_angular_z'].to_numpy()
-    state_extra = np.array([body_linear_x, body_linear_y, body_angular_z]).T
+    relative_height = states['odom_rel_height'].to_numpy()
 
     # Load VAE parameter
     model_config = {
@@ -134,6 +134,7 @@ if __name__ == '__main__':
             body_linear_x[i],
             body_linear_y[i],
             body_angular_z[i],
+            relative_height[i],
         ])
 
         # predict

@@ -82,9 +82,9 @@ if __name__ == '__main__':
             input_dim=128,
             in_channels=3,
             z_dim=1000, 
-            extra_dim=5).eval().cuda()
+            extra_dim=6).eval().cuda()
 
-        sample_input = (torch.ones((1, 3, 128, 128)).cuda(), torch.zeros((1,5)).cuda())
+        sample_input = (torch.ones((1, 3, 128, 128)).cuda(), torch.zeros((1,6)).cuda())
 
     model_weight = torch.load(MODEL_WEIGHT_PATH)
     model.load_state_dict(model_weight)

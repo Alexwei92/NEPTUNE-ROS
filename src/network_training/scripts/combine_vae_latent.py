@@ -24,7 +24,7 @@ if __name__ == '__main__':
     latent_ctrl_model_config = {
         'name': 'latent_ctrl',
         'z_dim': vae_model_config['z_dim'],
-        'extra_dim': 5,
+        'extra_dim': 6,
     }
 
     vae_latent_ctrl_model_config = {

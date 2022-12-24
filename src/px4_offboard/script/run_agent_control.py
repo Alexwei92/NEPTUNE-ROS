@@ -4,9 +4,9 @@ import rospy
 import numpy as np
 
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import TwistStamped
+from geometry_msgs.msg import TwistStamped, PoseStamped
 from sensor_msgs.msg import Image
-from mavros_msgs.msg import RCIn
+from mavros_msgs.msg import RCIn, HomePosition
 from px4_offboard.msg import ControlCmd
 
 from controller import VAELatentController, VAELatentController_TRT
@@ -33,6 +33,7 @@ class AgentControl():
         self.define_subscriber()
         self.define_publisher()
 
+        rospy.wait_for_message("/mavros/home_position/home", HomePosition)
         rospy.loginfo("The agent controller has been initialized!")
 
     def init_agent(self, use_tensorrt):
@@ -47,7 +48,7 @@ class AgentControl():
     def warm_start(self, iter=3):
         image_size = self.agent.input_dim
         test_color_img = np.zeros((image_size, image_size, 3), dtype=np.uint8)
-        test_state_extra = np.array([0, 0, 0, 0, 0], dtype=np.float32)
+        test_state_extra = np.zeros((6,), dtype=np.float32)
         for _ in range(int(iter)):
             self.agent.predict(test_color_img, state_extra=test_state_extra)
 
@@ -67,6 +68,12 @@ class AgentControl():
         self.body_linear_y = 0.0
         self.body_angular_z = 0.0
 
+        # home position
+        self.home_pos_z = 0.0
+
+        # relative height
+        self.relative_height = 0.0
+
         # timestamp
         self.last_color_timestamp = None
         self.last_local_position_timestamp = None
@@ -83,11 +90,19 @@ class AgentControl():
             tcp_nodelay=True,
         )
 
+        # home position
+        rospy.Subscriber(
+            "/mavros/home_position/home",
+            HomePosition,
+            self.home_position_callback,
+            queue_size=1,
+        )
+
         # local odom
         rospy.Subscriber(
-            "/mavros/local_position/odom",
-            Odometry,
-            self.local_position_odom_callback,
+            "/mavros/local_position/pose",
+            PoseStamped,
+            self.local_position_pose_callback,
             queue_size=5,
         )
 
@@ -120,11 +135,18 @@ class AgentControl():
             self.last_color_timestamp = msg.header.stamp
             self.color_img = np.frombuffer(msg.data, np.uint8).reshape(msg.height, msg.width, -1)
 
-    def local_position_odom_callback(self, msg):
+    def home_position_callback(self, msg):
+        if msg is not None:
+            if msg.position.z != self.home_pos_z:
+                self.home_pos_z = msg.position.z
+                rospy.loginfo("Home position updated!")
+
+    def local_position_pose_callback(self, msg):
         if msg is not None:
             self.mavros_is_ready = True
             self.last_local_position_timestamp = msg.header.stamp
-            self.roll, self.pitch, _ = euler_from_quaternion(msg.pose.pose.orientation)
+            self.roll, self.pitch, _ = euler_from_quaternion(msg.pose.orientation)
+            self.relative_height =  msg.pose.position.z - self.home_pos_z
 
     def velocity_body_callback(self, msg):
         if msg is not None:
@@ -186,6 +208,7 @@ class AgentControl():
                     self.body_linear_x,
                     self.body_linear_y,
                     self.body_angular_z,
+                    self.relative_height,
                 ], dtype=np.float32)
 
                 agent_output = self.agent.predict(self.color_img, is_bgr=False, state_extra=state_extra)

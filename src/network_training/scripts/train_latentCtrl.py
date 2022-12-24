@@ -59,7 +59,7 @@ class LatentCtrlDataset(Dataset):
         self.transform = transform
         self.resize = resize
         self.action = np.empty((0,), dtype=np.float32)
-        self.state_extra = np.empty((0, 5), dtype=np.float32)
+        self.state_extra = np.empty((0, 6), dtype=np.float32)
 
         # Configure
         self.configure(dataset_dir)
@@ -95,6 +95,9 @@ class LatentCtrlDataset(Dataset):
         angular_y = mavros_data['body_angular_y'].to_numpy(dtype=np.float32)
         angular_z = mavros_data['body_angular_z'].to_numpy(dtype=np.float32)
 
+        # relative height
+        relative_height = mavros_data['odom_rel_height'].to_numpy(dtype=np.float32)
+
         # control cmd
         action = mavros_data['control_cmd'].to_numpy(dtype=np.float32)
 
@@ -111,6 +114,7 @@ class LatentCtrlDataset(Dataset):
             # angular_x,
             # angular_y,
             angular_z,
+            relative_height,
         )).T
 
         # flag
@@ -136,7 +140,7 @@ class LatentCtrlDataset(Dataset):
         
         if is_flip:
             a = np.float32(-1)
-            state_extra_output = np.array([-1, 1, 1, -1, -1], dtype=np.float32) * self.state_extra[idx, :]
+            state_extra_output = np.array([-1, 1, 1, -1, -1, 1], dtype=np.float32) * self.state_extra[idx, :]
         else:
             a = np.float32(1)
             state_extra_output = self.state_extra[idx, :]

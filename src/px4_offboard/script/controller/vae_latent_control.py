@@ -18,7 +18,7 @@ vae_latent_ctrl_model_config = {
     'input_dim': 128,
     'in_channels': 3,
     'z_dim': 1000,
-    'extra_dim': 5,
+    'extra_dim': 6,
 }
 
 class VAELatentController():

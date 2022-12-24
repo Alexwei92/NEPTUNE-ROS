@@ -1,15 +1,15 @@
 <!-- To replay the logged data -->
 <launch>
-    <arg name="use_compressedDepth" default="true"/>
+    <!-- <arg name="use_compressedDepth" default="true"/> -->
 
     <param name="use_sim_time" type="bool" value="true"/>
 
     <!-- Uncompress images -->
-    <node name="republish_color" type="republish" pkg="image_transport" args="compressed in:=/d435i/color/image_raw raw out:=/d435i/color/image_raw" />
-    <node name="republish_depth" type="republish" pkg="image_transport" args="compressedDepth in:=/d435i/aligned_depth_to_color/image_raw raw out:=/d435i/aligned_depth_to_color/image_raw"
+    <!-- <node name="republish_color" type="republish" pkg="image_transport" args="compressed in:=/d435i/color/image_raw raw out:=/d435i/color/image_raw" /> -->
+    <!-- <node name="republish_depth" type="republish" pkg="image_transport" args="compressedDepth in:=/d435i/aligned_depth_to_color/image_raw raw out:=/d435i/aligned_depth_to_color/image_raw"
         if="$(eval arg('use_compressedDepth') == true)"/>
     <node name="republish_depth" type="republish_depth.py" pkg="neptune_ros" output="screen"
-        if="$(eval arg('use_compressedDepth') == false)"/>
+        if="$(eval arg('use_compressedDepth') == false)"/> -->
 
     <!-- Vehicle description -->
     <arg name="urdf_folder" default="$(find edu_450)/urdf" />

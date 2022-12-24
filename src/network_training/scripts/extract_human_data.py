@@ -46,11 +46,18 @@ class ExtractHumanData():
         # depth_image = rosbag_utils.get_topic_from_bag(bag, "/d435i/aligned_depth_to_color/image_raw/compressedDepth", False)
         compass_hdg = rosbag_utils.get_topic_from_bag(bag, "/mavros/global_position/compass_hdg", False)
         global_position = rosbag_utils.get_topic_from_bag(bag, "/mavros/global_position/global", False)
-        local_position = rosbag_utils.get_topic_from_bag(bag, "/mavros/local_position/odom", False)
+        local_position = rosbag_utils.get_topic_from_bag(bag, "/mavros/local_position/pose", False)
         velocity_body = rosbag_utils.get_topic_from_bag(bag, "/mavros/local_position/velocity_body", False)
         rc_in = rosbag_utils.get_topic_from_bag(bag, "/mavros/rc/in", False)
         setpoint_raw = rosbag_utils.get_topic_from_bag(bag, "/mavros/setpoint_raw/local", False)
+        home_position = rosbag_utils.get_topic_from_bag(bag, "/mavros/home_position/home", False)
         my_pid = rosbag_utils.get_topic_from_bag(bag, "/my_controller/pos_z_pid", False)
+
+        # compensate camera timestamp delay
+        color_image = rosbag_utils.add_timestamp_offset(color_image, time_offset=0.1)
+
+        # get home position
+        home_pos_z = home_position['position'].iloc[0].z
 
         # crop data
         start_offset = 1.0
@@ -112,12 +119,12 @@ class ExtractHumanData():
         roll_angle = []
         pitch_angle = []
         for pose_msg in local_position_sync['pose']:
-            odom_local_pos_z.append(pose_msg.pose.position.z)
-            roll, pitch, _ = euler_from_quaternion(pose_msg.pose.orientation)
+            odom_local_pos_z.append(pose_msg.position.z)
+            roll, pitch, _ = euler_from_quaternion(pose_msg.orientation)
             roll_angle.append(roll)
             pitch_angle.append(pitch)
 
-        odom_local_pos_z = np.array(odom_local_pos_z)
+        odom_rel_height = np.array(odom_local_pos_z) - home_pos_z
         roll_angle = np.array(roll_angle)
         pitch_angle = np.array(pitch_angle)
 
@@ -172,7 +179,7 @@ class ExtractHumanData():
         states['utm_pos_x'] = utm_local_pos_x
         states['utm_pos_y'] = utm_local_pos_y
         states['heading'] = heading
-        states['odom_pos_z'] = odom_local_pos_z
+        states['odom_rel_height'] = odom_rel_height
         states['roll_rad'] = roll_angle
         states['pitch_rad'] = pitch_angle
         states['body_linear_x'] = linear_x
@@ -198,7 +205,7 @@ class ExtractHumanData():
                 'utm_pos_x',
                 'utm_pos_y',
                 'heading',
-                'odom_pos_z',
+                'odom_rel_height',
                 'roll_rad',
                 'pitch_rad',
                 'body_linear_x',

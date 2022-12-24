@@ -272,6 +272,13 @@ def crop_data_with_start_end_time(topic_msgs, start_time, end_time):
 
     return topic_msg_crop
 
+def add_timestamp_offset(topic_msgs, time_offset=0.0):
+    """Add timestamp offset"""
+    new_topic_msgs = topic_msgs.copy()
+    new_topic_msgs['ros_time'] += time_offset
+
+    return new_topic_msgs
+
 def get_linear_acceleration_from_imu(imu_msgs):
     """Get linear acceleration from IMU msgs"""
     acc_x = []
