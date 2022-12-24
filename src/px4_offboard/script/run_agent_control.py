@@ -34,7 +34,11 @@ class AgentControl():
         self.define_publisher()
 
         rospy.loginfo("Waiting for home position...")
-        rospy.wait_for_message("/mavros/home_position/home", HomePosition, timeout=15)
+        try:
+            rospy.wait_for_message("/mavros/home_position/home", HomePosition, timeout=15)
+        except rospy.exceptions.ROSException as e:
+            rospy.logwarn(e)
+            rospy.logwarn('Home position z is set to 0!')
 
         rospy.loginfo("The agent controller has been initialized!")
 
