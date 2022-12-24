@@ -33,7 +33,9 @@ class AgentControl():
         self.define_subscriber()
         self.define_publisher()
 
-        rospy.wait_for_message("/mavros/home_position/home", HomePosition)
+        rospy.loginfo("Waiting for home position...")
+        rospy.wait_for_message("/mavros/home_position/home", HomePosition, timeout=15)
+
         rospy.loginfo("The agent controller has been initialized!")
 
     def init_agent(self, use_tensorrt):
