@@ -143,7 +143,7 @@ class AgentControl():
 
     def home_position_callback(self, msg):
         if msg is not None:
-            if msg.position.z != self.home_pos_z:
+            if abs(msg.position.z - self.home_pos_z) > 1e-5:
                 self.home_pos_z = msg.position.z
                 rospy.loginfo("Home position updated!")
 
@@ -183,7 +183,7 @@ class AgentControl():
 
     def check_status(self):
         # check topic timeout
-        if self.camera_is_ready and (rospy.Time.now() - self.last_color_timestamp).to_sec() > 0.3:
+        if self.camera_is_ready and (rospy.Time.now() - self.last_color_timestamp).to_sec() > 0.5:
             rospy.logwarn_throttle(1, 'Color image stream rate is slow!')
             self.camera_timeout_counter += 1
 
