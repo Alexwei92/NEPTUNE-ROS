@@ -73,8 +73,14 @@ class ExtractHumanData():
         rc_in_crop = rosbag_utils.crop_data_with_start_end_time(rc_in, offboard_start_time, offboard_stop_time)
         setpoint_raw_crop = rosbag_utils.crop_data_with_start_end_time(setpoint_raw, offboard_start_time, offboard_stop_time)
 
+        # if has yaw_cmd topic
+        has_yaw_cmd_topic = "/my_controller/yaw_cmd" in bag.get_type_and_topic_info()[1].keys()
+        if has_yaw_cmd_topic:   
+            my_yaw_cmd = rosbag_utils.get_topic_from_bag(bag, "/my_controller/yaw_cmd", False)
+            my_yaw_cmd_crop = rosbag_utils.crop_data_with_start_end_time(my_yaw_cmd, offboard_start_time, offboard_stop_time)
+
         # sync data
-        ros_time, sync_topics = rosbag_utils.timesync_topics([
+        topics_to_synced = [
             color_image_crop,
             setpoint_raw_crop,
             compass_hdg_crop,
@@ -82,7 +88,11 @@ class ExtractHumanData():
             local_position_crop,
             velocity_body_crop,
             rc_in_crop,
-        ], printout=False)
+        ]
+        if has_yaw_cmd_topic: topics_to_synced.append(my_yaw_cmd_crop) 
+
+        ros_time, sync_topics = rosbag_utils.timesync_topics(
+            topics_to_synced, printout=False)
 
         color_image_sync = sync_topics[0]
         setpoint_raw_sync = sync_topics[1]
@@ -91,6 +101,7 @@ class ExtractHumanData():
         local_position_sync = sync_topics[4]
         velocity_body_sync = sync_topics[5]
         rc_in_sync = sync_topics[6]
+        if has_yaw_cmd_topic: my_yaw_cmd_sync = sync_topics[7]
 
         # heading
         compass_heading = np.radians(compass_hdg_sync['data'])
@@ -153,13 +164,10 @@ class ExtractHumanData():
         control_cmd[abs(control_cmd) < 1e-2] = 0.0
 
         # ai mode
-        ai_mode = []
-        for msg in rc_in_sync['channels']:
-            if msg[6] > 1500:
-                ai_mode.append(True)
-            else:
-                ai_mode.append(False)
-        ai_mode = np.array(ai_mode)
+        if has_yaw_cmd_topic:
+            ai_mode = my_yaw_cmd_sync['is_active'].to_numpy()
+        else:
+            ai_mode = np.array([False] * len(control_cmd))
 
         ## read images
         bridge = CvBridge()
@@ -225,8 +233,8 @@ class ExtractHumanData():
 
 
 if __name__ == "__main__":
-    root_folder_path = '/media/lab/NEPTUNE2/field_raw_datasets/2022-12-15_Demon'
-    output_folder = '/media/lab/NEPTUNE2/field_datasets/human_data'
+    root_folder_path = '/media/lab/NEPTUNE2/field_raw_datasets/2022-12-24_Dagger_Iter1'
+    output_folder = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1'
 
     #### 
     curr_dir = os.path.dirname(__file__)

@@ -52,6 +52,7 @@ class MyTransform:
 class LatentCtrlDataset(Dataset):
     def __init__(self,
             dataset_dir,
+            iteration=0,
             resize=None,
             transform=None):
 
@@ -62,22 +63,24 @@ class LatentCtrlDataset(Dataset):
         self.state_extra = np.empty((0, 6), dtype=np.float32)
 
         # Configure
-        self.configure(dataset_dir)
+        self.configure(dataset_dir, iteration)
 
-    def configure(self, dataset_dir):
-        for subfolder in os.listdir(dataset_dir):
-            subfolder_path = os.path.join(dataset_dir, subfolder)
-            print(subfolder_path)
-            # Mavros
-            state_extra, action, is_pilot = self.read_mavros_data(subfolder_path)
-            # RGB image
-            rgb_file_list = glob.glob(os.path.join(subfolder_path, 'color', '*.png'))
-            rgb_file_list.sort()
-            rgb_file_list = np.array(rgb_file_list)[is_pilot]
-            self.rgb_file_list.extend(rgb_file_list.tolist())
-            self.action = np.concatenate((self.action, action[is_pilot]), axis=0)
-            if state_extra is not None:
-                self.state_extra = np.concatenate((self.state_extra, state_extra[is_pilot,:]), axis=0)
+    def configure(self, dataset_dir, iteration):
+        for iter in range(iteration+1):
+            folder_path = os.path.join(dataset_dir, 'iter' + str(iter))
+            for subfolder in os.listdir(folder_path):
+                subfolder_path = os.path.join(folder_path, subfolder)
+                print(subfolder_path)
+                # Mavros
+                state_extra, action, is_pilot = self.read_mavros_data(subfolder_path)
+                # RGB image
+                rgb_file_list = glob.glob(os.path.join(subfolder_path, 'color', '*.png'))
+                rgb_file_list.sort()
+                rgb_file_list = np.array(rgb_file_list)[is_pilot]
+                self.rgb_file_list.extend(rgb_file_list.tolist())
+                self.action = np.concatenate((self.action, action[is_pilot]), axis=0)
+                if state_extra is not None:
+                    self.state_extra = np.concatenate((self.state_extra, state_extra[is_pilot,:]), axis=0)
 
     def read_mavros_data(self, folder_dir):
         mavros_data = pandas.read_csv(os.path.join(folder_dir, 'states.csv'))
@@ -171,6 +174,7 @@ if __name__ == '__main__':
     # Load Dataloader settings
     test_size           = train_config['dataset_params']['test_size']
     random_state        = train_config['dataset_params']['random_state']
+    iteration           = train_config['dataset_params']['iteration']
 
     ##########  Training   ###########
     print('============== Latent Controller ================')
@@ -189,7 +193,7 @@ if __name__ == '__main__':
         vae_model.load_state_dict(model_weight)
                 
     # Create the agent
-    latent_model_config['log_params']['output_dir'] = output_dir
+    latent_model_config['log_params']['output_dir'] = os.path.join(output_dir, 'iter'+str(iteration))
     latent_model_config['model_params']['z_dim'] = vae_model.get_latent_dim()
     latent_model = LatentCtrl(**latent_model_config['model_params'])
 
@@ -209,6 +213,7 @@ if __name__ == '__main__':
     print('Loading datasets from {:s}'.format(dataset_dir))
     image_resize = [vae_model.input_dim, vae_model.input_dim]
     all_data = LatentCtrlDataset(dataset_dir,
+                    iteration=iteration,
                     resize=image_resize,
                     transform=MyTransform())
 
