@@ -95,6 +95,8 @@ if __name__ == '__main__':
     # Datafolder
     # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/2022-12-15-09-35-34'
     folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1/2022-12-24-13-02-56'
+    # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1/2022-12-24-13-03-24'
+    # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1/2022-12-24-13-03-00'
 
     # Read data
     data_dict = read_data(folder_path)
@@ -107,6 +109,8 @@ if __name__ == '__main__':
     body_angular_z = states['body_angular_z'].to_numpy()
     relative_height = states['odom_rel_height'].to_numpy()
 
+    is_pilot = ~(states['ai_mode'].to_numpy())
+
     # Load parameter
     model_config = {
         'vae_model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/vanilla_vae/vanilla_vae_model_z_1000.pt',
@@ -118,6 +122,9 @@ if __name__ == '__main__':
     controller_agent = VAELatentController(**model_config)
     controller_agent_full = VAELatentController_Full(**model_config)
     # controller_agent_trt = VAELatentController_TRT(**model_config)
+
+    # vae_out = cv2.VideoWriter('vae_output.avi',cv2.VideoWriter_fourcc(*'MJPG'), 15, (640, 240))
+    # control_out = cv2.VideoWriter('control_output.avi',cv2.VideoWriter_fourcc(*'MJPG'), 15, (640, 480))
 
     tic = time.time()
     for i in range(len(data_dict['color_file_list'])):
@@ -159,8 +166,14 @@ if __name__ == '__main__':
         image_pred = cv2.resize(image_pred, (320, 240))
         image_combine = np.concatenate((image_raw, image_pred), axis=1)
         cv2.imshow('VAE', cv2.cvtColor(image_combine, cv2.COLOR_RGB2BGR))
+        # vae_out.write(cv2.cvtColor(image_combine, cv2.COLOR_RGB2BGR))
 
-        plot_with_cmd_compare('control', image_bgr, data_dict['control_cmd'][i], predicted_action)
+        # plot_with_cmd_compare('control', image_bgr, data_dict['control_cmd'][i], predicted_action)
+        cv_image = plot_with_cmd('control', image_bgr, data_dict['control_cmd'][i], is_expert=is_pilot[i])
+        # control_out.write(cv_image)
 
         elapsed_time = time.time() - tic
-        time.sleep(max(data_dict['timestamp'][i] - elapsed_time, 0))
+        # time.sleep(max(data_dict['timestamp'][i] - elapsed_time, 0))
+    
+    # vae_out.release()
+    # control_out.release()
