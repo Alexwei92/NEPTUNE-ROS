@@ -8,6 +8,7 @@
                 /$(arg camera_name)/aligned_depth_to_color/image_raw
                 /$(arg camera_name)/aligned_depth_to_color/camera_info
                 /$(arg camera_name)/depth/color/points
+                /t265/odom/sample
                 /tf
                 /tf_static
                 /mavros/altitude
