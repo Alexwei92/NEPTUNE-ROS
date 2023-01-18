@@ -42,7 +42,7 @@ class AgentControl():
 
         rospy.loginfo("Waiting for home position...")
         try:
-            rospy.wait_for_message("/mavros/home_position/home", HomePosition, timeout=10)
+            rospy.wait_for_message("/mavros/home_position/home", HomePosition, timeout=5)
         except rospy.exceptions.ROSException as e:
             rospy.logwarn(e)
             self.home_pos_z = self.last_local_position_z
