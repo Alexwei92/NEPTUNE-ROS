@@ -33,12 +33,20 @@ class AgentControl():
         self.define_subscriber()
         self.define_publisher()
 
+        rospy.loginfo("Waiting for local pose...")
+        try:
+            rospy.wait_for_message("/mavros/local_position/pose", PoseStamped, timeout=5)
+        except rospy.exceptions.ROSException as e:
+            rospy.logerr(e)
+            exit(1)
+
         rospy.loginfo("Waiting for home position...")
         try:
-            rospy.wait_for_message("/mavros/home_position/home", HomePosition, timeout=15)
+            rospy.wait_for_message("/mavros/home_position/home", HomePosition, timeout=10)
         except rospy.exceptions.ROSException as e:
             rospy.logwarn(e)
-            rospy.logwarn('Home position z is set to 0!')
+            self.home_pos_z = self.last_local_position_z
+            rospy.logwarn('Home position z is set to current local position z: %f' % self.home_pos_z)
 
         rospy.loginfo("The agent controller has been initialized!")
 
@@ -151,6 +159,7 @@ class AgentControl():
         if msg is not None:
             self.mavros_is_ready = True
             self.last_local_position_timestamp = msg.header.stamp
+            self.last_local_position_z = msg.pose.position.z
             self.roll, self.pitch, _ = euler_from_quaternion(msg.pose.orientation)
             self.relative_height =  msg.pose.position.z - self.home_pos_z
 
