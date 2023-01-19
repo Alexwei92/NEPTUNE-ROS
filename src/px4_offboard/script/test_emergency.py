@@ -2,7 +2,7 @@ import rospy
 from mavros_msgs.msg import EstimatorStatus
 
 if __name__ == "__main__":
-    rospy.init_node("agent_control")
+    rospy.init_node("test_emergency")
 
     pub = rospy.Publisher(
         "/mavros/estimator_status",
