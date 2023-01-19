@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import rospy
 from mavros_msgs.msg import EstimatorStatus
 
