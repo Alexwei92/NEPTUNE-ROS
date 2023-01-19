@@ -12,6 +12,7 @@
 #include <mavros_msgs/State.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/ParamGet.h>
+#include <mavros_msgs/EstimatorStatus.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <boost/bind.hpp>
@@ -82,8 +83,11 @@ public:
         ROS_INFO("Position Z PID: kp=%.2f, ki=%.2f, kd=%.2f", kp, ki, kd);
         ROS_INFO("Position Z PID: integral_limit=%.2f, output_limit=%.2f", integral_limit, output_limit);
 
-        // only for sitl
+        // force manual control
         force_manual = false;
+
+        // init estimator flag
+        estimator_is_healthy = true;
 
         // ROS Publisher:
         target_setpoint_pub = nh.advertise<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/local", 5);
@@ -114,6 +118,9 @@ public:
         }
         last_custom_cmd_time = ros::Time::now();
         last_rc_cmd_time = ros::Time::now();
+        // 5) estimator status
+        estimator_status_sub = nh.subscribe<mavros_msgs::EstimatorStatus>("/mavros/estimator_status", 5,
+                &ForwardCtrl::EstimatorStatusCallback, this); 
 
         // init set_point_local_target
         InitializeTarget();
@@ -135,7 +142,7 @@ public:
     {   
         ros::Rate loop_rate(LOOP_RATE_DEFAULT);
         ROS_INFO("Node Started!");
-        while (ros::ok()) {
+        while (ros::ok() && estimator_is_healthy) {
             target.header.stamp = ros::Time::now();
             target.header.seq++;
 
@@ -183,6 +190,11 @@ public:
             loop_rate.sleep();
         }
         ROS_INFO("Stop Offboard Mode!");
+
+        // if estimator is unhealthy
+        if (!estimator_is_healthy && (current_state.mode == "OFFBOARD" || current_state.mode == "POSCTL")) {
+            set_mode("ALTCTL");
+        }
     }
 
 private:
@@ -296,6 +308,17 @@ private:
         }
     }
 
+    void EstimatorStatusCallback(const mavros_msgs::EstimatorStatus::ConstPtr& msg) {
+        // if horizontal position estimator has an error
+        if (!msg->pos_horiz_rel_status_flag || !msg->pos_horiz_abs_status_flag) {
+            ROS_ERROR("Estimator error!!! Land Immediately!!!");
+            estimator_is_healthy = false;
+            force_manual = true;
+            reset();
+            set_mode("ALTCTL");
+        }
+    }
+
     void set_mode(std::string mode_name) {
         ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
         mavros_msgs::SetMode new_mode;
@@ -330,11 +353,13 @@ private:
     ros::Subscriber setpoint_raw_sub;
     ros::Subscriber rc_sub;
     ros::Subscriber custom_cmd_sub;
+    ros::Subscriber estimator_status_sub;
 
     mavros_msgs::State current_state;
     mavros_msgs::PositionTarget target;
 
     bool enable_ai;
+    bool estimator_is_healthy;
     FSMState fsm_state;
 
     float forward_speed; // m/s
