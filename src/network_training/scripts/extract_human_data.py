@@ -43,21 +43,14 @@ class ExtractHumanData():
     def extract_data_from_bag(self, bag):
         ## read topics
         color_image = rosbag_utils.get_topic_from_bag(bag, "/d435i/color/image_raw/compressed", False)
-        # depth_image = rosbag_utils.get_topic_from_bag(bag, "/d435i/aligned_depth_to_color/image_raw/compressedDepth", False)
-        compass_hdg = rosbag_utils.get_topic_from_bag(bag, "/mavros/global_position/compass_hdg", False)
-        global_position = rosbag_utils.get_topic_from_bag(bag, "/mavros/global_position/global", False)
         local_position = rosbag_utils.get_topic_from_bag(bag, "/mavros/local_position/pose", False)
         velocity_body = rosbag_utils.get_topic_from_bag(bag, "/mavros/local_position/velocity_body", False)
         rc_in = rosbag_utils.get_topic_from_bag(bag, "/mavros/rc/in", False)
         setpoint_raw = rosbag_utils.get_topic_from_bag(bag, "/mavros/setpoint_raw/local", False)
-        home_position = rosbag_utils.get_topic_from_bag(bag, "/mavros/home_position/home", False)
         my_pid = rosbag_utils.get_topic_from_bag(bag, "/my_controller/pos_z_pid", False)
 
         # compensate camera timestamp delay
         color_image = rosbag_utils.add_timestamp_offset(color_image, time_offset=0.1)
-
-        # get home position
-        home_pos_z = home_position['position'].iloc[0].z
 
         # crop data
         start_offset = 1.0
@@ -66,12 +59,24 @@ class ExtractHumanData():
         offboard_stop_time = my_pid['ros_time'].iloc[-1] - stop_offset
 
         color_image_crop = rosbag_utils.crop_data_with_start_end_time(color_image, offboard_start_time, offboard_stop_time)
-        global_position_crop = rosbag_utils.crop_data_with_start_end_time(global_position, offboard_start_time, offboard_stop_time)
-        compass_hdg_crop = rosbag_utils.crop_data_with_start_end_time(compass_hdg, offboard_start_time, offboard_stop_time)
         local_position_crop = rosbag_utils.crop_data_with_start_end_time(local_position, offboard_start_time, offboard_stop_time)
         velocity_body_crop = rosbag_utils.crop_data_with_start_end_time(velocity_body, offboard_start_time, offboard_stop_time)
         rc_in_crop = rosbag_utils.crop_data_with_start_end_time(rc_in, offboard_start_time, offboard_stop_time)
         setpoint_raw_crop = rosbag_utils.crop_data_with_start_end_time(setpoint_raw, offboard_start_time, offboard_stop_time)
+
+        # if has gps topic
+        has_gps_topic = "/mavros/global_position/global" in bag.get_type_and_topic_info()[1].keys()
+        if has_gps_topic:
+            global_position = rosbag_utils.get_topic_from_bag(bag, "/mavros/global_position/global", False)
+            compass_hdg = rosbag_utils.get_topic_from_bag(bag, "/mavros/global_position/compass_hdg", False)
+            home_position = rosbag_utils.get_topic_from_bag(bag, "/mavros/home_position/home", False)
+            # get home position
+            home_pos_z = home_position['position'].iloc[0].z
+            # crop data
+            global_position_crop = rosbag_utils.crop_data_with_start_end_time(global_position, offboard_start_time, offboard_stop_time)
+            compass_hdg_crop = rosbag_utils.crop_data_with_start_end_time(compass_hdg, offboard_start_time, offboard_stop_time)
+        else:
+            home_pos_z = 0.1
 
         # if has yaw_cmd topic
         has_yaw_cmd_topic = "/my_controller/yaw_cmd" in bag.get_type_and_topic_info()[1].keys()
@@ -83,47 +88,59 @@ class ExtractHumanData():
         topics_to_synced = [
             color_image_crop,
             setpoint_raw_crop,
-            compass_hdg_crop,
-            global_position_crop,
             local_position_crop,
             velocity_body_crop,
             rc_in_crop,
         ]
-        if has_yaw_cmd_topic: topics_to_synced.append(my_yaw_cmd_crop) 
+        if has_gps_topic:
+            topics_to_synced.append(global_position_crop)
+            topics_to_synced.append(compass_hdg_crop)
+        if has_yaw_cmd_topic:
+            topics_to_synced.append(my_yaw_cmd_crop)
 
         ros_time, sync_topics = rosbag_utils.timesync_topics(
             topics_to_synced, printout=False)
 
         color_image_sync = sync_topics[0]
         setpoint_raw_sync = sync_topics[1]
-        compass_hdg_sync = sync_topics[2]
-        global_position_sync = sync_topics[3]
-        local_position_sync = sync_topics[4]
-        velocity_body_sync = sync_topics[5]
-        rc_in_sync = sync_topics[6]
-        if has_yaw_cmd_topic: my_yaw_cmd_sync = sync_topics[7]
+        local_position_sync = sync_topics[2]
+        velocity_body_sync = sync_topics[3]
+        rc_in_sync = sync_topics[4]
 
-        # heading
-        compass_heading = np.radians(compass_hdg_sync['data'])
-        heading = []
-        for i in range(len(compass_heading)):
-            heading.append(wrap_2pi(compass_heading.iloc[i] - np.pi/2))
-        heading = np.array(heading)
+        if has_gps_topic:
+            global_position_sync = sync_topics[5]
+            compass_hdg_sync = sync_topics[6]
+        if has_yaw_cmd_topic:
+            my_yaw_cmd_sync = sync_topics[-1]
 
-        # local position utm
-        utm_local_pos_x = []
-        utm_local_pos_y = []
-        for i in range(len(global_position_sync)):
-            pos_xy = get_local_xy_from_latlon(
-                global_position_sync['latitude'].iloc[i],
-                global_position_sync['longitude'].iloc[i],
-                self.utm_T_local,
-            )
-            utm_local_pos_x.append(pos_xy[0])
-            utm_local_pos_y.append(pos_xy[1])
+        if has_gps_topic:
+            # heading
+            compass_heading = np.radians(compass_hdg_sync['data'])
+            heading = []
+            for i in range(len(compass_heading)):
+                heading.append(wrap_2pi(compass_heading.iloc[i] - np.pi/2))
+            heading = np.array(heading)
 
-        utm_local_pos_x = np.array(utm_local_pos_x)
-        utm_local_pos_y = np.array(utm_local_pos_y)
+            # local position utm
+            utm_local_pos_x = []
+            utm_local_pos_y = []
+            for i in range(len(global_position_sync)):
+                pos_xy = get_local_xy_from_latlon(
+                    global_position_sync['latitude'].iloc[i],
+                    global_position_sync['longitude'].iloc[i],
+                    self.utm_T_local,
+                )
+                utm_local_pos_x.append(pos_xy[0])
+                utm_local_pos_y.append(pos_xy[1])
+
+            utm_local_pos_x = np.array(utm_local_pos_x)
+            utm_local_pos_y = np.array(utm_local_pos_y)
+        
+        else:
+            N = len(local_position_sync)
+            heading = np.array([0.0] * N)
+            utm_local_pos_x = np.array([0.0] * N)
+            utm_local_pos_y = np.array([0.0] * N)
 
         # local position odom
         odom_local_pos_z = []
@@ -233,8 +250,8 @@ class ExtractHumanData():
 
 
 if __name__ == "__main__":
-    root_folder_path = '/media/lab/NEPTUNE2/field_raw_datasets/2022-12-24_Dagger_Iter1'
-    output_folder = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1'
+    root_folder_path = '/media/lab/NEPTUNE2/field_raw_datasets/2023-01-21_Dagger_Iter2'
+    output_folder = '/media/lab/NEPTUNE2/field_datasets/human_data/iter2'
 
     #### 
     curr_dir = os.path.dirname(__file__)

@@ -94,10 +94,11 @@ def plot_with_cmd_compare(window_name, image_raw, pilot_input, agent_input):
 if __name__ == '__main__':
     # Datafolder
     # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/2022-12-15-09-35-34'
-    folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1/2022-12-24-13-02-56'
+    # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1/2022-12-24-13-02-56'
     # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1/2022-12-24-13-03-24'
     # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1/2022-12-24-13-03-00'
-
+    folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter2/2023-01-21-09-59-39'
+    
     # Read data
     data_dict = read_data(folder_path)
 
@@ -114,9 +115,9 @@ if __name__ == '__main__':
     # Load parameter
     model_config = {
         'vae_model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/vanilla_vae/vanilla_vae_model_z_1000.pt',
-        'latent_model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter1/latent_ctrl/latent_ctrl_vanilla_vae_model_z_1000.pt',
-        'model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter1/combined_vae_latent_ctrl_z_1000.pt',
-        'tensorrt_engine_path': '/home/lab/catkin_ws/src/neptune-ros/model_weight/vae/combined_vae_latent_ctrl_z_1000.trt',
+        'latent_model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter2/latent_ctrl/latent_ctrl_vanilla_vae_model_z_1000.pt',
+        'model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter2/combined_vae_latent_ctrl_z_1000.pt',
+        # 'tensorrt_engine_path': '/home/lab/catkin_ws/src/neptune-ros/model_weight/vae/combined_vae_latent_ctrl_z_1000.trt',
     }
 
     controller_agent = VAELatentController(**model_config)
@@ -168,8 +169,8 @@ if __name__ == '__main__':
         cv2.imshow('VAE', cv2.cvtColor(image_combine, cv2.COLOR_RGB2BGR))
         # vae_out.write(cv2.cvtColor(image_combine, cv2.COLOR_RGB2BGR))
 
-        # plot_with_cmd_compare('control', image_bgr, data_dict['control_cmd'][i], predicted_action)
-        cv_image = plot_with_cmd('control', image_bgr, data_dict['control_cmd'][i], is_expert=is_pilot[i])
+        plot_with_cmd_compare('control', image_bgr, data_dict['control_cmd'][i], predicted_action)
+        # cv_image = plot_with_cmd('control', image_bgr, data_dict['control_cmd'][i], is_expert=is_pilot[i])
         # control_out.write(cv_image)
 
         elapsed_time = time.time() - tic
