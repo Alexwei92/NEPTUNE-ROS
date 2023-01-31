@@ -3,11 +3,11 @@
     <arg name="camera1_name"     default="d435i"/>
     <arg name="camera2_name"     default="t265"/>
     <arg name="db_folder"        default="/media/$(env USER)/NEPTUNE2/slam_data" />
-    <arg name="database_name"    default="field.db" />
+    <arg name="database_name"    default="field_s_shape.db" />
 
     <arg name="localization"     default="false"/>
 
-    <!-- Vehicle description
+    <!-- Vehicle description -->
     <arg name="urdf_folder" default="$(find edu_450)/urdf" />
     <arg name="vehicle_model" default="$(arg urdf_folder)/edu_450.urdf" />
 
@@ -15,12 +15,11 @@
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
 
     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-        <param name="rate" value="100" />
-    </node> -->
+        <param name="rate" value="200" />
+    </node>
 
-    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="camera_to_drone" args="-0.108 -0.018 0.043 0 0 0 /d435i_link /drone_link"/> -->
-    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_drone" args="0 0 0 0 0 0 /base_link /drone_link"/> -->
-    <!-- <node pkg="tf" type="static_transform_publisher" name="t265_to_d435i" args="-0.00143 0.0084 0.03782 0 -0.64577 0 camera_odom_frame d435i_link 100"/> -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="camera_to_drone" args="-0.108 -0.018 0.043 0 0 0 /d435i_link /drone_link"/>
+    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="t265_to_d435i" args="-0.00143 0.0084 0.03782 0 -0.64577 0 /t265_link /d435i_link"/> -->
 
     <!-- Uncompress images for color and depth -->
     <node name="republish_color" type="republish" pkg="image_transport" args="compressed in:=/$(arg camera1_name)/color/image_raw raw out:=/$(arg camera1_name)/color/image_raw" />
@@ -48,16 +47,17 @@
         <arg name="scan_cloud_topic"        value="/d435i/depth/color/points"/>
 
         <arg name="visual_odometry"         value="false"/>
-        <arg name="odom_topic"              value="/mavros/odometry/out"/>
+        <!-- <arg name="odom_topic"              value="/t265/odom/sample"/> -->
+        <arg name="odom_topic"              value="/mavros/local_position/odom"/>
         
         <arg name="approx_sync"             value="true"/>
-        <arg name="queue_size"              value="25"/>
-        <arg name="rviz"                    value="true"/>
+        <arg name="queue_size"              value="30"/>
+        <arg name="rviz"                    value="false"/>
         <arg name="rtabmapviz"              value="false"/>
 
     </include>
 
     <!-- rviz for visualization -->
-    <!-- <node type="rviz" name="rviz" pkg="rviz" args="-d $(find neptune_ros)launch/slam/visualize.rviz"/> -->
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find neptune_ros)launch/slam/visualize_depth.rviz"/>
 
 </launch>

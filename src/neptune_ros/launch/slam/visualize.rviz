@@ -7,10 +7,6 @@ Panels:
         - /TF1/Frames1
         - /ColorOccupancyGrid1
         - /RobotModel1/Links1
-        - /RobotModel1/Links1/rotor1_link1
-        - /RobotModel1/Links1/rotor2_link1
-        - /RobotModel1/Links1/rotor3_link1
-        - /RobotModel1/Links1/rotor4_link1
       Splitter Ratio: 0.40808823704719543
     Tree Height: 261
   - Class: rviz/Selection
@@ -124,14 +120,14 @@ Visualization Manager:
       Value: true
     - Class: octomap_rviz_plugin/ColorOccupancyGrid
       Enabled: true
-      Max. Height Display: 3
-      Max. Octree Depth: 15
-      Min. Height Display: -2
+      Max. Height Display: 7
+      Max. Octree Depth: 14
+      Min. Height Display: -1
       Name: ColorOccupancyGrid
       Octomap Topic: /rtabmap/octomap_binary
-      Queue Size: 5
+      Queue Size: 10
       Value: true
-      Voxel Alpha: 0.5
+      Voxel Alpha: 0.10000000149011612
       Voxel Coloring: Z-Axis
       Voxel Rendering: Occupied Voxels
     - Alpha: 1
@@ -244,31 +240,6 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        drone_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        rotor1_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        rotor2_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        rotor3_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        rotor4_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
@@ -357,21 +328,26 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -0.009999966248869896
-      Class: rviz/TopDownOrtho
+      Class: rviz/Orbit
+      Distance: 54.38992691040039
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
+      Focal Point:
+        X: 4.404772758483887
+        Y: -0.8315500617027283
+        Z: 2.9792637825012207
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 22.269649505615234
+      Pitch: 0.23479647934436798
       Target Frame: base_link
-      Value: TopDownOrtho (rviz)
-      X: 48.02906799316406
-      Y: 0.47244536876678467
+      Value: Orbit (rviz)
+      Yaw: 3.113196849822998
     Saved: ~
 Window Geometry:
   Camera:
@@ -394,4 +370,4 @@ Window Geometry:
     collapsed: false
   Width: 1853
   X: 67
-  Y: 27
+  Y: 484

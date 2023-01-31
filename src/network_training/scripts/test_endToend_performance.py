@@ -8,7 +8,7 @@ import cv2
 import pandas
 import time
 
-from controller.vae_latent_control import VAELatentController_Full, VAELatentController, VAELatentController_TRT
+from controller.end_to_end_control import EndToEndController, EndToEndController_TRT
 
 BLACK = (0,0,0)
 WHITE = (255,255,255)
@@ -30,12 +30,9 @@ def read_data(folder_path, image_only=False):
         timestamp -= timestamp[0]
         # control cmd
         control_cmd = data['control_cmd'].to_numpy()
-        # ai mode
-        ai_mode = data['ai_mode'].to_numpy()
 
         results['timestamp'] = timestamp
         results['control_cmd'] = control_cmd
-        results['ai_mode'] = ai_mode
 
     return results
 
@@ -67,7 +64,7 @@ def plot_with_cmd(window_name, image_raw, input=0, is_expert=True):
     return image
 
 
-def plot_with_cmd_compare(window_name, image_raw, pilot_input, agent_input, is_pilot_human=True):
+def plot_with_cmd_compare(window_name, image_raw, pilot_input, agent_input):
     '''
     Plot image with cmds and compare
     Input is normalized to [-1, 1]
@@ -85,11 +82,7 @@ def plot_with_cmd_compare(window_name, image_raw, pilot_input, agent_input, is_p
     pilot_center_pos = ((w2-w1)*width - bar_width) * (pilot_input/2) + 0.5*width
     agent_center_pos = ((w2-w1)*width - bar_width) * (agent_input/2) + 0.5*width
     # Pilot input
-    if is_pilot_human:
-        c = RED
-    else:
-        c = GREEN
-    cv2.rectangle(image, (int(pilot_center_pos-bar_width/2),int(h1*height)), (int(pilot_center_pos+bar_width/2),int(h2*height)), c, -1)
+    cv2.rectangle(image, (int(pilot_center_pos-bar_width/2),int(h1*height)), (int(pilot_center_pos+bar_width/2),int(h2*height)), RED, -1)
     # Agent input
     cv2.rectangle(image, (int(agent_center_pos-bar_width/2),int(h1*height)), (int(agent_center_pos+bar_width/2),int(h2*height)), BLUE, -1)
     # plot center line
@@ -103,9 +96,9 @@ if __name__ == '__main__':
     # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/2022-12-15-09-35-34'
     # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1/2022-12-24-13-02-56'
     # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1/2022-12-24-13-03-24'
-    # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1/2022-12-24-13-03-00'
+    folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1/2022-12-24-13-03-00'
     # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter2/2023-01-21-09-59-39'
-    folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter3/2023-01-24-10-18-32'
+    # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter3/2023-01-24-10-18-32'
     
     # Read data
     data_dict = read_data(folder_path)
@@ -122,18 +115,10 @@ if __name__ == '__main__':
 
     # Load parameter
     model_config = {
-        'vae_model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/vanilla_vae/vanilla_vae_model_z_1000.pt',
-        'latent_model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter3/latent_ctrl_with_extra/latent_ctrl_vanilla_vae_model_z_1000.pt',
-        'model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter3/combined_vae_latent_ctrl_z_1000.pt',
-        # 'tensorrt_engine_path': '/home/lab/catkin_ws/src/neptune-ros/model_weight/vae/combined_vae_latent_ctrl_z_1000.trt',
+        'model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter3/end_to_end/end_to_end_model.pt',
     }
 
-    controller_agent = VAELatentController(**model_config)
-    controller_agent_full = VAELatentController_Full(**model_config)
-    # controller_agent_trt = VAELatentController_TRT(**model_config)
-
-    # vae_out = cv2.VideoWriter('vae_output.avi',cv2.VideoWriter_fourcc(*'MJPG'), 15, (640, 240))
-    # control_out = cv2.VideoWriter('control_output.avi',cv2.VideoWriter_fourcc(*'MJPG'), 15, (640, 480))
+    controller_agent = EndToEndController(**model_config)
 
     tic = time.time()
     for i in range(len(data_dict['color_file_list'])):
@@ -154,35 +139,13 @@ if __name__ == '__main__':
         ])
 
         # predict
-        predicted_action = controller_agent_full.predict(image_bgr, is_bgr=True, state_extra=state_extra)
-        # predicted_action1 = controller_agent.predict(image_bgr, is_bgr=True, state_extra=state_extra)
-        # predicted_action2 = controller_agent_trt.predict(image_bgr, is_bgr=True, state_extra=state_extra)
-        image_raw, image_pred = controller_agent_full.reconstruct_image(image_bgr, is_bgr=True)
+        predicted_action = controller_agent.predict(image_bgr, is_bgr=True, state_extra=state_extra)
 
         if abs(predicted_action) < 1e-2:
             predicted_action = 0.0
 
-        # if abs(predicted_action1) < 1e-2:
-        #     predicted_action1 = 0.0
-
-        # if abs(predicted_action2) < 1e-2:
-        #     predicted_action2 = 0.0
-
-        # print(predicted_action, predicted_action1, predicted_action2)
-
         # plot
-        image_raw = cv2.resize(image_raw, (320, 240))
-        image_pred = cv2.resize(image_pred, (320, 240))
-        image_combine = np.concatenate((image_raw, image_pred), axis=1)
-        cv2.imshow('VAE', cv2.cvtColor(image_combine, cv2.COLOR_RGB2BGR))
-        # vae_out.write(cv2.cvtColor(image_combine, cv2.COLOR_RGB2BGR))
-
-        plot_with_cmd_compare('control', image_bgr, data_dict['control_cmd'][i], predicted_action, ~data_dict['ai_mode'][i])
-        # cv_image = plot_with_cmd('control', image_bgr, data_dict['control_cmd'][i], is_expert=is_pilot[i])
-        # control_out.write(cv_image)
+        plot_with_cmd_compare('control', image_bgr, data_dict['control_cmd'][i], predicted_action)
 
         elapsed_time = time.time() - tic
         # time.sleep(max(data_dict['timestamp'][i] - elapsed_time, 0))
-    
-    # vae_out.release()
-    # control_out.release()

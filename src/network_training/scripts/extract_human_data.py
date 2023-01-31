@@ -250,8 +250,8 @@ class ExtractHumanData():
 
 
 if __name__ == "__main__":
-    root_folder_path = '/media/lab/NEPTUNE2/field_raw_datasets/2023-01-21_Dagger_Iter2'
-    output_folder = '/media/lab/NEPTUNE2/field_datasets/human_data/iter2'
+    root_folder_path = '/media/lab/NEPTUNE2/field_raw_datasets/2023-01-27_Dagger_Iter3'
+    output_folder = '/media/lab/NEPTUNE2/field_datasets/human_data/iter3'
 
     #### 
     curr_dir = os.path.dirname(__file__)

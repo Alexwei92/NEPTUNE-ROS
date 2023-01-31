@@ -11,8 +11,8 @@ from sklearn.utils import shuffle
 from torchvision import transforms
 from torch.utils.data import Dataset
 
-from models import VanillaVAE, LatentCtrl
-from imitation_learning import LatentCtrlTrain
+from models import EndToEnd
+from imitation_learning import EndToEndTrain
 from utils.train_utils import *
 
 # Path settings
@@ -25,7 +25,27 @@ train_config_dir  = os.path.join(curr_dir, 'configs')
 # torch.autograd.set_detect_anomaly(True)
 
 ####################################################
-MAX_YAWRATE = 45.0
+
+class SaltAndPepperNoise(object):
+    def __init__(self,threshold = 0.01):
+        self.threshold = threshold
+
+    def __call__(self, img):
+        img_transpose = torch.transpose(img,0,1)
+        random_matrix = np.random.random(img_transpose.shape)
+        img_transpose[random_matrix >= (1-self.threshold)] = 1
+        img_transpose[random_matrix <= self.threshold] = 0
+        return torch.transpose(img_transpose,1,0)
+
+class GaussianNoise(object):
+    def __init__(self, mean=0, std = 0.05):
+        self.mean = mean
+        self.std = std
+
+    def __call__(self, img):
+        noise = np.random.normal(self.mean, self.std, img.shape)
+        img = img + noise.astype(np.float32)
+        return torch.clamp(img, 0, 1)
 
 class MyTransform:
     def __init__(self, brightness=0.3, contrast=0.3, saturation=0.3, sharpness=0.3):
@@ -33,6 +53,8 @@ class MyTransform:
         self.contrast = contrast
         self.saturation = saturation
         self.sharpness = sharpness
+        self.salt_pepper_noise = SaltAndPepperNoise()
+        self.gaussian_noise = GaussianNoise(0, 0.05)
 
     def __call__(self, img):
         img = transforms.functional.to_tensor(img)
@@ -41,6 +63,11 @@ class MyTransform:
             is_flip = True
         else:
             is_flip = False
+
+        img = transforms.functional.rotate(img, np.random.uniform(-10,10))
+        img = transforms.functional.gaussian_blur(img, random.choice([1,3,5]))
+        # img = self.salt_pepper_noise(img)
+        img = self.gaussian_noise(img)
         img = transforms.functional.adjust_sharpness(img, np.random.uniform(max(0,1-self.sharpness),1+self.sharpness))
         img = transforms.functional.adjust_brightness(img, np.random.uniform(max(0,1-self.brightness),1+self.brightness))
         img = transforms.functional.adjust_contrast(img, np.random.uniform(max(0,1-self.contrast),1+self.contrast))
@@ -48,7 +75,7 @@ class MyTransform:
         img = transforms.functional.normalize(img, (0.5), (0.5))
         return img, is_flip
 
-class LatentCtrlDataset(Dataset):
+class EndToEndDataset(Dataset):
     def __init__(self,
             dataset_dir,
             iteration=0,
@@ -60,7 +87,6 @@ class LatentCtrlDataset(Dataset):
         self.transform = transform
         self.resize = resize
         self.enable_extra = enable_extra
-        print(self.enable_extra)
         self.action = np.empty((0,), dtype=np.float32)
         self.state_extra = np.empty((0, 6), dtype=np.float32)
 
@@ -142,7 +168,7 @@ class LatentCtrlDataset(Dataset):
             rgb_img = cv2.resize(rgb_img, (self.resize[0], self.resize[1]))
         if self.transform is not None:
             rgb_img, is_flip = self.transform(rgb_img)
-        
+               
         # if enable state extra
         if self.enable_extra:
             state_extra = self.state_extra[idx, :]
@@ -156,7 +182,7 @@ class LatentCtrlDataset(Dataset):
         else:
             a = np.float32(1)
             state_extra_output = state_extra
-        
+            
         if self.state_extra is None:
             return {'image': rgb_img, 'action': a*self.action[idx]}
         else:
@@ -186,43 +212,31 @@ if __name__ == '__main__':
     iteration           = train_config['dataset_params']['iteration']
 
     ##########  Training   ###########
-    print('============== Latent Controller ================')
+    print('============== End to End Controller ================')
     # Load parameters
-    vae_model_path      = train_config['latentCtrl_params']['vae_model_path']
-    vae_model_config    = read_yaml(os.path.join(train_config_dir, 'vanilla_vae.yaml'))
-    latent_model_config = read_yaml(os.path.join(train_config_dir, 'latent_ctrl.yaml'))
+    model_config        = read_yaml(os.path.join(train_config_dir, 'end_to_end.yaml'))
 
-    # Load VAE model
-    vae_model = VanillaVAE(**vae_model_config['model_params'])
-
-    if not os.path.isfile(vae_model_path):
-        raise IOError("***No such file!", vae_model_path)
-    else:
-        model_weight = torch.load(vae_model_path)
-        vae_model.load_state_dict(model_weight)
-                
+              
     # Create the agent
-    latent_model_config['log_params']['output_dir'] = os.path.join(output_dir, 'iter'+str(iteration))
-    latent_model_config['model_params']['z_dim'] = vae_model.get_latent_dim()
-    latent_model = LatentCtrl(**latent_model_config['model_params'])
+    model_config['log_params']['output_dir'] = os.path.join(output_dir, 'iter'+str(iteration))
+    model = EndToEnd(**model_config['model_params'])
 
-    train_agent = LatentCtrlTrain(model=latent_model,
-                        VAE_model=vae_model,
+    train_agent = EndToEndTrain(model=model,
                         device=device,
                         is_eval=False,
-                        train_params=latent_model_config['train_params'],
-                        log_params=latent_model_config['log_params'])
+                        train_params=model_config['train_params'],
+                        log_params=model_config['log_params'])
 
     # Random seed
-    torch.manual_seed(latent_model_config['train_params']['manual_seed'])
-    torch.cuda.manual_seed(latent_model_config['train_params']['manual_seed'])
-    np.random.seed(latent_model_config['train_params']['manual_seed'])
+    torch.manual_seed(model_config['train_params']['manual_seed'])
+    torch.cuda.manual_seed(model_config['train_params']['manual_seed'])
+    np.random.seed(model_config['train_params']['manual_seed'])
 
     # Load data
     print('Loading datasets from {:s}'.format(dataset_dir))
-    image_resize = [vae_model.input_dim, vae_model.input_dim]
-    enable_extra = latent_model_config['model_params']['enable_extra']
-    all_data = LatentCtrlDataset(dataset_dir,
+    image_resize = [model_config['model_params']['input_dim'], model_config['model_params']['input_dim']]
+    enable_extra = model_config['model_params']['enable_extra']
+    all_data = EndToEndDataset(dataset_dir,
                     iteration=iteration,
                     resize=image_resize,
                     transform=MyTransform(),
@@ -244,11 +258,6 @@ if __name__ == '__main__':
     print('\n*** Start training ***')
     train_agent.load_dataset(train_data, test_data)
     train_agent.train()
-    print('Trained LatentCtrl model successfully.')
+    print('Trained EndToEnd model successfully.')
 
 ###################
-
-
-
-
-

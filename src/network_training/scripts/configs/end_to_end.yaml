@@ -1,12 +1,13 @@
 model_params:
-  name:                   'vanilla_vae'
+  name:                   'end_to_end'
   in_channels:            3
-  z_dim:                  1000
   input_dim:              128
+  extra_dim:              6
+  enable_extra:           False
 
 train_params:
   batch_size:             128
-  n_epochs:               200
+  n_epochs:               150
   optimizer:
     type:                 'Adam'
     learning_rate:        0.00005
@@ -17,10 +18,9 @@ train_params:
     enable:               False
     step_size:            50
     gamma:                0.5
-
+    
 log_params:
-  name:                   'vanilla_vae'
-  log_interval:           5
-  checkpoint_preload:     False
-  generate_samples:       True
+  name:                   'end_to_end'
+  log_interval:           10
+  checkpoint_preload:     True
   use_tensorboard:        True
