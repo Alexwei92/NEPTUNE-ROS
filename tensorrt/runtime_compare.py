@@ -7,6 +7,7 @@ from torchvision import transforms
 import onnxruntime as ort
 import tensorrt as trt
 import time
+import argparse
 
 from log_utils import timer, logger
 import common
@@ -22,8 +23,14 @@ sys.path.insert(0, model_dir)
 from models import AffordanceNet_Resnet18
 from models import VanillaVAE
 from models import VAELatentCtrl
+from models import EndToEnd_NoDropout
 
-MODEL_OPTION = 3
+argParser = argparse.ArgumentParser()
+argParser.add_argument("-o", "--option", type=int, default=3, help="model option")
+
+args = argParser.parse_args()
+MODEL_OPTION = args.option
+print(f"MODEL_OPTION: {MODEL_OPTION}")
 
 if MODEL_OPTION == 1: # Affordance Net
     MODEL_WEIGHT_PATH = os.path.join(model_weight_dir, 'affordance/affordance_model.pt')
@@ -40,6 +47,10 @@ if MODEL_OPTION == 3: # VAELatentCtrl
     ONNX_FILE_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000.onnx')
     TRT_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000.trt')
 
+if MODEL_OPTION == 4: # EndToEnd
+    MODEL_WEIGHT_PATH = os.path.join(model_weight_dir, 'endToend/end_to_end_model.pt')
+    ONNX_FILE_PATH = os.path.join(model_weight_dir, 'endToend/end_to_end_model.onnx')
+    TRT_PATH = os.path.join(model_weight_dir, 'endToend/end_to_end_model.trt')
 
 def load_engine(trt_runtime, engine_path):
     with open(engine_path, 'rb') as f:
@@ -89,6 +100,17 @@ if __name__ == '__main__':
 
         show_result = True
 
+    if MODEL_OPTION == 4:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = cv2.resize(img, (128, 128))
+        img_tensor = my_transform(img)
+
+        state_extra = np.zeros(6, dtype=np.float32)
+        state_extra_tensor = torch.from_numpy(state_extra).unsqueeze(0)
+        state_extra = np.array(state_extra_tensor)
+
+        show_result = True
+
     img_tensor = img_tensor.unsqueeze(0)
     img_np = np.array(img_tensor)
 
@@ -116,6 +138,13 @@ if __name__ == '__main__':
             z_dim=1000, 
             extra_dim=6).eval().cuda()
 
+    if MODEL_OPTION == 4:
+        pytorch_model = EndToEnd_NoDropout(
+            name='end_to_end',
+            in_channels=3,
+            input_dim=128,
+            extra_dim=6).eval().cuda()
+
     model_weight = torch.load(MODEL_WEIGHT_PATH)
     pytorch_model.load_state_dict(model_weight)
     load_pytorch.end()
@@ -130,7 +159,7 @@ if __name__ == '__main__':
     engine = load_engine(trt_runtime, TRT_PATH)
     load_trt.end()
     inputs, outputs, bindings, stream = common.allocate_buffers(engine)
-    if MODEL_OPTION == 3:
+    if MODEL_OPTION == 3 or MODEL_OPTION == 4:
         inputs[0].host = img_np
         inputs[1].host = state_extra
     else:
@@ -141,13 +170,13 @@ if __name__ == '__main__':
     print("\n")
     with torch.no_grad():
         for i in range(2): # warm start
-            if MODEL_OPTION == 3:
+            if MODEL_OPTION == 3 or MODEL_OPTION == 4:
                 pytorch_outputs = pytorch_model(img_tensor.to(torch.device("cuda:0")), state_extra_tensor.to(torch.device("cuda:0")))
             else:
                 pytorch_outputs = pytorch_model(img_tensor.to(torch.device("cuda:0")))
         for i in range(10):
             tic = time.perf_counter()
-            if MODEL_OPTION == 3:
+            if MODEL_OPTION == 3 or MODEL_OPTION == 4:
                 pytorch_outputs = pytorch_model(img_tensor.to(torch.device("cuda:0")), state_extra_tensor.to(torch.device("cuda:0"))) 
             else:
                 pytorch_outputs = pytorch_model(img_tensor.to(torch.device("cuda:0"))) 
@@ -159,7 +188,7 @@ if __name__ == '__main__':
     infer_onnx = timer('Run ONNX Infer')
     print("\n")
     for i in range(2): # warm start
-        if MODEL_OPTION == 3:
+        if MODEL_OPTION == 3 or MODEL_OPTION == 4:
             onnx_input = {ort_session.get_inputs()[0].name: img_np, ort_session.get_inputs()[1].name: state_extra}
         else:
             onnx_input = {ort_session.get_inputs()[0].name: img_np}

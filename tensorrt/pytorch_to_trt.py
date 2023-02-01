@@ -2,6 +2,7 @@ import os
 import sys
 import torch
 import tensorrt as trt
+import argparse
 
 from log_utils import timer, logger
 
@@ -16,8 +17,17 @@ sys.path.insert(0, model_dir)
 from models import AffordanceNet_Resnet18
 from models import VanillaVAE
 from models import VAELatentCtrl
+from models import EndToEnd_NoDropout
 
-MODEL_OPTION = 3
+argParser = argparse.ArgumentParser()
+argParser.add_argument("-o", "--option", type=int, default=3, help="model option")
+argParser.add_argument("-extra", "--extra", default=False, action="store_true", help="enable state extra")
+
+args = argParser.parse_args()
+enable_extra = args.extra
+MODEL_OPTION = args.option
+print(f"ENABLE_EXTRA: {enable_extra}")
+print(f"MODEL_OPTION: {MODEL_OPTION}")
 
 if MODEL_OPTION == 1: # Affordance Net
     MODEL_WEIGHT_PATH = os.path.join(model_weight_dir, 'affordance/affordance_model.pt')
@@ -30,9 +40,19 @@ if MODEL_OPTION == 2: # VAE
     TRT_PATH = os.path.join(model_weight_dir, 'vae/vanilla_vae_model_z_1000.trt')
 
 if MODEL_OPTION == 3: # VAELatentCtrl
-    MODEL_WEIGHT_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000.pt')
-    ONNX_FILE_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000.onnx')
-    TRT_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000.trt')
+    if enable_extra:
+        MODEL_WEIGHT_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000_with_extra.pt')
+        ONNX_FILE_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000_with_extra.onnx')
+        TRT_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000_with_extra.trt')
+    else:
+        MODEL_WEIGHT_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000_no_extra.pt')
+        ONNX_FILE_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000_no_extra.onnx')
+        TRT_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000_no_extra.trt')
+
+if MODEL_OPTION == 4: # EndToEnd
+    MODEL_WEIGHT_PATH = os.path.join(model_weight_dir, 'endToend/end_to_end_model.pt')
+    ONNX_FILE_PATH = os.path.join(model_weight_dir, 'endToend/end_to_end_model.onnx')
+    TRT_PATH = os.path.join(model_weight_dir, 'endToend/end_to_end_model.trt')
 
 
 def build_engine(onnx_path):
@@ -75,7 +95,6 @@ if __name__ == '__main__':
 
         sample_input = torch.ones((1, 3, 128, 128)).cuda()
 
-
     if MODEL_OPTION == 3:
         model = VAELatentCtrl(
             name='vae_latent_ctrl',
@@ -86,6 +105,16 @@ if __name__ == '__main__':
 
         sample_input = (torch.ones((1, 3, 128, 128)).cuda(), torch.zeros((1,6)).cuda())
 
+    if MODEL_OPTION == 4:
+        model = EndToEnd_NoDropout(
+            name='end_to_end',
+            in_channels=3,
+            input_dim=128,
+            extra_dim=6,
+        ).eval().cuda()
+
+        sample_input = (torch.ones((1, 3, 128, 128)).cuda(), torch.zeros((1,6)).cuda())
+
     model_weight = torch.load(MODEL_WEIGHT_PATH)
     model.load_state_dict(model_weight)
     load_pytorch.end()
@@ -93,7 +122,7 @@ if __name__ == '__main__':
     # Pytorch to onnx
     pytorch_to_onnx = timer("Convert Pytorch to ONNX file")
     torch.onnx.export(model, sample_input, ONNX_FILE_PATH, input_names=['input'],
-                        output_names=['output'], export_params=True)
+                        output_names=['output'], export_params=True, training=torch.onnx.TrainingMode.EVAL)
     pytorch_to_onnx.end()
 
     # check the onnx model

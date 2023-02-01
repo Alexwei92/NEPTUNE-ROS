@@ -60,7 +60,6 @@ class LatentCtrlDataset(Dataset):
         self.transform = transform
         self.resize = resize
         self.enable_extra = enable_extra
-        print(self.enable_extra)
         self.action = np.empty((0,), dtype=np.float32)
         self.state_extra = np.empty((0, 6), dtype=np.float32)
 

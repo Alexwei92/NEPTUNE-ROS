@@ -30,9 +30,12 @@ def read_data(folder_path, image_only=False):
         timestamp -= timestamp[0]
         # control cmd
         control_cmd = data['control_cmd'].to_numpy()
+        # ai mode
+        ai_mode = data['ai_mode'].to_numpy()
 
         results['timestamp'] = timestamp
         results['control_cmd'] = control_cmd
+        results['ai_mode'] = ai_mode
 
     return results
 
@@ -64,7 +67,7 @@ def plot_with_cmd(window_name, image_raw, input=0, is_expert=True):
     return image
 
 
-def plot_with_cmd_compare(window_name, image_raw, pilot_input, agent_input):
+def plot_with_cmd_compare(window_name, image_raw, pilot_input, agent_input, is_pilot_human=True):
     '''
     Plot image with cmds and compare
     Input is normalized to [-1, 1]
@@ -82,7 +85,11 @@ def plot_with_cmd_compare(window_name, image_raw, pilot_input, agent_input):
     pilot_center_pos = ((w2-w1)*width - bar_width) * (pilot_input/2) + 0.5*width
     agent_center_pos = ((w2-w1)*width - bar_width) * (agent_input/2) + 0.5*width
     # Pilot input
-    cv2.rectangle(image, (int(pilot_center_pos-bar_width/2),int(h1*height)), (int(pilot_center_pos+bar_width/2),int(h2*height)), RED, -1)
+    if is_pilot_human:
+        c = RED
+    else:
+        c = GREEN
+    cv2.rectangle(image, (int(pilot_center_pos-bar_width/2),int(h1*height)), (int(pilot_center_pos+bar_width/2),int(h2*height)), c, -1)
     # Agent input
     cv2.rectangle(image, (int(agent_center_pos-bar_width/2),int(h1*height)), (int(agent_center_pos+bar_width/2),int(h2*height)), BLUE, -1)
     # plot center line
@@ -96,9 +103,9 @@ if __name__ == '__main__':
     # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/2022-12-15-09-35-34'
     # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1/2022-12-24-13-02-56'
     # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1/2022-12-24-13-03-24'
-    folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1/2022-12-24-13-03-00'
+    # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1/2022-12-24-13-03-00'
     # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter2/2023-01-21-09-59-39'
-    # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter3/2023-01-24-10-18-32'
+    folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter3/2023-01-24-10-18-32'
     
     # Read data
     data_dict = read_data(folder_path)
@@ -116,6 +123,7 @@ if __name__ == '__main__':
     # Load parameter
     model_config = {
         'model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter3/end_to_end/end_to_end_model.pt',
+        'enable_extra': False,
     }
 
     controller_agent = EndToEndController(**model_config)
@@ -145,7 +153,7 @@ if __name__ == '__main__':
             predicted_action = 0.0
 
         # plot
-        plot_with_cmd_compare('control', image_bgr, data_dict['control_cmd'][i], predicted_action)
+        plot_with_cmd_compare('control', image_bgr, data_dict['control_cmd'][i], predicted_action, ~data_dict['ai_mode'][i])
 
         elapsed_time = time.time() - tic
         # time.sleep(max(data_dict['timestamp'][i] - elapsed_time, 0))

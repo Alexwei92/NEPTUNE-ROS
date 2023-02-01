@@ -1,27 +1,24 @@
-import torch
 import os
+import sys
 import cv2
 import numpy as np
+import torch
 from torchvision import transforms
 import tensorrt as trt
+import utils.tensorrt_utils as tensorrt_utils
+
+curr_dir = os.path.dirname(os.path.abspath(__file__))
+extra_dir = os.path.abspath(os.path.join(curr_dir, "../../../network_training/scripts"))
+sys.path.insert(0, extra_dir)
 
 from models import EndToEnd
-from utils import tensorrt_utils
-
-########## GLOBAL VARIABLES ############
-curr_dir        = os.path.dirname(os.path.abspath(__file__))
-parent_dir      = os.path.dirname(curr_dir)
-config_dir      = os.path.join(parent_dir, 'configs')
 
 endToend_model_config = {
     'name': 'end_to_end',
     'in_channels': 3,
     'input_dim': 128,
     'extra_dim': 6,
-    'enable_extra': False,
 }
-
-########################################
 
 class EndToEndController():
     """

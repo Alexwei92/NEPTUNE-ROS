@@ -7,6 +7,7 @@ import numpy as np
 import cv2
 import pandas
 import time
+import argparse
 
 from controller.vae_latent_control import VAELatentController_Full, VAELatentController, VAELatentController_TRT
 
@@ -99,13 +100,19 @@ def plot_with_cmd_compare(window_name, image_raw, pilot_input, agent_input, is_p
     return image
 
 if __name__ == '__main__':
+    argParser = argparse.ArgumentParser()
+    argParser.add_argument("-extra", "--extra", default=False, action="store_true", help="enable state extra")
+    
+    args = argParser.parse_args()
+    enable_extra = args.extra
+
     # Datafolder
     # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/2022-12-15-09-35-34'
     # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1/2022-12-24-13-02-56'
     # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1/2022-12-24-13-03-24'
     # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter1/2022-12-24-13-03-00'
-    # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter2/2023-01-21-09-59-39'
-    folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter3/2023-01-24-10-18-32'
+    folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter2/2023-01-21-09-59-39'
+    # folder_path = '/media/lab/NEPTUNE2/field_datasets/human_data/iter3/2023-01-24-10-18-32'
     
     # Read data
     data_dict = read_data(folder_path)
@@ -121,13 +128,24 @@ if __name__ == '__main__':
     is_pilot = ~(states['ai_mode'].to_numpy())
 
     # Load parameter
-    model_config = {
-        'vae_model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/vanilla_vae/vanilla_vae_model_z_1000.pt',
-        'latent_model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter3/latent_ctrl_with_extra/latent_ctrl_vanilla_vae_model_z_1000.pt',
-        'model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter3/combined_vae_latent_ctrl_z_1000.pt',
-        # 'tensorrt_engine_path': '/home/lab/catkin_ws/src/neptune-ros/model_weight/vae/combined_vae_latent_ctrl_z_1000.trt',
-    }
+    if enable_extra:
+        model_config = {
+            'vae_model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/vanilla_vae/vanilla_vae_model_z_1000.pt',
+            'latent_model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter3/latent_ctrl_with_extra/latent_ctrl_vanilla_vae_model_z_1000.pt',
+            'model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter3/combined_vae_latent_ctrl_z_1000_with_extra.pt',
+            # 'tensorrt_engine_path': '/home/lab/catkin_ws/src/neptune-ros/model_weight/vae/combined_vae_latent_ctrl_z_1000.trt',
+            'enable_extra': True,
+        }
+    else:
+        model_config = {
+            'vae_model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/vanilla_vae/vanilla_vae_model_z_1000.pt',
+            'latent_model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter3/latent_ctrl_no_extra/latent_ctrl_vanilla_vae_model_z_1000.pt',
+            'model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter3/combined_vae_latent_ctrl_z_1000_no_extra.pt',
+            # 'tensorrt_engine_path': '/home/lab/catkin_ws/src/neptune-ros/model_weight/vae/combined_vae_latent_ctrl_z_1000.trt',
+            'enable_extra': False,
+        }
 
+    print(f"enable_extra is {model_config['enable_extra']}")
     controller_agent = VAELatentController(**model_config)
     controller_agent_full = VAELatentController_Full(**model_config)
     # controller_agent_trt = VAELatentController_TRT(**model_config)

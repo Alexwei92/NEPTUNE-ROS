@@ -1,1 +1,2 @@
 from .vae_latent_control import VAELatentController, VAELatentController_TRT
+from .end_to_end_control import EndToEndController, EndToEndController_TRT

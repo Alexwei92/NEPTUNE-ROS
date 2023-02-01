@@ -2,17 +2,31 @@
 Combine trained VAE and LatentCtrl models to reduce size
 """
 import torch
+import argparse
 
 from models import VanillaVAE, LatentCtrl, VAELatentCtrl
 
 if __name__ == '__main__':
 
+    argParser = argparse.ArgumentParser()
+    argParser.add_argument("-extra", "--extra", default=False, action="store_true", help="enable state extra")
+    
+    args = argParser.parse_args()
+    enable_extra = args.extra
+
     # Load model parameter
-    model_weight_config = {
-        'vae_model_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/vanilla_vae/vanilla_vae_model_z_1000.pt',
-        'latent_ctrl_model_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter3/latent_ctrl_with_extra/latent_ctrl_vanilla_vae_model_z_1000.pt',
-        'vae_latent_ctrl_model_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter3/combined_vae_latent_ctrl_z_1000.pt',
-    }
+    if enable_extra:
+        model_weight_config = {
+            'vae_model_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/vanilla_vae/vanilla_vae_model_z_1000.pt',
+            'latent_ctrl_model_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter3/latent_ctrl_with_extra/latent_ctrl_vanilla_vae_model_z_1000.pt',
+            'vae_latent_ctrl_model_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter3/combined_vae_latent_ctrl_z_1000_with_extra.pt',
+        }
+    else:
+        model_weight_config = {
+            'vae_model_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/vanilla_vae/vanilla_vae_model_z_1000.pt',
+            'latent_ctrl_model_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter3/latent_ctrl_no_extra/latent_ctrl_vanilla_vae_model_z_1000.pt',
+            'vae_latent_ctrl_model_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter3/combined_vae_latent_ctrl_z_1000_no_extra.pt',
+        }
 
     vae_model_config = {
         'name': 'vanilla_vae',

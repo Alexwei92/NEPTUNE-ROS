@@ -2,6 +2,7 @@
 import os
 import rospy
 import numpy as np
+import argparse
 
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import TwistStamped, PoseStamped
@@ -9,18 +10,46 @@ from sensor_msgs.msg import Image
 from mavros_msgs.msg import RCIn, HomePosition
 from px4_offboard.msg import ControlCmd
 
-from controller import VAELatentController, VAELatentController_TRT
+from controller import VAELatentController, VAELatentController_TRT, EndToEndController, EndToEndController_TRT
 from utils.math_utils import euler_from_quaternion, constrain_value
 
 ######################
 curr_dir = os.path.dirname(os.path.abspath(__file__))
-model_weight_dir = os.path.abspath(os.path.join(curr_dir, "../../../model_weight/vae"))
 extra_dir = os.path.abspath(os.path.join(curr_dir, "../../network_training/scripts"))
 
-model_config = {
-    'model_weight_path': os.path.join(model_weight_dir, 'combined_vae_latent_ctrl_z_1000.pt'),
-    'tensorrt_engine_path': os.path.join(model_weight_dir, 'combined_vae_latent_ctrl_z_1000.trt'),
-}
+argParser = argparse.ArgumentParser()
+argParser.add_argument("-m", "--model", type=int, default=1, help="model option")
+argParser.add_argument("-extra", "--extra", default=False, action="store_true", help="enable state extra")
+
+args = argParser.parse_args()
+enable_extra = args.extra
+model_option = args.model
+
+if model_option == 1:
+    model_weight_dir = os.path.abspath(os.path.join(curr_dir, "../../../model_weight/vae"))
+    if enable_extra:
+        model_config = {
+            'model_weight_path': os.path.join(model_weight_dir, 'combined_vae_latent_ctrl_z_1000_with_extra.pt'),
+            'tensorrt_engine_path': os.path.join(model_weight_dir, 'combined_vae_latent_ctrl_z_1000_with_extra.trt'),
+            'enable_extra': True,
+        }
+    else:
+        model_config = {
+            'model_weight_path': os.path.join(model_weight_dir, 'combined_vae_latent_ctrl_z_1000_no_extra.pt'),
+            'tensorrt_engine_path': os.path.join(model_weight_dir, 'combined_vae_latent_ctrl_z_1000_no_extra.trt'),
+            'enable_extra': False,
+        }
+
+elif model_option == 2:
+    model_weight_dir = os.path.abspath(os.path.join(curr_dir, "../../../model_weight/endToend"))
+    model_config = {
+        'model_weight_path': os.path.join(model_weight_dir, 'end_to_end_model.pt'),
+        'tensorrt_engine_path': os.path.join(model_weight_dir, 'end_to_end_model.trt'),
+        'enable_extra': False,
+    }
+
+else:
+    exit('Unknown model option!')
 ######################
 
 class AgentControl():
@@ -51,10 +80,20 @@ class AgentControl():
         rospy.loginfo("The agent controller has been initialized!")
 
     def init_agent(self, use_tensorrt):
-        if use_tensorrt:
-            self.agent = VAELatentController_TRT(**model_config)
-        else:
-            self.agent = VAELatentController(**model_config)
+        if model_option == 1:
+            rospy.loginfo("Start VAELatentController")
+            rospy.loginfo(f"ENABLE_EXTRA: {model_config['enable_extra']}")
+            if use_tensorrt:
+                self.agent = VAELatentController_TRT(**model_config)
+            else:
+                self.agent = VAELatentController(**model_config)
+
+        if model_option == 2:
+            rospy.loginfo("Start EndToEndtController")
+            if use_tensorrt:
+                self.agent = EndToEndController_TRT(**model_config)
+            else:
+                self.agent = EndToEndController(**model_config)
         
         self.use_tensorrt = use_tensorrt
         self.warm_start()

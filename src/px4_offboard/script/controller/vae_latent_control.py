@@ -38,7 +38,8 @@ class VAELatentController():
         self.transform_composed = transforms.Compose([ 
                                     transforms.ToTensor(),
                                     transforms.Normalize((0.5), (0.5)),
-                                ]) 
+                                ])
+        self.enable_extra       = kwargs['enable_extra']
         
     def load_model(self, model_weight_path, **kwargs):
         """
@@ -61,6 +62,9 @@ class VAELatentController():
         self.model.eval()
         with torch.no_grad():
             if state_extra is not None:
+                # if not enable state_extra
+                if not self.enable_extra:
+                    state_extra = np.zeros(vae_latent_ctrl_model_config['extra_dim'])
                 state_extra = state_extra.astype(np.float32)
                 y_pred = self.model(image_tensor.unsqueeze(0).to(self.device), torch.from_numpy(state_extra).unsqueeze(0).to(self.device))
             else:
@@ -87,7 +91,8 @@ class VAELatentController_TRT():
         self.transform_composed = transforms.Compose([ 
                                     transforms.ToTensor(),
                                     transforms.Normalize((0.5), (0.5)),
-                                ]) 
+                                ])
+        self.enable_extra       = kwargs['enable_extra']
 
     def load_engine(self, tensorrt_engine_path, **kwargs):
         """
@@ -113,6 +118,9 @@ class VAELatentController_TRT():
 
         with self.engine.create_execution_context() as context:
             self.inputs[0].host = np.array(image_tensor, dtype=np.float32)
+            # if not enable state_extra
+            if not self.enable_extra:
+                state_extra = np.zeros(vae_latent_ctrl_model_config['extra_dim'])
             self.inputs[1].host = np.array(state_extra, dtype=np.float32)
 
             y_pred = tensorrt_utils.do_inference(
