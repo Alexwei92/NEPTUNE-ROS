@@ -43,9 +43,9 @@ if MODEL_OPTION == 2: # VAE
     TRT_PATH = os.path.join(model_weight_dir, 'vae/vanilla_vae_model_z_1000.trt')
 
 if MODEL_OPTION == 3: # VAELatentCtrl
-    MODEL_WEIGHT_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000.pt')
-    ONNX_FILE_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000.onnx')
-    TRT_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000.trt')
+    MODEL_WEIGHT_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000_no_extra.pt')
+    ONNX_FILE_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000_no_extra.onnx')
+    TRT_PATH = os.path.join(model_weight_dir, 'vae/combined_vae_latent_ctrl_z_1000_no_extra.trt')
 
 if MODEL_OPTION == 4: # EndToEnd
     MODEL_WEIGHT_PATH = os.path.join(model_weight_dir, 'endToend/end_to_end_model.pt')

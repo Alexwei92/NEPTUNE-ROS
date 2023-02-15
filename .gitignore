@@ -13,3 +13,5 @@ src/VIO
 *.ipynb
 
 *.avi
+
+src/paper/

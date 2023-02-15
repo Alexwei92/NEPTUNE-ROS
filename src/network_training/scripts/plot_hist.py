@@ -64,6 +64,7 @@ if __name__ == "__main__":
     # Load parameter
     model_config = {
         'model_weight_path': '/media/lab/NEPTUNE2/field_outputs/imitation_learning/iter1/combined_vae_latent_ctrl_z_1000.pt',
+        'enable_extra': True,
     }
     controller_agent = VAELatentController(**model_config)
 

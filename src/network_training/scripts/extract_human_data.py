@@ -143,18 +143,28 @@ class ExtractHumanData():
             utm_local_pos_y = np.array([0.0] * N)
 
         # local position odom
+        odom_local_pos_x = []
+        odom_local_pos_y = []
         odom_local_pos_z = []
         roll_angle = []
         pitch_angle = []
+        yaw_angle = []
         for pose_msg in local_position_sync['pose']:
+            odom_local_pos_x.append(pose_msg.position.x)
+            odom_local_pos_y.append(pose_msg.position.y)
             odom_local_pos_z.append(pose_msg.position.z)
-            roll, pitch, _ = euler_from_quaternion(pose_msg.orientation)
+            roll, pitch, yaw = euler_from_quaternion(pose_msg.orientation)
             roll_angle.append(roll)
             pitch_angle.append(pitch)
+            yaw_angle.append(yaw)
 
+        odom_local_pos_x = np.array(odom_local_pos_x)
+        odom_local_pos_y = np.array(odom_local_pos_y)
+        odom_local_pos_z = np.array(odom_local_pos_z)
         odom_rel_height = np.array(odom_local_pos_z) - home_pos_z
         roll_angle = np.array(roll_angle)
         pitch_angle = np.array(pitch_angle)
+        yaw_angle = np.array(yaw_angle)
 
         # velocity body
         linear_x, linear_y, linear_z = [], [], []
@@ -204,9 +214,13 @@ class ExtractHumanData():
         states['utm_pos_x'] = utm_local_pos_x
         states['utm_pos_y'] = utm_local_pos_y
         states['heading'] = heading
+        states['odom_pos_x'] = odom_local_pos_x
+        states['odom_pos_y'] = odom_local_pos_y
+        states['odom_pos_z'] = odom_local_pos_z
         states['odom_rel_height'] = odom_rel_height
         states['roll_rad'] = roll_angle
         states['pitch_rad'] = pitch_angle
+        states['yaw_rad'] = yaw_angle
         states['body_linear_x'] = linear_x
         states['body_linear_y'] = linear_y
         states['body_linear_z'] = linear_z
@@ -230,9 +244,13 @@ class ExtractHumanData():
                 'utm_pos_x',
                 'utm_pos_y',
                 'heading',
+                'odom_pos_x',
+                'odom_pos_y',
+                'odom_pos_z',
                 'odom_rel_height',
                 'roll_rad',
                 'pitch_rad',
+                'yaw_rad',
                 'body_linear_x',
                 'body_linear_y',
                 'body_linear_z',
@@ -250,8 +268,8 @@ class ExtractHumanData():
 
 
 if __name__ == "__main__":
-    root_folder_path = '/media/lab/NEPTUNE2/field_raw_datasets/2023-01-27_Dagger_Iter3'
-    output_folder = '/media/lab/NEPTUNE2/field_datasets/human_data/iter3'
+    root_folder_path = '/media/lab/NEPTUNE2/field_raw_datasets/2023-02-07_Dagger_eval2'
+    output_folder = '/media/lab/NEPTUNE2/field_datasets/human_data/iter4'
 
     #### 
     curr_dir = os.path.dirname(__file__)
